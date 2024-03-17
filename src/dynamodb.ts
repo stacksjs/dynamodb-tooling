@@ -12,11 +12,6 @@ import { exists } from './utils'
 import type { Config } from './config'
 import { config } from './config'
 
-const debug = Debug('dynamodb-local')
-const JARNAME = 'DynamoDBLocal.jar'
-
-const runningProcesses: { [port: number]: ChildProcess } = {}
-
 interface LaunchOptions {
   /**
    * The port to run the local DynamoDB instance on
@@ -43,6 +38,10 @@ interface LaunchOptions {
    */
   javaOpts?: string
 }
+
+const debug = Debug('dynamodb-local')
+const JARNAME = 'DynamoDBLocal.jar'
+const runningProcesses: { [port: number]: ChildProcess } = {}
 
 export const dynamoDb = {
   /**
