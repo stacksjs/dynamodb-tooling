@@ -92,7 +92,7 @@ export const dynamoDb = {
 
   relaunch(port: number, ...args: string[]): void {
     this.stop(port)
-    this.launch(port, ...args)
+    this.launch({ port, additionalArgs: args })
   },
 
   configureInstaller(conf: Partial<Config>): void {
