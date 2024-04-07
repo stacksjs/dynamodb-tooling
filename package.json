@@ -50,8 +50,8 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^2.12.2",
     "@commitlint/cli": "^19.2.1",
-    "@stacksjs/eslint-config": "^0.59.11",
     "@types/bun": "^1.0.12",
     "@types/tar": "^6.1.12",
     "bumpp": "^9.4.0",

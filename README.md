@@ -49,14 +49,14 @@ await dynamoDb.install()
 ```ts
 import { dynamoDb } from 'dynamodb-tooling'
 
-const port = 8000;
+const port = 8000
 // if you want to share with Bun Shell
 await dynamoDb.launch({
   port,
   additionalArgs: ['-sharedDb'],
 })
 // do your tests / trigger your logic
-dynamoDb.stop(port);
+dynamoDb.stop(port)
 ```
 
 Alternatively, you can use it as a detached server:
