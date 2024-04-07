@@ -1,9 +1,5 @@
 import { loadConfig } from 'c12'
-
-export interface Config {
-  installPath: string
-  downloadUrl: string
-}
+import type { Config } from './types'
 
 // Get loaded config
 const { config } = await loadConfig({
