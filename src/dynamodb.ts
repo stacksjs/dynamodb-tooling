@@ -18,7 +18,8 @@ const runningProcesses: { [port: number]: Subprocess } = {}
 
 export const dynamoDb = {
   async launch(options?: LaunchOptions): Promise<Subprocess | undefined> {
-    const { port = 8000, dbPath = '', additionalArgs = [], verbose = false, detached = false, javaOpts = '' } = options ?? {}
+    const { port = 8000, dbPath = '', additionalArgs = ['-sharedDb'], verbose = false, detached = false, javaOpts = '' } = options ?? {}
+
     if (runningProcesses[port])
       return runningProcesses[port]
 
