@@ -5,6 +5,11 @@ import type { Config } from './types'
 const { config } = await loadConfig({
   name: 'dynamodb',
   defaultConfig: {
+    port: 8000,
+    dbPath: '',
+    detached: false,
+    additionalArgs: [],
+    javaOpts: '',
     installPath: 'dynamodb-local',
     downloadUrl: 'https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz',
   },

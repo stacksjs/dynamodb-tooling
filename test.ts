@@ -5,10 +5,7 @@ console.log('Starting DynamoDB on port 8000')
 
 const port = 8000
 // if you want to share with Bun Shell
-const dd = await dynamoDb.launch({
-  port,
-  additionalArgs: ['-sharedDb'],
-})
+const dd = await dynamoDb.launch()
 
 // eslint-disable-next-line no-console
 console.log('dd', dd)

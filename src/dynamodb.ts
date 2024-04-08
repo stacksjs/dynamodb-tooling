@@ -4,38 +4,34 @@ import * as https from 'node:https'
 import * as zlib from 'node:zlib'
 import * as path from 'node:path'
 import { promisify } from 'node:util'
-// eslint-disable-next-line unicorn/prefer-node-protocol
-import type { Subprocess } from 'bun'
+import type { Subprocess } from 'node:bun'
 import * as tar from 'tar'
 import Debug from 'debug'
 import { exists } from './utils'
 import { config } from './config'
+import type { LaunchOptions } from './types'
 
 const debug = Debug('dynamodb-local')
 const JARNAME = 'DynamoDBLocal.jar'
 const runningProcesses: { [port: number]: Subprocess } = {}
 
-export interface LaunchOptions {
-  port: number
-  dbPath?: string
-  additionalArgs?: string[]
-  verbose?: boolean
-  detached?: boolean
-  javaOpts?: string
-}
-
 export const dynamoDb = {
-  async launch(options: LaunchOptions): Promise<Subprocess | undefined> {
-    const { port, dbPath, additionalArgs = [], verbose = false, detached, javaOpts = '' } = options
+  async launch(options?: LaunchOptions): Promise<Subprocess | undefined> {
+    const { port = 8000, dbPath = '', additionalArgs = [], verbose = false, detached = false, javaOpts = '' } = options ?? {}
     if (runningProcesses[port])
       return runningProcesses[port]
 
     const args = ['-Xrs', '-Djava.library.path=./DynamoDBLocal_lib', javaOpts, '-jar', JARNAME, '-port', port.toString(), ...(dbPath ? ['-dbPath', dbPath] : ['-inMemory']), ...additionalArgs]
 
+    // console.log('args', ...args)
+    // console.log('javaOpts', javaOpts)
+    // console.log('dbPath', dbPath)
+
     debug('Launching DynamoDB Local with args:', args)
-    await this.install()
 
     try {
+      await this.install()
+
       const child = Bun.spawn(['java', ...args], {
         cwd: config.installPath,
         onExit: (proc, exitCode, signalCode, error) => {
