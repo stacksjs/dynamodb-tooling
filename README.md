@@ -12,6 +12,7 @@
 
 - Zero-config DynamoDB setup
 - Local development with SSL support (wip)
+- DynamoDB Toolbox integration
 
 ## Install
 
