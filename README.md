@@ -120,6 +120,7 @@ We would like to extend our thanks to the following sponsors for funding Stacks 
 
 ## Credits
 
+- [dynamodb-toolbox](https://github.com/jeremydaly/dynamodb-toolbox)
 - [dynamodb-local](https://github.com/rynop/dynamodb-local)
 - [Chris Breuer](https://github.com/chrisbbreuer)
 - [All Contributors](../../contributors)
