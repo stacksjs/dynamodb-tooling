@@ -51,7 +51,7 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "dependencies": {
-    "dynamodb-toolbox": "^0.9.5"
+    "dynamodb-toolbox": "^1.9.3"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^3.7.1",
