@@ -1,1 +1,1 @@
-export { Table, Entity } from 'dynamodb-toolbox'
+export { Entity, Table } from 'dynamodb-toolbox'
