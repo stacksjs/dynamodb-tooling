@@ -48,7 +48,7 @@
     "@types/bun": "^1.1.10",
     "@types/tar": "^6.1.13",
     "bumpp": "^9.5.2",
-    "bun-plugin-dts-auto": "^0.11.1",
+    "bun-plugin-dts-auto": "^0.15.4",
     "c12": "^1.11.2",
     "changelogen": "^0.5.7",
     "commitizen": "^4.3.0",
