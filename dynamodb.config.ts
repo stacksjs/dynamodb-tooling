@@ -1,6 +1,6 @@
-import * as path from 'node:path'
-import * as os from 'node:os'
 import type { Config } from './src/types'
+import * as os from 'node:os'
+import * as path from 'node:path'
 
 export default {
   port: 8000,
