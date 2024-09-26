@@ -1,16 +1,16 @@
-import process from 'node:process'
+import type { Subprocess } from 'bun'
+import type { LaunchOptions } from './types'
 import * as fs from 'node:fs'
 import * as https from 'node:https'
-import * as zlib from 'node:zlib'
 import * as path from 'node:path'
+import process from 'node:process'
+
 import { promisify } from 'node:util'
-// eslint-disable-next-line unicorn/prefer-node-protocol
-import type { Subprocess } from 'bun'
-import * as tar from 'tar'
+import * as zlib from 'node:zlib'
 import Debug from 'debug'
-import { exists } from './utils'
+import * as tar from 'tar'
 import { config } from './config'
-import type { LaunchOptions } from './types'
+import { exists } from './utils'
 
 const debug = Debug('dynamodb-local')
 const JARNAME = 'DynamoDBLocal.jar'
@@ -84,9 +84,7 @@ export const dynamoDb = {
         if (response.statusCode !== 200)
           return reject(new Error(`Failed to download DynamoDB Local: ${response.statusCode}`))
 
-        response.pipe(zlib.createUnzip()).pipe(tar.extract({ cwd: config.installPath }))
-          .on('finish', resolve)
-          .on('error', reject)
+        response.pipe(zlib.createUnzip()).pipe(tar.extract({ cwd: config.installPath })).on('finish', resolve).on('error', reject)
       }).on('error', reject)
     })
   },
