@@ -93,9 +93,9 @@ export const dynamoDb = {
           if (response.statusCode !== 200)
             return reject(new Error(`Failed to download DynamoDB Local: ${response.statusCode}`))
 
-          // @ts-expect-error: Ignoring type error due to external library incompatibility
           response
             .pipe(zlib.createUnzip())
+            // @ts-expect-error: Ignoring type error due to external library incompatibility
             .pipe(tar.extract({ cwd: config.installPath }))
             .on('finish', resolve)
             .on('error', reject)
