@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-describe('should', () => {
+describe('dynamodb-tooling', () => {
   it('exported', () => {
     expect(1).toEqual(1)
   })

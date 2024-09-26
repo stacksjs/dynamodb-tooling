@@ -1,15 +1,14 @@
-import type { Subprocess } from 'bun'
-import type { LaunchOptions } from './types'
 import * as fs from 'node:fs'
 import * as https from 'node:https'
 import * as path from 'node:path'
 import process from 'node:process'
-
 import { promisify } from 'node:util'
 import * as zlib from 'node:zlib'
+import type { Subprocess } from 'bun'
 import Debug from 'debug'
 import * as tar from 'tar'
 import { config } from './config'
+import type { LaunchOptions } from './types'
 import { exists } from './utils'
 
 const debug = Debug('dynamodb-local')
@@ -18,12 +17,28 @@ const runningProcesses: { [port: number]: Subprocess } = {}
 
 export const dynamoDb = {
   async launch(options?: LaunchOptions): Promise<Subprocess | undefined> {
-    const { port = 8000, dbPath = '', additionalArgs = ['-sharedDb'], verbose = false, detached = false, javaOpts = '' } = options ?? {}
+    const {
+      port = 8000,
+      dbPath = '',
+      additionalArgs = ['-sharedDb'],
+      verbose = false,
+      detached = false,
+      javaOpts = '',
+    } = options ?? {}
 
-    if (runningProcesses[port])
-      return runningProcesses[port]
+    if (runningProcesses[port]) return runningProcesses[port]
 
-    const args = ['-Xrs', '-Djava.library.path=./DynamoDBLocal_lib', javaOpts, '-jar', JARNAME, '-port', port.toString(), ...(dbPath ? ['-dbPath', dbPath] : ['-inMemory']), ...additionalArgs]
+    const args = [
+      '-Xrs',
+      '-Djava.library.path=./DynamoDBLocal_lib',
+      javaOpts,
+      '-jar',
+      JARNAME,
+      '-port',
+      port.toString(),
+      ...(dbPath ? ['-dbPath', dbPath] : ['-inMemory']),
+      ...additionalArgs,
+    ]
 
     // console.log('args', ...args)
     // console.log('javaOpts', javaOpts)
@@ -37,23 +52,18 @@ export const dynamoDb = {
       const child = Bun.spawn(['java', ...args], {
         cwd: config.installPath,
         onExit: (proc, exitCode, signalCode, error) => {
-          if (exitCode !== 0 && verbose)
-            debug('Local DynamoDB exit code:', exitCode)
-          if (error)
-            debug('Local DynamoDB error:', error)
+          if (exitCode !== 0 && verbose) debug('Local DynamoDB exit code:', exitCode)
+          if (error) debug('Local DynamoDB error:', error)
         },
       })
 
-      if (!child.pid)
-        throw new Error('Unable to launch DynamoDBLocal process')
+      if (!child.pid) throw new Error('Unable to launch DynamoDBLocal process')
 
-      if (!detached)
-        process.on('exit', () => child.kill())
+      if (!detached) process.on('exit', () => child.kill())
 
       runningProcesses[port] = child
       return child
-    }
-    catch (error) {
+    } catch (error) {
       debug('Error launching DynamoDB Local:', error)
       throw error
     }
@@ -69,24 +79,28 @@ export const dynamoDb = {
 
   async install(): Promise<void> {
     const installPathExists = await exists(config.installPath)
-    if (!installPathExists)
-      await promisify(fs.mkdir)(config.installPath)
+    if (!installPathExists) await promisify(fs.mkdir)(config.installPath)
 
     const jarPath = path.join(config.installPath, JARNAME)
     const jarExists = await exists(jarPath)
-    if (jarExists)
-      return
+    if (jarExists) return
 
     debug('Installing DynamoDB Local...')
     const downloadUrl = config.downloadUrl
     await new Promise((resolve, reject) => {
-      https.get(downloadUrl, (response) => {
-        if (response.statusCode !== 200)
-          return reject(new Error(`Failed to download DynamoDB Local: ${response.statusCode}`))
+      https
+        .get(downloadUrl, (response) => {
+          if (response.statusCode !== 200)
+            return reject(new Error(`Failed to download DynamoDB Local: ${response.statusCode}`))
 
-        // @ts-expect-error: Ignoring type error due to external library incompatibility
-        response.pipe(zlib.createUnzip()).pipe(tar.extract({ cwd: config.installPath })).on('finish', resolve).on('error', reject)
-      }).on('error', reject)
+          // @ts-expect-error: Ignoring type error due to external library incompatibility
+          response
+            .pipe(zlib.createUnzip())
+            .pipe(tar.extract({ cwd: config.installPath }))
+            .on('finish', resolve)
+            .on('error', reject)
+        })
+        .on('error', reject)
     })
   },
 }

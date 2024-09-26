@@ -13,13 +13,7 @@
   "bugs": {
     "url": "https://github.com/stacksjs/dynamodb-tooling/issues"
   },
-  "keywords": [
-    "dynamodb",
-    "utilities",
-    "typescript",
-    "bun",
-    "package"
-  ],
+  "keywords": ["dynamodb", "utilities", "typescript", "bun", "package"],
   "exports": {
     ".": {
       "bun": "./src/index.ts",
@@ -33,15 +27,12 @@
   },
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
+  "files": ["dist", "src"],
   "scripts": {
     "build": "bun --bun build.ts",
     "create-offline-table": "aws dynamodb create-table --table-name=MyOfflineTable --attribute-definitions AttributeName=Artist,AttributeType=S AttributeName=SongTitle,AttributeType=S --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --endpoint-url http://localhost:8000 --region us-east-1",
-    "lint": "eslint .",
-    "lint:fix": "bunx eslint . --fix",
+    "lint": "biome check .",
+    "lint:fix": "biome check --fix .",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "commit": "git cz",
     "changelog": "bunx changelogen --output CHANGELOG.md",
@@ -50,12 +41,10 @@
     "test": "bun test",
     "typecheck": "bun --bun tsc --noEmit"
   },
-  "dependencies": {
-    "dynamodb-toolbox": "^1.9.3"
-  },
   "devDependencies": {
-    "@antfu/eslint-config": "^3.7.1",
+    "@biomejs/biome": "^1.9.2",
     "@commitlint/cli": "^19.5.0",
+    "@stacksjs/biome-config": "^0.1.5",
     "@types/bun": "^1.1.10",
     "@types/tar": "^6.1.13",
     "bumpp": "^9.5.2",
@@ -64,6 +53,7 @@
     "changelogen": "^0.5.7",
     "commitizen": "^4.3.0",
     "cz-git": "^1.9.4",
+    "dynamodb-toolbox": "^1.9.3",
     "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.11.1",
     "tar": "^7.4.3",
@@ -74,7 +64,7 @@
     "commit-msg": "bunx --no -- commitlint --edit $1"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,vue}": "eslint --fix"
+    "*.{js,jsx,ts,tsx,vue}": "biome check --fix ."
   },
   "config": {
     "commitizen": {

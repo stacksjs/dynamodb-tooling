@@ -7,8 +7,7 @@ export async function exists(path: string): Promise<boolean> {
   try {
     await access(path)
     return true
-  }
-  catch {
+  } catch {
     return false
   }
 }
