@@ -13,7 +13,8 @@ import { exists } from './utils'
 
 const debug = Debug('dynamodb-local')
 const JARNAME = 'DynamoDBLocal.jar'
-const runningProcesses: { [port: number]: Subprocess } = {}
+
+export const runningProcesses: { [port: number]: Subprocess } = {}
 
 export const dynamoDb = {
   async launch(options?: LaunchOptions): Promise<Subprocess | undefined> {
