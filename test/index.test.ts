@@ -1,4 +1,3 @@
-// eslint-disable-next-line unicorn/prefer-node-protocol
 import { describe, expect, it } from 'bun:test'
 
 describe('should', () => {

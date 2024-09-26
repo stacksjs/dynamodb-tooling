@@ -20,4 +20,5 @@ async function loadDynamoDBConfig() {
 }
 
 // Export the config (wrapped in a promise)
-export const config = loadDynamoDBConfig()
+// eslint-disable-next-line antfu/no-top-level-await
+export const config = await loadDynamoDBConfig()
