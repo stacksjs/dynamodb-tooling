@@ -9,6 +9,7 @@ const result = await Bun.build({
   target: 'bun',
   outdir: './dist',
   sourcemap: 'inline',
+  external: ['confbox'],
   plugins: [dts()],
 })
 
