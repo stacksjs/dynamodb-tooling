@@ -1,5 +1,17 @@
 # Change Log
 
+## v0.3.0...main
+
+[compare changes](https://github.com/stacksjs/dynamodb-tooling/compare/v0.3.0...main)
+
+### 🏡 Chore
+
+- Adjust test import ([0b4a14a](https://github.com/stacksjs/dynamodb-tooling/commit/0b4a14a))
+
+### ❤️ Contributors
+
+- Chris <chrisbreuer93@gmail.com>
+
 ## v0.2.0...main
 
 [compare changes](https://github.com/stacksjs/dynamodb-tooling/compare/v0.2.0...main)
