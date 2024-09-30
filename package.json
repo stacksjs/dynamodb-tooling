@@ -16,12 +16,10 @@
   "keywords": ["dynamodb", "utilities", "typescript", "bun", "package"],
   "exports": {
     ".": {
-      "bun": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
     "./*": {
-      "bun": "./src/*",
       "import": "./dist/*"
     }
   },
@@ -41,9 +39,6 @@
     "test": "bun test",
     "typecheck": "bun --bun tsc --noEmit"
   },
-  "dependencies": {
-    "dynamodb-toolbox": "^1.9.3"
-  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.2",
     "@commitlint/cli": "^19.5.0",
@@ -56,6 +51,7 @@
     "changelogen": "^0.5.7",
     "commitizen": "^4.3.1",
     "cz-git": "^1.9.4",
+    "dynamodb-toolbox": "^1.9.3",
     "lint-staged": "^15.2.10",
     "simple-git-hooks": "^2.11.1",
     "tar": "^7.4.3",
