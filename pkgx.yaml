@@ -1,4 +1,4 @@
 dependencies:
   aws.amazon.com/cli: ^2.15.30
-  bun.sh: ^1.1.30
+  bun.sh: ^1.1.29
   openjdk.org: ^21.0.3.6

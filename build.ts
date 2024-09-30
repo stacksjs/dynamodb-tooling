@@ -1,5 +1,5 @@
 import process from 'node:process'
-import dts from 'bun-plugin-dts-auto'
+import { dts } from 'bun-plugin-dts-auto'
 
 console.log('Building...')
 

@@ -86,7 +86,7 @@ export const dynamoDb = {
     const jarExists = await exists(jarPath)
     if (jarExists) return
 
-    debug('Installing DynamoDB Local...')
+    console.log('Installing DynamoDB locally...')
     const downloadUrl = config.downloadUrl
     await new Promise((resolve, reject) => {
       https
