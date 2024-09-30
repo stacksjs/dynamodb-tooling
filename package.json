@@ -1,7 +1,7 @@
 {
   "name": "dynamodb-tooling",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A toolkit of useful DynamoDB goodies.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
