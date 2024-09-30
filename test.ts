@@ -1,4 +1,4 @@
-import { dynamoDb } from './src'
+import { dynamoDb } from './dist'
 
 // eslint-disable-next-line no-console
 console.log('Starting DynamoDB on port 8000')

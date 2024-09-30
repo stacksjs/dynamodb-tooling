@@ -1,5 +1,17 @@
 # Change Log
 
+## v0.3.1...main
+
+[compare changes](https://github.com/stacksjs/dynamodb-tooling/compare/v0.3.1...main)
+
+### 🏡 Chore
+
+- Externalize `confbox` ([faaf6fc](https://github.com/stacksjs/dynamodb-tooling/commit/faaf6fc))
+
+### ❤️ Contributors
+
+- Chris <chrisbreuer93@gmail.com>
+
 ## v0.3.0...main
 
 [compare changes](https://github.com/stacksjs/dynamodb-tooling/compare/v0.3.0...main)
