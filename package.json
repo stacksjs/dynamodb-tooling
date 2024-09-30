@@ -23,11 +23,15 @@
       "import": "./dist/*"
     }
   },
+  "bin": {
+    "dbtooling": "./dist/cli.js"
+  },
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": ["dist", "src"],
   "scripts": {
-    "build": "bun --bun build.ts",
+    "build": "bun --bun build.ts && bun --bun run compile",
+    "compile": "bun build ./bin/cli.ts --compile --minify --outfile dist/dbtooling",
     "create-offline-table": "aws dynamodb create-table --table-name=MyOfflineTable --attribute-definitions AttributeName=Artist,AttributeType=S AttributeName=SongTitle,AttributeType=S --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --endpoint-url http://localhost:8000 --region us-east-1",
     "lint": "biome check .",
     "lint:fix": "biome check --fix .",
@@ -43,6 +47,9 @@
     "@biomejs/biome": "^1.9.2",
     "@commitlint/cli": "^19.5.0",
     "@stacksjs/biome-config": "^0.1.5",
+    "@stacksjs/cli": "^0.64.6",
+    "@stacksjs/logging": "^0.64.6",
+    "@stacksjs/storage": "^0.64.6",
     "@types/bun": "^1.1.10",
     "@types/tar": "^6.1.13",
     "bumpp": "^9.5.2",

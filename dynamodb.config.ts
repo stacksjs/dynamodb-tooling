@@ -3,6 +3,7 @@ import * as path from 'node:path'
 import type { Config } from './src/types'
 
 const config: Config = {
+  defaultTableName: 'MyOfflineTable',
   port: 8000,
   dbPath: '',
   detached: false,

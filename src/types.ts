@@ -1,4 +1,5 @@
 export interface Config {
+  defaultTableName: string
   port: number
   dbPath: string
   detached: boolean
