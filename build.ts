@@ -1,5 +1,5 @@
-import process from 'node:process'
 import { $ } from 'bun'
+import process from 'node:process'
 import { dts } from 'bun-plugin-dtsx'
 
 console.log('Building...')

@@ -1,5 +1,5 @@
-import { loadConfig } from 'c12'
 import type { Config } from './types'
+import { loadConfig } from 'c12'
 
 // Define an async function to load the config
 async function loadDynamoDBConfig(): Promise<Config> {

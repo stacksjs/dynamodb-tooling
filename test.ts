@@ -1,3 +1,4 @@
+/* eslint-disable no-console, antfu/no-top-level-await, antfu/no-import-dist */
 import { dynamoDb } from './dist/'
 
 console.log('Starting DynamoDB on port 8000')

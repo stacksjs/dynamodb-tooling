@@ -23,11 +23,11 @@
       "import": "./dist/*"
     }
   },
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "dbtooling": "./dist/cli.js"
   },
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "files": ["dist", "src"],
   "scripts": {
     "build": "bun --bun build.ts && bun --bun run compile",
@@ -36,7 +36,6 @@
     "lint": "bunx --bun eslint .",
     "lint:fix": "bunx --bun eslint . --fix",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "commit": "git cz",
     "changelog": "bunx changelogen --output CHANGELOG.md",
     "prepublishOnly": "bun --bun run build",
     "release": "bun run changelog && bunx bumpp package.json --all",
@@ -50,9 +49,9 @@
     "@stacksjs/storage": "^0.69.3",
     "@types/bun": "^1.2.5",
     "@types/tar": "^6.1.13",
-    "bunfig": "^0.8.2",
     "bumpp": "^10.1.0",
     "bun-plugin-dtsx": "^0.21.9",
+    "bunfig": "^0.8.2",
     "changelogen": "^0.6.1",
     "dynamodb-toolbox": "^2.0.0",
     "lint-staged": "^15.5.0",

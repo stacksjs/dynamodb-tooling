@@ -1,14 +1,14 @@
+import type { Subprocess } from 'bun'
+import type { LaunchOptions } from './types'
 import * as fs from 'node:fs'
 import * as https from 'node:https'
 import * as path from 'node:path'
 import process from 'node:process'
 import { promisify } from 'node:util'
 import * as zlib from 'node:zlib'
-import type { Subprocess } from 'bun'
 import Debug from 'debug'
 import * as tar from 'tar'
 import { config } from './config'
-import type { LaunchOptions } from './types'
 import { exists } from './utils'
 
 const debug = Debug('dynamodb-local')
@@ -27,7 +27,8 @@ export const dynamoDb = {
       javaOpts = '',
     } = options ?? {}
 
-    if (runningProcesses[port]) return runningProcesses[port]
+    if (runningProcesses[port])
+      return runningProcesses[port]
 
     const args = [
       '-Xrs',
@@ -53,18 +54,23 @@ export const dynamoDb = {
       const child = Bun.spawn(['java', ...args], {
         cwd: config.installPath,
         onExit: (proc, exitCode, signalCode, error) => {
-          if (exitCode !== 0 && verbose) debug('Local DynamoDB exit code:', exitCode)
-          if (error) debug('Local DynamoDB error:', error)
+          if (exitCode !== 0 && verbose)
+            debug('Local DynamoDB exit code:', exitCode)
+          if (error)
+            debug('Local DynamoDB error:', error)
         },
       })
 
-      if (!child.pid) throw new Error('Unable to launch DynamoDBLocal process')
+      if (!child.pid)
+        throw new Error('Unable to launch DynamoDBLocal process')
 
-      if (!detached) process.on('exit', () => child.kill())
+      if (!detached)
+        process.on('exit', () => child.kill())
 
       runningProcesses[port] = child
       return child
-    } catch (error) {
+    }
+    catch (error) {
       debug('Error launching DynamoDB Local:', error)
       throw error
     }
@@ -80,12 +86,15 @@ export const dynamoDb = {
 
   async install(): Promise<void> {
     const installPathExists = await exists(config.installPath)
-    if (!installPathExists) await promisify(fs.mkdir)(config.installPath)
+    if (!installPathExists)
+      await promisify(fs.mkdir)(config.installPath)
 
     const jarPath = path.join(config.installPath, JARNAME)
     const jarExists = await exists(jarPath)
-    if (jarExists) return
+    if (jarExists)
+      return
 
+    // eslint-disable-next-line no-console
     console.log('Installing DynamoDB locally...')
     const downloadUrl = config.downloadUrl
     await new Promise((resolve, reject) => {

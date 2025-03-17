@@ -53,7 +53,7 @@ import { dynamoDb } from 'dynamodb-tooling'
 
 const port = 8000
 // if you want to share with Bun Shell
-// eslint-disable-next-line antfu/no-top-level-await
+
 await dynamoDb.launch({
   port,
   additionalArgs: ['-sharedDb'],

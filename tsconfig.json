@@ -11,13 +11,13 @@
     "strict": true,
     "strictNullChecks": true,
     "noFallthroughCasesInSwitch": true,
+    "declaration": true,
     "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedDeclarations": true,
     "verbatimModuleSyntax": true,
     "skipDefaultLibCheck": true,
-    "skipLibCheck": true,
-    "declaration": true,
-    "isolatedDeclarations": true
+    "skipLibCheck": true
   }
 }
