@@ -33,36 +33,41 @@
     "build": "bun --bun build.ts && bun --bun run compile",
     "compile": "bun build ./bin/cli.ts --compile --minify --outfile dist/dbtooling",
     "create-offline-table": "aws dynamodb create-table --table-name=MyOfflineTable --attribute-definitions AttributeName=Artist,AttributeType=S AttributeName=SongTitle,AttributeType=S --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --endpoint-url http://localhost:8000 --region us-east-1",
+    "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "lint": "bunx --bun eslint .",
     "lint:fix": "bunx --bun eslint . --fix",
-    "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "changelog": "bunx changelogen --output CHANGELOG.md",
+    "changelog": "bunx logsmith --verbose",
+    "changelog:generate": "bunx logsmith --output CHANGELOG.md",
+    "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
+    "postinstall": "bunx git-hooks",
     "prepublishOnly": "bun --bun run build",
-    "release": "bun run changelog && bunx bumpp package.json --all",
     "test": "bun test",
     "typecheck": "bun --bun tsc --noEmit"
   },
   "devDependencies": {
+    "@stacksjs/bumpx": "^0.1.17",
     "@stacksjs/cli": "^0.70.21",
     "@stacksjs/eslint-config": "^4.8.2-beta.1",
+    "@stacksjs/gitlint": "^0.1.5",
     "@stacksjs/logging": "^0.70.21",
+    "@stacksjs/logsmith": "^0.1.8",
     "@stacksjs/storage": "^0.70.21",
     "@types/bun": "^1.2.8",
     "@types/tar": "^6.1.13",
-    "bumpp": "^10.1.0",
+    "buddy-bot": "^0.8.9",
+    "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.9",
     "bunfig": "^0.8.2",
-    "changelogen": "^0.6.1",
     "dynamodb-toolbox": "^2.0.0",
-    "lint-staged": "^15.5.0",
-    "simple-git-hooks": "^2.12.1",
     "tar": "^7.4.3",
     "typescript": "^5.8.2"
   },
-  "simple-git-hooks": {
-    "pre-commit": "bun lint-staged"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx,vue}": "bunx --bun eslint . --fix"
+  "git-hooks": {
+    "pre-commit": {
+      "staged-lint": {
+        "*.{js,ts,json,yaml,yml,md}": "bunx --bun eslint --fix"
+      }
+    },
+    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
   }
 }
