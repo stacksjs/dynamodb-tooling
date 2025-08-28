@@ -54,7 +54,7 @@
     "@stacksjs/storage": "^0.70.23",
     "@types/bun": "^1.2.21",
     "@types/tar": "^6.1.13",
-    "buddy-bot": "^0.8.9",
+    "buddy-bot": "^0.8.10",
     "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.12",
     "bunfig": "^0.8.2",
