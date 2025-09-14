@@ -52,7 +52,7 @@
     "@stacksjs/logging": "^0.70.23",
     "@stacksjs/logsmith": "^0.1.18",
     "@stacksjs/storage": "^0.70.23",
-    "@types/bun": "^1.2.21",
+    "@types/bun": "^1.2.22",
     "@types/tar": "^6.1.13",
     "buddy-bot": "^0.8.9",
     "bun-git-hooks": "^0.2.19",
