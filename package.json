@@ -59,7 +59,7 @@
     "bun-plugin-dtsx": "^0.21.12",
     "bunfig": "^0.8.2",
     "dynamodb-toolbox": "^2.7.1",
-    "tar": "^7.4.4",
+    "tar": "^7.5.0",
     "typescript": "^5.9.2"
   },
   "git-hooks": {
