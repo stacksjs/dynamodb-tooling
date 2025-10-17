@@ -16,15 +16,15 @@ jobs:
           fetch-depth: 0
 
       - name: Set Node.js
-        uses: actions/setup-node@v4.4.0
+        uses: actions/setup-node@v4
         with:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Bun
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@v2.0.2
 
       - name: Use cached node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@v4.3.0
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('**/bun.lockb') }}
