@@ -57,7 +57,7 @@
     "buddy-bot": "^0.8.9",
     "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.9",
-    "bunfig": "^0.15.2",
+    "bunfig": "^0.15.3",
     "dynamodb-toolbox": "^2.0.0",
     "tar": "^7.4.3",
     "typescript": "^5.8.2"
