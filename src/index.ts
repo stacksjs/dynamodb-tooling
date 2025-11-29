@@ -525,5 +525,93 @@ export {
   type TableMetadata,
 } from './tooling'
 
+// Serverless Integration (Phase 22)
+export {
+  APIHandler,
+  StreamHandler as LambdaStreamHandler,
+  SQSHandler,
+  createAPIHandler,
+  createStreamHandler as createLambdaStreamHandler,
+  createSQSHandler,
+  parseBody,
+  getPathParams,
+  getQueryParams,
+  getHeader,
+  type LambdaContext,
+  type APIGatewayEvent,
+  type APIGatewayResponse,
+  type DynamoDBStreamEvent,
+  type SQSEvent,
+  type HandlerResult,
+  type RouteDefinition,
+  type CORSConfig,
+} from './serverless'
+
+// Import/Export (Phase 23)
+export {
+  DataExporter,
+  createDataExporter,
+  DataImporter,
+  createDataImporter,
+  type ExportFormat,
+  type ExportOptions,
+  type ExportResult,
+  type ImportOptions,
+  type ImportResult,
+  type BatchWriteCommand,
+} from './import-export'
+
+// Caching Integration (Phase 24)
+export {
+  CacheManager,
+  createCacheManager,
+  MemoryCacheStore,
+  cached,
+  hashQuery,
+  type CacheEntry,
+  type CacheOptions,
+  type CacheStats,
+  type CacheStore,
+} from './caching'
+
+// Polymorphic Relationships (Phase 25)
+export {
+  PolymorphicRelationshipManager,
+  createPolymorphicManager,
+  morphTo,
+  morphMany,
+  buildPolymorphicGSIKey,
+  parsePolymorphicGSIKey,
+  type PolymorphicTypeMap,
+  type PolymorphicConfig,
+  type Morphable,
+  type PolymorphicResult,
+} from './relationships'
+
+// Event Sourcing (Phase 26)
+export {
+  EventStore,
+  createEventStore,
+  AggregateRoot,
+  type DomainEvent,
+  type EventStream,
+  type EventStoreOptions,
+  type Snapshot,
+  type EventHandler,
+} from './event-sourcing'
+
+// GraphQL Integration (Phase 27)
+export {
+  GraphQLSchemaBuilder,
+  createGraphQLSchemaBuilder,
+  type GraphQLScalarType,
+  type GraphQLFieldDef,
+  type GraphQLTypeDef,
+  type GraphQLQueryDef,
+  type GraphQLMutationDef,
+  type ModelDefinition as GraphQLModelDefinition,
+  type SchemaBuilderOptions,
+} from './graphql'
+
 // Utilities
 export * from './utils'

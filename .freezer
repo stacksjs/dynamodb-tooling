@@ -1,0 +1,87 @@
+{
+  "version": "1.0.0",
+  "lockfileVersion": 1,
+  "generatedAt": "1764440531",
+  "packages": {
+    "@types/bun@^1.2.8": {
+      "name": "@types/bun",
+      "version": "^1.2.8",
+      "source": "pkgx"
+    },
+    "bun-git-hooks@^0.2.19": {
+      "name": "bun-git-hooks",
+      "version": "^0.2.19",
+      "source": "pkgx"
+    },
+    "@stacksjs/storage@^0.70.21": {
+      "name": "@stacksjs/storage",
+      "version": "^0.70.21",
+      "source": "pkgx"
+    },
+    "@types/tar@^6.1.13": {
+      "name": "@types/tar",
+      "version": "^6.1.13",
+      "source": "pkgx"
+    },
+    "tar@^7.4.3": {
+      "name": "tar",
+      "version": "^7.4.3",
+      "source": "pkgx"
+    },
+    "@stacksjs/bumpx@^0.1.17": {
+      "name": "@stacksjs/bumpx",
+      "version": "^0.1.17",
+      "source": "pkgx"
+    },
+    "@stacksjs/gitlint@^0.1.5": {
+      "name": "@stacksjs/gitlint",
+      "version": "^0.1.5",
+      "source": "pkgx"
+    },
+    "bunfig@^0.8.2": {
+      "name": "bunfig",
+      "version": "^0.8.2",
+      "source": "pkgx"
+    },
+    "dynamodb-toolbox@^2.0.0": {
+      "name": "dynamodb-toolbox",
+      "version": "^2.0.0",
+      "source": "pkgx"
+    },
+    "@stacksjs/logsmith@^0.1.8": {
+      "name": "@stacksjs/logsmith",
+      "version": "^0.1.8",
+      "source": "pkgx"
+    },
+    "@stacksjs/cli@^0.70.21": {
+      "name": "@stacksjs/cli",
+      "version": "^0.70.21",
+      "source": "pkgx"
+    },
+    "@stacksjs/logging@^0.70.21": {
+      "name": "@stacksjs/logging",
+      "version": "^0.70.21",
+      "source": "pkgx"
+    },
+    "typescript@^5.8.2": {
+      "name": "typescript",
+      "version": "^5.8.2",
+      "source": "pkgx"
+    },
+    "buddy-bot@^0.8.9": {
+      "name": "buddy-bot",
+      "version": "^0.8.9",
+      "source": "pkgx"
+    },
+    "bun-plugin-dtsx@^0.21.9": {
+      "name": "bun-plugin-dtsx",
+      "version": "^0.21.9",
+      "source": "pkgx"
+    },
+    "@stacksjs/eslint-config@^4.8.2-beta.1": {
+      "name": "@stacksjs/eslint-config",
+      "version": "^4.8.2-beta.1",
+      "source": "pkgx"
+    }
+  }
+}
