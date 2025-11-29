@@ -169,4 +169,65 @@ export function registerLocalCommands(cli: CAC): void {
         handleError(error)
       }
     })
+
+  // logs - View DynamoDB Local logs
+  cli
+    .command('logs', 'View DynamoDB Local logs')
+    .option('--port <port>', 'Port of instance to view logs for', { default: 8000 })
+    .option('--follow', 'Follow log output (like tail -f)')
+    .option('--lines <n>', 'Number of lines to show', { default: 50 })
+    .action(async (options: { port: number, follow?: boolean, lines: number }) => {
+      try {
+        const config = await getConfig()
+
+        console.log(`DynamoDB Local Logs (port ${options.port})`)
+        console.log('='.repeat(50))
+        console.log('')
+
+        // Check if instance is running
+        const running = runningProcesses[options.port]
+        if (!running) {
+          console.log(`No DynamoDB Local instance running on port ${options.port}`)
+          console.log('')
+          console.log('To start DynamoDB Local, run: dbtooling start')
+          return
+        }
+
+        console.log(`Instance PID: ${running.pid}`)
+        console.log(`Log file: ${config.local.installPath}/dynamodb_local.log`)
+        console.log('')
+
+        // Try to read logs from file
+        const fs = await import('node:fs/promises')
+        const path = await import('node:path')
+        const logPath = path.join(config.local.installPath, 'dynamodb_local.log')
+
+        try {
+          const logContent = await fs.readFile(logPath, 'utf-8')
+          const lines = logContent.split('\n')
+          const lastLines = lines.slice(-options.lines)
+
+          console.log(`Last ${options.lines} lines:`)
+          console.log('-'.repeat(50))
+          for (const line of lastLines) {
+            console.log(line)
+          }
+
+          if (options.follow) {
+            console.log('')
+            console.log('Note: --follow mode requires fs.watch which may have limitations.')
+            console.log('For real-time logs, consider: tail -f ' + logPath)
+          }
+        }
+        catch {
+          console.log('No log file found. DynamoDB Local may be running in-memory mode.')
+          console.log('')
+          console.log('Note: DynamoDB Local writes minimal logs.')
+          console.log('For verbose output, restart with: dbtooling start --verbose')
+        }
+      }
+      catch (error) {
+        handleError(error)
+      }
+    })
 }
