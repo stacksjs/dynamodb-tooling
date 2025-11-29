@@ -234,5 +234,296 @@ export {
 // Performance & Optimization (Phase 15)
 export * from './performance'
 
+// Multi-Tenancy Support (Phase 16)
+export {
+  // Tenant management
+  TenantManager,
+  createTenantManager,
+  TenantContext,
+  setTenantContext,
+  getTenantContext,
+  clearTenantContext,
+  withTenant,
+  TenantNotFoundError,
+  CrossTenantAccessError,
+  type TenantContextData,
+  type TenantResolver,
+  type TenantManagerConfig,
+} from './multi-tenancy/TenantManager'
+
+export {
+  // Tenant isolation strategies
+  TenantIsolation,
+  createTablePerTenantIsolation,
+  createPrefixIsolation,
+  createAttributeIsolation,
+  type IsolationStrategy,
+  type TablePerTenantStrategy,
+  type PrefixIsolationStrategy,
+  type AttributeIsolationStrategy,
+} from './multi-tenancy/TenantIsolation'
+
+export {
+  // Query interceptor
+  TenantQueryInterceptor,
+  createTenantQueryInterceptor,
+  type InterceptedQuery,
+  type TenantQueryInterceptorOptions,
+} from './multi-tenancy/TenantQueryInterceptor'
+
+export {
+  // Capacity management
+  TenantCapacityManager,
+  createTenantCapacityManager,
+  type TenantCapacityConfig,
+  type TenantCapacityStats,
+} from './multi-tenancy/TenantCapacityManager'
+
+// Validation System (Async Rules & ts-validation Integration)
+export {
+  // Core validation
+  Validator,
+  createValidator,
+  ValidationFailedError,
+  type ValidationRule,
+  type ValidationResult,
+  type ValidationContext,
+  type ValidatorOptions,
+  type ValidationRuleDefinition,
+  type FullValidationResult,
+} from './validation/Validator'
+
+export {
+  // Async validation
+  AsyncValidator,
+  createAsyncValidator,
+  uniqueAsync,
+  existsAsync,
+  debouncedAsync,
+  cachedAsync,
+  type AsyncValidationRule,
+  type AsyncValidationContext,
+  type AsyncValidationRuleDefinition,
+  type AsyncValidatorOptions,
+  type AsyncFullValidationResult,
+} from './validation/AsyncValidator'
+
+export {
+  // ts-validation integration
+  TsValidationRules,
+  createTsValidationRule,
+  tsValidation,
+  type TsValidationRuleName,
+  type TsValidationRuleOptions,
+} from './validation/TsValidationIntegration'
+
+export {
+  // Model validation
+  ModelValidator,
+  createModelValidator,
+  validateModel,
+  ModelValidationError,
+  type ModelValidationResult,
+  type ModelValidationOptions,
+} from './validation/ModelValidator'
+
+export {
+  // Built-in rules
+  rules,
+  required,
+  string as stringRule,
+  number as numberRule,
+  boolean as booleanRule,
+  email as emailRule,
+  url as urlRule,
+  uuid as uuidRule,
+  min,
+  max,
+  minLength,
+  maxLength,
+  pattern,
+  oneOf,
+  custom,
+  unique,
+  array as arrayRule,
+  object as objectRule,
+  date as dateRule,
+  integer,
+  positive,
+  negative,
+  between,
+  confirmed,
+  different,
+  same,
+  nullable,
+  sometimes,
+  alpha,
+  alphaNumeric,
+  alphaDash,
+  startsWith,
+  endsWith,
+} from './validation/rules'
+
+// DynamoDB Streams Processing (Phase 17)
+export {
+  StreamProcessor,
+  createStreamProcessor,
+  type StreamEvent,
+  type StreamRecord,
+  type StreamEventType,
+  type StreamProcessorConfig,
+  type StreamHandler,
+  type ChangeDataCapture,
+  type EntityHandler,
+  type StreamProcessorStats,
+} from './streams'
+
+// PartiQL Query Builder (Phase 17)
+export {
+  PartiQLBuilder,
+  partiql,
+  selectFrom,
+  insertInto,
+  updateTable,
+  deleteFrom,
+  buildBatchStatements,
+  type PartiQLStatementType,
+  type PartiQLParameter,
+  type PartiQLQuery,
+  type WhereCondition,
+  type SelectProjection,
+  type OrderDirection,
+  type BatchStatementConfig,
+  type BatchStatementResult,
+} from './partiql'
+
+// Backup & Restore (Phase 17)
+export {
+  BackupManager,
+  createBackupManager,
+  type BackupStatus,
+  type BackupType,
+  type PITRStatus,
+  type BackupDetails,
+  type CreateBackupOptions,
+  type ListBackupsOptions,
+  type RestoreOptions,
+  type PITRDescription,
+  type ScheduledBackupConfig,
+} from './backup'
+
+// Global Tables (Phase 17)
+export {
+  GlobalTableManager,
+  createGlobalTableManager,
+  type GlobalTableStatus,
+  type ReplicaStatus,
+  type AWSRegion,
+  type ReplicaDescription,
+  type GlobalTableDescription,
+  type ReplicaSettings,
+  type ReplicaAutoScalingSettings,
+} from './global-tables'
+
+// Observability & Monitoring (Phase 18)
+export {
+  Logger,
+  createLogger,
+  defaultLogger,
+  ConsoleTransport,
+  FileTransport,
+  type LogLevel,
+  type LogEntry,
+  type LogTransport,
+  type LoggerConfig,
+  MetricsRegistry,
+  createMetricsRegistry,
+  defaultMetrics,
+  PrometheusExporter,
+  CloudWatchExporter,
+  DynamoDBMetrics,
+  type MetricType,
+  type MetricLabels,
+  type HistogramBuckets,
+  type MetricDefinition,
+  type MetricValue,
+  type HistogramValue,
+  type SummaryValue,
+  type MetricsCollector,
+  type MetricsExporter,
+  Tracer,
+  createTracer,
+  defaultTracer,
+  ConsoleSpanExporter,
+  OTLPSpanExporter,
+  DynamoDBSpanAttributes,
+  type SpanStatus,
+  type SpanKind,
+  type SpanAttributes,
+  type SpanEvent,
+  type SpanLink,
+  type SpanData,
+  type Span,
+  type TraceContext,
+  type SpanExporter,
+} from './observability'
+
+// Security (Phase 19)
+export {
+  EncryptionManager,
+  createEncryptionManager,
+  KeyRotationManager,
+  createKeyRotationManager,
+  type EncryptionAlgorithm,
+  type KeyDerivationFunction,
+  type EncryptedFieldMetadata,
+  type EncryptionConfig,
+  type EncryptionResult,
+  type EncryptedAttribute,
+  type KeyRotationConfig,
+  AccessControlManager,
+  createAccessControlManager,
+  BuiltInRoles,
+  type PermissionAction,
+  type PermissionResource,
+  type AccessCondition,
+  type Permission,
+  type Role,
+  type AccessContext,
+  type AccessCheckResult,
+  AuditLogger,
+  createAuditLogger,
+  InMemoryAuditStorage,
+  DynamoDBCommandAuditStorage,
+  type AuditEventType,
+  type AuditEventStatus,
+  type AuditEvent,
+  type AuditStorage,
+  type AuditQueryOptions,
+  type AuditQueryResult,
+  type AuditLoggerConfig,
+} from './security'
+
+// Developer Tooling (Phase 20)
+export {
+  DataGenerator,
+  createDataGenerator,
+  EntityGeneratorBuilder,
+  entityGenerator,
+  generators,
+  type GeneratorFn,
+  type FieldGenerator,
+  type GeneratorSchema,
+  QueryAnalyzer,
+  createQueryAnalyzer,
+  type QueryOperationType,
+  type QueryAnalysis,
+  type QueryIssue,
+  type QueryRecommendation,
+  type QueryCharacteristics,
+  type QueryInput,
+  type TableMetadata,
+} from './tooling'
+
 // Utilities
 export * from './utils'
