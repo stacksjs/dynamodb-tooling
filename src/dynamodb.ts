@@ -8,7 +8,7 @@ import { promisify } from 'node:util'
 import * as zlib from 'node:zlib'
 import Debug from 'debug'
 import * as tar from 'tar'
-import { config } from './config'
+import { getConfig } from './config'
 import { exists } from './utils'
 
 const debug = Debug('dynamodb-local')
@@ -18,13 +18,14 @@ export const runningProcesses: { [port: number]: Subprocess } = {}
 
 export const dynamoDb = {
   async launch(options?: LaunchOptions): Promise<Subprocess | undefined> {
+    const config = await getConfig()
     const {
-      port = 8000,
-      dbPath = '',
-      additionalArgs = ['-sharedDb'],
+      port = config.local.port,
+      dbPath = config.local.dbPath,
+      additionalArgs = config.local.additionalArgs,
       verbose = false,
-      detached = false,
-      javaOpts = '',
+      detached = config.local.detached,
+      javaOpts = config.local.javaOpts,
     } = options ?? {}
 
     if (runningProcesses[port])
@@ -40,11 +41,7 @@ export const dynamoDb = {
       port.toString(),
       ...(dbPath ? ['-dbPath', dbPath] : ['-inMemory']),
       ...additionalArgs,
-    ]
-
-    // console.log('args', ...args)
-    // console.log('javaOpts', javaOpts)
-    // console.log('dbPath', dbPath)
+    ].filter(Boolean)
 
     debug('Launching DynamoDB Local with args:', args)
 
@@ -52,7 +49,7 @@ export const dynamoDb = {
       await this.install()
 
       const child = Bun.spawn(['java', ...args], {
-        cwd: config.installPath,
+        cwd: config.local.installPath,
         onExit: (proc, exitCode, signalCode, error) => {
           if (exitCode !== 0 && verbose)
             debug('Local DynamoDB exit code:', exitCode)
@@ -85,18 +82,19 @@ export const dynamoDb = {
   },
 
   async install(): Promise<void> {
-    const installPathExists = await exists(config.installPath)
+    const config = await getConfig()
+    const installPathExists = await exists(config.local.installPath)
     if (!installPathExists)
-      await promisify(fs.mkdir)(config.installPath)
+      await promisify(fs.mkdir)(config.local.installPath)
 
-    const jarPath = path.join(config.installPath, JARNAME)
+    const jarPath = path.join(config.local.installPath, JARNAME)
     const jarExists = await exists(jarPath)
     if (jarExists)
       return
 
     // eslint-disable-next-line no-console
     console.log('Installing DynamoDB locally...')
-    const downloadUrl = config.downloadUrl
+    const downloadUrl = config.local.downloadUrl
     await new Promise((resolve, reject) => {
       https
         .get(downloadUrl, (response) => {
@@ -105,8 +103,7 @@ export const dynamoDb = {
 
           response
             .pipe(zlib.createUnzip())
-            // @ts-expect-error: Ignoring type error due to external library incompatibility
-            .pipe(tar.extract({ cwd: config.installPath }))
+            .pipe(tar.extract({ cwd: config.local.installPath }))
             .on('finish', resolve)
             .on('error', reject)
         })

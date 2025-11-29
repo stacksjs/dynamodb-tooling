@@ -1,4 +1,0 @@
-dependencies:
-  aws.amazon.com/cli: ^2.15.30
-  bun.sh: ^1.2.5
-  openjdk.org: ^21.0.3.6
