@@ -1,6 +1,5 @@
+import type { AccessPattern, ModelRegistry } from '../model-parser/types'
 import type { Config } from '../types'
-import type { AccessPattern, ModelRegistry, ParsedModel } from '../model-parser/types'
-import { toEntityType } from '../model-parser/StacksModelParser'
 
 // ============================================================================
 // Access Pattern Types
@@ -172,7 +171,8 @@ export function generateAccessPatterns(
     // Generate relationship patterns
     for (const rel of model.relationships) {
       const relatedModel = registry.models.get(rel.relatedModel)
-      if (!relatedModel) continue
+      if (!relatedModel)
+        continue
 
       switch (rel.type) {
         case 'hasMany':

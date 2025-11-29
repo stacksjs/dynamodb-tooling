@@ -1,6 +1,5 @@
+import type { KeyPattern, ParsedModel } from '../model-parser/types'
 import type { Config } from '../types'
-import type { KeyPattern, ParsedModel, ParsedRelationship } from '../model-parser/types'
-import { getConfig } from '../config'
 import { toEntityType } from '../model-parser/StacksModelParser'
 
 // ============================================================================
@@ -104,7 +103,8 @@ function generateGSIPatternsForRelationships(
   let gsiIndex = 1
 
   for (const rel of model.relationships) {
-    if (!rel.requiresGsi) continue
+    if (!rel.requiresGsi)
+      continue
 
     const relatedEntityType = toEntityType(rel.relatedModel)
 
@@ -141,7 +141,8 @@ function generateGSIPatternsForRelationships(
     }
 
     // Don't exceed 5 GSIs (we only define 5 in the config)
-    if (gsiIndex > 5) break
+    if (gsiIndex > 5)
+      break
   }
 
   // Add GSI patterns for unique attributes
@@ -278,16 +279,26 @@ export function resolveKeyPattern(
     sk: resolve(pattern.sk),
   }
 
-  if (pattern.gsi1pk) result.gsi1pk = resolve(pattern.gsi1pk)
-  if (pattern.gsi1sk) result.gsi1sk = resolve(pattern.gsi1sk)
-  if (pattern.gsi2pk) result.gsi2pk = resolve(pattern.gsi2pk)
-  if (pattern.gsi2sk) result.gsi2sk = resolve(pattern.gsi2sk)
-  if (pattern.gsi3pk) result.gsi3pk = resolve(pattern.gsi3pk)
-  if (pattern.gsi3sk) result.gsi3sk = resolve(pattern.gsi3sk)
-  if (pattern.gsi4pk) result.gsi4pk = resolve(pattern.gsi4pk)
-  if (pattern.gsi4sk) result.gsi4sk = resolve(pattern.gsi4sk)
-  if (pattern.gsi5pk) result.gsi5pk = resolve(pattern.gsi5pk)
-  if (pattern.gsi5sk) result.gsi5sk = resolve(pattern.gsi5sk)
+  if (pattern.gsi1pk)
+    result.gsi1pk = resolve(pattern.gsi1pk)
+  if (pattern.gsi1sk)
+    result.gsi1sk = resolve(pattern.gsi1sk)
+  if (pattern.gsi2pk)
+    result.gsi2pk = resolve(pattern.gsi2pk)
+  if (pattern.gsi2sk)
+    result.gsi2sk = resolve(pattern.gsi2sk)
+  if (pattern.gsi3pk)
+    result.gsi3pk = resolve(pattern.gsi3pk)
+  if (pattern.gsi3sk)
+    result.gsi3sk = resolve(pattern.gsi3sk)
+  if (pattern.gsi4pk)
+    result.gsi4pk = resolve(pattern.gsi4pk)
+  if (pattern.gsi4sk)
+    result.gsi4sk = resolve(pattern.gsi4sk)
+  if (pattern.gsi5pk)
+    result.gsi5pk = resolve(pattern.gsi5pk)
+  if (pattern.gsi5sk)
+    result.gsi5sk = resolve(pattern.gsi5sk)
 
   return result
 }

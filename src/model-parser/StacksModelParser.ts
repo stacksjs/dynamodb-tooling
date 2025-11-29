@@ -7,7 +7,6 @@ import type {
   ParsedAttribute,
   ParsedModel,
   ParsedRelationship,
-  RelationshipType,
   StacksModel,
 } from './types'
 import * as fs from 'node:fs'
@@ -263,7 +262,8 @@ function parseAttributes(
  * Parse validation rules into array format
  */
 function parseValidationRules(validation: unknown): string[] | undefined {
-  if (!validation) return undefined
+  if (!validation)
+    return undefined
 
   if (typeof validation === 'string') {
     return validation.split('|')
@@ -405,7 +405,7 @@ function generateKeyPatterns(
   primaryKey: string,
   config: Config,
 ): KeyPattern {
-  const delimiter = config.singleTableDesign.keyDelimiter
+  const _delimiter = config.singleTableDesign.keyDelimiter
   const pkPrefix = config.singleTableDesign.pkPrefix.replace('{ENTITY}', entityType)
   const skPrefix = config.singleTableDesign.skPrefix.replace('{ENTITY}', entityType)
 
@@ -473,7 +473,7 @@ function updateKeyPatternsForRelationship(
 /**
  * Generate access patterns for all models
  */
-function generateAccessPatterns(registry: ModelRegistry, config: Config): void {
+function generateAccessPatterns(registry: ModelRegistry, _config: Config): void {
   for (const [, model] of registry.models) {
     const patterns: AccessPattern[] = []
 
@@ -505,7 +505,8 @@ function generateAccessPatterns(registry: ModelRegistry, config: Config): void {
     // Generate patterns for relationships
     for (const relationship of model.relationships) {
       const relatedModel = registry.models.get(relationship.relatedModel)
-      if (!relatedModel) continue
+      if (!relatedModel)
+        continue
 
       switch (relationship.type) {
         case 'hasMany':

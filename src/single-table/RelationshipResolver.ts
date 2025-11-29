@@ -1,7 +1,7 @@
-import type { Config } from '../types'
 import type { ModelRegistry, ParsedModel, ParsedRelationship } from '../model-parser/types'
+import type { Config } from '../types'
 import type { DynamoDBItem, JSObject } from './EntityTransformer'
-import { toModelInstance, unmarshallItem } from './EntityTransformer'
+import { toModelInstance } from './EntityTransformer'
 
 // ============================================================================
 // Relationship Resolution Types
@@ -339,17 +339,20 @@ export async function eagerLoadMany(
   config: Config,
   queryBuilder: RelationshipQueryBuilder,
 ): Promise<JSObject[]> {
-  if (instances.length === 0) return []
+  if (instances.length === 0)
+    return []
 
   const cache = new RelationshipCache()
 
   // Group instances by their foreign keys for batch loading
   for (const spec of specs) {
     const relationship = model.relationships.find(r => r.relatedModel === spec.relationship)
-    if (!relationship) continue
+    if (!relationship)
+      continue
 
     const relatedModel = registry.models.get(relationship.relatedModel)
-    if (!relatedModel) continue
+    if (!relatedModel)
+      continue
 
     // Pre-fetch related data for all instances
     await prefetchRelationshipData(
@@ -394,7 +397,8 @@ async function prefetchRelationshipData(
       const foreignKeys = new Set<string>()
       for (const instance of instances) {
         const fk = instance[relationship.foreignKey]
-        if (fk) foreignKeys.add(String(fk))
+        if (fk)
+          foreignKeys.add(String(fk))
       }
 
       if (foreignKeys.size > 0) {
@@ -457,10 +461,12 @@ export async function getRelationshipCount(
   queryBuilder: RelationshipQueryBuilder,
 ): Promise<number> {
   const relationship = model.relationships.find(r => r.relatedModel === relationshipName)
-  if (!relationship) return 0
+  if (!relationship)
+    return 0
 
   const relatedModel = registry.models.get(relationship.relatedModel)
-  if (!relatedModel) return 0
+  if (!relatedModel)
+    return 0
 
   const delimiter = config.singleTableDesign.keyDelimiter
   const tableName = `${config.tableNamePrefix}${config.defaultTableName}${config.tableNameSuffix}`

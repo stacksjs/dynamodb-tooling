@@ -1,5 +1,5 @@
+import type { ModelRegistry, ParsedModel } from '../model-parser/types'
 import type { Config, LSIDefinition } from '../types'
-import type { ModelRegistry, ParsedAttribute, ParsedModel } from '../model-parser/types'
 
 // ============================================================================
 // LSI Derivation Types
@@ -146,9 +146,11 @@ function findLSICandidates(model: ParsedModel): LSICandidate[] {
 
   for (const attr of timestampAttrs) {
     // Skip the primary key
-    if (attr.name === model.primaryKey) continue
+    if (attr.name === model.primaryKey)
+      continue
     // Skip deletedAt (use sparse index instead)
-    if (attr.name === 'deletedAt') continue
+    if (attr.name === 'deletedAt')
+      continue
 
     candidates.push({
       name: attr.name,

@@ -1,7 +1,5 @@
-import type { Config } from '../types'
 import type { ParsedModel } from '../model-parser/types'
-import { getConfig } from '../config'
-import { toEntityType } from '../model-parser/StacksModelParser'
+import type { Config } from '../types'
 import { resolveKeyPattern } from './KeyPatternGenerator'
 
 // ============================================================================
@@ -111,11 +109,13 @@ export function toDynamoDBItem(
   // Add GSI keys if present
   if (keys.gsi1pk) {
     item[config.singleTableDesign.gsi1pkName] = { S: keys.gsi1pk }
-    if (keys.gsi1sk) item[config.singleTableDesign.gsi1skName] = { S: keys.gsi1sk }
+    if (keys.gsi1sk)
+      item[config.singleTableDesign.gsi1skName] = { S: keys.gsi1sk }
   }
   if (keys.gsi2pk) {
     item[config.singleTableDesign.gsi2pkName] = { S: keys.gsi2pk }
-    if (keys.gsi2sk) item[config.singleTableDesign.gsi2skName] = { S: keys.gsi2sk }
+    if (keys.gsi2sk)
+      item[config.singleTableDesign.gsi2skName] = { S: keys.gsi2sk }
   }
 
   // Add data attributes
@@ -123,10 +123,12 @@ export function toDynamoDBItem(
     const value = data[attr.name]
 
     // Skip undefined values
-    if (value === undefined) continue
+    if (value === undefined)
+      continue
 
     // Skip null values if configured
-    if (value === null && options.stripNulls !== false) continue
+    if (value === null && options.stripNulls !== false)
+      continue
 
     // Marshal the value
     const marshalledValue = marshallValue(value, attr.dynamoDbType)
@@ -185,7 +187,8 @@ export function toModelInstance(
   for (const [key, value] of Object.entries(item)) {
     // Skip internal attributes unless requested
     if (!options.includeInternalAttributes) {
-      if (isInternalAttribute(key, config)) continue
+      if (isInternalAttribute(key, config))
+        continue
     }
 
     // Unmarshall the value
@@ -328,15 +331,24 @@ export function marshallValue(value: unknown, typeHint?: string): DynamoDBAttrib
  * Unmarshall a DynamoDB value to JavaScript format
  */
 export function unmarshallValue(value: DynamoDBAttributeValue): unknown {
-  if ('S' in value) return value.S
-  if ('N' in value) return Number(value.N)
-  if ('BOOL' in value) return value.BOOL
-  if ('NULL' in value) return null
-  if ('B' in value) return Buffer.from(value.B, 'base64')
-  if ('SS' in value) return new Set(value.SS)
-  if ('NS' in value) return new Set(value.NS.map(Number))
-  if ('BS' in value) return new Set(value.BS.map(b => Buffer.from(b, 'base64')))
-  if ('L' in value) return value.L.map(unmarshallValue)
+  if ('S' in value)
+    return value.S
+  if ('N' in value)
+    return Number(value.N)
+  if ('BOOL' in value)
+    return value.BOOL
+  if ('NULL' in value)
+    return null
+  if ('B' in value)
+    return Buffer.from(value.B, 'base64')
+  if ('SS' in value)
+    return new Set(value.SS)
+  if ('NS' in value)
+    return new Set(value.NS.map(Number))
+  if ('BS' in value)
+    return new Set(value.BS.map(b => Buffer.from(b, 'base64')))
+  if ('L' in value)
+    return value.L.map(unmarshallValue)
   if ('M' in value) {
     const obj: Record<string, unknown> = {}
     for (const [k, v] of Object.entries(value.M)) {
@@ -415,7 +427,8 @@ function applyCast(value: unknown, cast: string): unknown {
 
     case 'datetime':
     case 'date':
-      if (value instanceof Date) return value
+      if (value instanceof Date)
+        return value
       return new Date(value as string | number)
 
     case 'json':
@@ -461,7 +474,8 @@ export function buildUpdateData(
   let hasChanges = false
 
   for (const attr of model.attributes) {
-    if (!attr.fillable) continue
+    if (!attr.fillable)
+      continue
 
     const origValue = original[attr.name]
     const newValue = updated[attr.name]
@@ -494,13 +508,17 @@ export function buildUpdateData(
  * Deep equality check
  */
 function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true
-  if (a == null || b == null) return a === b
-  if (typeof a !== typeof b) return false
+  if (a === b)
+    return true
+  if (a == null || b == null)
+    return a === b
+  if (typeof a !== typeof b)
+    return false
 
   if (typeof a === 'object') {
     if (Array.isArray(a) && Array.isArray(b)) {
-      if (a.length !== b.length) return false
+      if (a.length !== b.length)
+        return false
       return a.every((v, i) => deepEqual(v, b[i]))
     }
 
@@ -509,9 +527,11 @@ function deepEqual(a: unknown, b: unknown): boolean {
     }
 
     if (a instanceof Set && b instanceof Set) {
-      if (a.size !== b.size) return false
+      if (a.size !== b.size)
+        return false
       for (const v of a) {
-        if (!b.has(v)) return false
+        if (!b.has(v))
+          return false
       }
       return true
     }
@@ -521,7 +541,8 @@ function deepEqual(a: unknown, b: unknown): boolean {
     const aKeys = Object.keys(aObj)
     const bKeys = Object.keys(bObj)
 
-    if (aKeys.length !== bKeys.length) return false
+    if (aKeys.length !== bKeys.length)
+      return false
     return aKeys.every(k => deepEqual(aObj[k], bObj[k]))
   }
 

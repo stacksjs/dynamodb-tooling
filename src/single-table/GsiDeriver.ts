@@ -1,6 +1,5 @@
+import type { ModelRegistry } from '../model-parser/types'
 import type { Config, GSIDefinition } from '../types'
-import type { ModelRegistry, ParsedModel, ParsedRelationship } from '../model-parser/types'
-import { getConfig } from '../config'
 import { toEntityType } from '../model-parser/StacksModelParser'
 
 // ============================================================================
@@ -228,7 +227,8 @@ export function deriveGSIsFromModels(
   // Generate GSI definitions
   for (let i = 1; i <= maxGSIs; i++) {
     const patterns = gsiAccessPatterns.get(i) ?? []
-    if (patterns.length === 0) continue
+    if (patterns.length === 0)
+      continue
 
     const gsiName = getGSIAttributeName(i, 'name', config)
     const gsiPK = getGSIAttributeName(i, 'pk', config)
@@ -266,7 +266,8 @@ function findConsolidatableGSI(
 ): number | null {
   // Check each existing GSI for consolidation opportunities
   for (const [gsi, patterns] of gsiAccessPatterns) {
-    if (patterns.length === 0) continue
+    if (patterns.length === 0)
+      continue
 
     // Check if the pk pattern prefix matches (allows overloading)
     const existingPattern = patterns[0]

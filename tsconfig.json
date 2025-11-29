@@ -23,6 +23,7 @@
   "exclude": [
     "node_modules",
     "dist",
-    "buddy-bot.config.ts"
+    "buddy-bot.config.ts",
+    "test.ts"
   ]
 }

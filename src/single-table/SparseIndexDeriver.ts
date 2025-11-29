@@ -1,6 +1,5 @@
-import type { Config, GSIDefinition } from '../types'
 import type { ModelRegistry, ParsedAttribute, ParsedModel } from '../model-parser/types'
-import { toEntityType } from '../model-parser/StacksModelParser'
+import type { Config, GSIDefinition } from '../types'
 
 // ============================================================================
 // Sparse Index Types
