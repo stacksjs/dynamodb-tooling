@@ -13,9 +13,19 @@ export const defaultConfig: Config = {
   downloadUrl: 'https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz',
 }
 
-// eslint-disable-next-line antfu/no-top-level-await
-export const config: Config = await loadConfig({
+// Lazy-loaded config to avoid top-level await (enables bun --compile)
+let _config: Config | null = null
+
+export async function getConfig(): Promise<Config> {
+  if (!_config) {
+    _config = await loadConfig({
   name: 'dynamodb',
   cwd: resolve(__dirname, '..'),
   defaultConfig,
 })
+  }
+  return _config
+}
+
+// For backwards compatibility - synchronous access with default fallback
+export const config: Config = defaultConfig
