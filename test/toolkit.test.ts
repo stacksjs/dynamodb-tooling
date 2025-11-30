@@ -44,9 +44,75 @@ describe('dynamodb-tooling', () => {
     })
   })
 
-  describe('DynamoDB Local', () => {
+  describe('DynamoDB Local (Docker)', () => {
     const testPort = 8001
     let process: ReturnType<typeof Bun.spawn> | undefined
+
+    // Check if Docker is available
+    const dockerAvailable = (() => {
+      try {
+        const result = Bun.spawnSync(['docker', '--version'])
+        return result.exitCode === 0
+      }
+      catch {
+        return false
+      }
+    })()
+
+    afterAll(async () => {
+      // Clean up: stop any running containers
+      if (process) {
+        dynamoDb.stop(testPort)
+      }
+    })
+
+    it('should launch DynamoDB Local via Docker', async () => {
+      if (!dockerAvailable) {
+        console.log('Skipping Docker test - Docker not available')
+        return
+      }
+
+      process = await dynamoDb.launch({ port: testPort, useDocker: true })
+      expect(process).toBeDefined()
+      expect(process?.pid).toBeDefined()
+
+      // Give the container time to start
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      // Verify container is running
+      const checkResult = Bun.spawnSync(['docker', 'ps', '-q', '-f', `name=dynamodb-local-${testPort}`])
+      const containerId = checkResult.stdout.toString().trim()
+      expect(containerId.length).toBeGreaterThan(0)
+    })
+
+    it('should not launch a second instance on the same port', async () => {
+      if (!dockerAvailable) {
+        console.log('Skipping Docker test - Docker not available')
+        return
+      }
+
+      const secondProcess = await dynamoDb.launch({ port: testPort, useDocker: true })
+      expect(String(secondProcess?.pid)).toBe(String(process?.pid))
+    })
+
+    it('should stop DynamoDB Local', () => {
+      if (!dockerAvailable) {
+        console.log('Skipping Docker test - Docker not available')
+        return
+      }
+
+      dynamoDb.stop(testPort)
+      expect(runningProcesses[testPort]).toBeUndefined()
+
+      // Verify container is stopped
+      const checkResult = Bun.spawnSync(['docker', 'ps', '-q', '-f', `name=dynamodb-local-${testPort}`])
+      const containerId = checkResult.stdout.toString().trim()
+      expect(containerId.length).toBe(0)
+    })
+  })
+
+  describe('DynamoDB Local (Java) - Mocked Install', () => {
+    const testPort = 8002
     const originalInstall = dynamoDb.install
 
     beforeAll(async () => {
@@ -68,22 +134,6 @@ describe('dynamodb-tooling', () => {
       dynamoDb.install = originalInstall
     })
 
-    it('should launch DynamoDB Local', async () => {
-      process = await dynamoDb.launch({ port: testPort })
-      expect(process).toBeDefined()
-      expect(process?.pid).toBeDefined()
-    })
-
-    it('should not launch a second instance on the same port', async () => {
-      const secondProcess = await dynamoDb.launch({ port: testPort })
-      expect(String(secondProcess?.pid)).toBe(String(process?.pid))
-    })
-
-    it('should stop DynamoDB Local', () => {
-      dynamoDb.stop(testPort)
-      expect(runningProcesses[testPort]).toBeUndefined()
-    })
-
     it('should install DynamoDB Local', async () => {
       // Remove the mock JAR file to test installation
       await fs.promises.unlink(path.join(defaultConfig.local.installPath, 'DynamoDBLocal.jar'))
@@ -92,6 +142,81 @@ describe('dynamodb-tooling', () => {
       const jarExists = await exists(path.join(defaultConfig.local.installPath, 'DynamoDBLocal.jar'))
       expect(jarExists).toBe(true)
       expect(dynamoDb.install).toHaveBeenCalled()
+    })
+  })
+
+  describe('DynamoDB Local (Java) - Live Integration', () => {
+    const testPort = 8003
+    let process: ReturnType<typeof Bun.spawn> | undefined
+
+    // Check if Java is available
+    const javaAvailable = (() => {
+      try {
+        const result = Bun.spawnSync(['java', '-version'])
+        return result.exitCode === 0
+      }
+      catch {
+        return false
+      }
+    })()
+
+    // Check if DynamoDB Local JAR exists
+    const jarExists = (() => {
+      try {
+        const jarPath = path.join(defaultConfig.local.installPath, 'DynamoDBLocal.jar')
+        return fs.existsSync(jarPath)
+      }
+      catch {
+        return false
+      }
+    })()
+
+    afterAll(() => {
+      // Clean up: stop any running processes
+      if (process) {
+        dynamoDb.stop(testPort)
+      }
+    })
+
+    it('should launch DynamoDB Local via Java when available', async () => {
+      if (!javaAvailable) {
+        console.log('Skipping Java test - Java not available')
+        console.log('  Hint: Install Java via pantry: pantry install openjdk.org@21')
+        return
+      }
+
+      if (!jarExists) {
+        console.log('Skipping Java test - DynamoDB Local JAR not installed')
+        console.log('  Hint: Run dynamoDb.install() first to download the JAR')
+        return
+      }
+
+      process = await dynamoDb.launch({ port: testPort, useDocker: false })
+      expect(process).toBeDefined()
+      expect(process?.pid).toBeDefined()
+
+      // Give it time to start
+      await new Promise(resolve => setTimeout(resolve, 3000))
+    })
+
+    it('should not launch a second instance on the same port', async () => {
+      if (!javaAvailable || !jarExists || !process) {
+        console.log('Skipping - prerequisite test was skipped')
+        return
+      }
+
+      const secondProcess = await dynamoDb.launch({ port: testPort, useDocker: false })
+      expect(String(secondProcess?.pid)).toBe(String(process?.pid))
+    })
+
+    it('should stop DynamoDB Local Java instance', () => {
+      if (!javaAvailable || !jarExists || !process) {
+        console.log('Skipping - prerequisite test was skipped')
+        return
+      }
+
+      dynamoDb.stop(testPort)
+      expect(runningProcesses[testPort]).toBeUndefined()
     })
   })
 

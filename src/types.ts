@@ -799,6 +799,11 @@ export type LaunchOptions = Partial<Pick<LocalConfig, 'port' | 'dbPath' | 'detac
    * @default false
    */
   verbose?: boolean
+  /**
+   * Use Docker to run DynamoDB Local instead of Java
+   * @default false
+   */
+  useDocker?: boolean
 }
 
 // ============================================================================
