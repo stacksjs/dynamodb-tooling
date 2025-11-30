@@ -47,7 +47,7 @@
   "devDependencies": {
     "@stacksjs/bumpx": "^0.1.17",
     "@stacksjs/cli": "^0.70.21",
-    "@stacksjs/eslint-config": "^4.8.2-beta.1",
+    "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "@stacksjs/gitlint": "^0.1.5",
     "@stacksjs/logging": "^0.70.21",
     "@stacksjs/logsmith": "^0.1.8",
