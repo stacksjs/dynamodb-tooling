@@ -3,8 +3,8 @@ export {
   type AggregatedStats,
   type AggregationJobStatus,
   type AggregationPeriod,
-  type AggregatorOptions,
   AggregationPipeline,
+  type AggregatorOptions,
   AnalyticsAggregator,
   AnalyticsKeyPatterns,
   AnalyticsQueryAPI,
@@ -56,13 +56,34 @@ export {
   type SessionStore,
 } from './api'
 
+// Stacks Model Definitions
+export {
+  AggregatedStatsModel,
+  type AnalyticsModelName,
+  analyticsModels,
+  CampaignStatsModel,
+  ConversionModel,
+  CustomEventModel,
+  DeviceStatsModel,
+  EventStatsModel,
+  GeoStatsModel,
+  GoalModel,
+  GoalStatsModel,
+  PageStatsModel,
+  PageViewModel,
+  RealtimeStatsModel,
+  ReferrerStatsModel,
+  SessionModel,
+  SiteModel,
+} from './models'
+
 // Stacks Integration
 export {
   createAnalyticsDriver,
   createAnalyticsMiddleware,
   createDashboardActions,
   createServerTrackingMiddleware,
-  DynamoDBAnalyticsDriver,
   type DynamoDBAnalyticsConfig,
+  DynamoDBAnalyticsDriver,
   type StacksAnalyticsOptions,
 } from './stacks-integration'

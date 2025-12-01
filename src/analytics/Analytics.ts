@@ -3,481 +3,84 @@
 // ============================================================================
 // Inspired by Fathom Analytics - simple, privacy-first analytics
 // Designed for DynamoDB single-table pattern with efficient access patterns
+//
+// Types are defined in ./types.ts and models in ./models/
+// ============================================================================
 
-/**
- * Site/Website being tracked
- */
-export interface Site {
-  /** Unique site ID */
-  id: string
-  /** Site name */
-  name: string
-  /** Domain(s) for this site */
-  domains: string[]
-  /** Site timezone */
-  timezone: string
-  /** Whether site is active */
-  isActive: boolean
-  /** Owner user ID */
-  ownerId: string
-  /** Site settings */
-  settings: SiteSettings
-  /** Created timestamp */
-  createdAt: Date
-  /** Updated timestamp */
-  updatedAt: Date
-}
+// Re-export all types from types.ts
+// Import types for internal use
+import type {
+  AggregatedStats,
+  AggregationPeriod,
+  AggregatorOptions,
+  AnalyticsStoreOptions,
+  CampaignStats,
+  Conversion,
+  CustomEvent,
+  DashboardSummary,
+  DateRange,
+  DeviceStats,
+  DeviceType,
+  EventStats,
+  GeoStats,
+  Goal,
+  GoalMatchResult,
+  GoalStats,
+  PageStats,
+  PageView,
+  PipelineJobConfig,
+  PipelineJobResult,
+  QueryOptions,
+  RealtimeData,
+  RealtimeStats,
+  ReferrerStats,
+  Session,
+  Site,
+  TimeSeriesPoint,
+  TopItem,
+  TrackingScriptOptions,
+} from './types'
 
-/**
- * Site settings
- */
-export interface SiteSettings {
-  /** Whether to collect IP-based geolocation (privacy setting) */
-  collectGeolocation: boolean
-  /** Whether to track referrers */
-  trackReferrers: boolean
-  /** Whether to track UTM parameters */
-  trackUtmParams: boolean
-  /** Whether to track device type */
-  trackDeviceType: boolean
-  /** Custom domain for tracking script */
-  customDomain?: string
-  /** Public dashboard enabled */
-  publicDashboard: boolean
-  /** Public dashboard password (hashed) */
-  publicDashboardPassword?: string
-  /** Excluded paths (regex patterns) */
-  excludedPaths: string[]
-  /** Excluded IPs */
-  excludedIps: string[]
-  /** Data retention days (0 = forever) */
-  dataRetentionDays: number
-}
-
-/**
- * Page view event (raw event - stored temporarily for aggregation)
- */
-export interface PageView {
-  /** Unique page view ID */
-  id: string
-  /** Site ID */
-  siteId: string
-  /** Visitor ID (hashed, anonymous) */
-  visitorId: string
-  /** Session ID */
-  sessionId: string
-  /** Page path */
-  path: string
-  /** Page hostname */
-  hostname: string
-  /** Page title (optional) */
-  title?: string
-  /** Referrer URL */
-  referrer?: string
-  /** Referrer source (e.g., google, twitter, direct) */
-  referrerSource?: string
-  /** UTM source */
-  utmSource?: string
-  /** UTM medium */
-  utmMedium?: string
-  /** UTM campaign */
-  utmCampaign?: string
-  /** UTM content */
-  utmContent?: string
-  /** UTM term */
-  utmTerm?: string
-  /** Country code (ISO 3166-1 alpha-2) */
-  country?: string
-  /** Region/state */
-  region?: string
-  /** City */
-  city?: string
-  /** Device type */
-  deviceType?: DeviceType
-  /** Browser name */
-  browser?: string
-  /** Browser version */
-  browserVersion?: string
-  /** Operating system */
-  os?: string
-  /** OS version */
-  osVersion?: string
-  /** Screen width */
-  screenWidth?: number
-  /** Screen height */
-  screenHeight?: number
-  /** Is unique (first page view in session) */
-  isUnique: boolean
-  /** Is bounce (only page view in session) */
-  isBounce: boolean
-  /** Time on page (milliseconds) - updated on next page view or session end */
-  timeOnPage?: number
-  /** Timestamp */
-  timestamp: Date
-  /** TTL for auto-deletion after aggregation */
-  ttl?: number
-}
-
-/**
- * Device type
- */
-export type DeviceType = 'desktop' | 'mobile' | 'tablet' | 'unknown'
-
-/**
- * Custom event (non-pageview events like button clicks, form submissions)
- */
-export interface CustomEvent {
-  /** Unique event ID */
-  id: string
-  /** Site ID */
-  siteId: string
-  /** Visitor ID (hashed, anonymous) */
-  visitorId: string
-  /** Session ID */
-  sessionId: string
-  /** Event name */
-  name: string
-  /** Event value (optional, for revenue tracking etc.) */
-  value?: number
-  /** Event properties */
-  properties?: Record<string, string | number | boolean>
-  /** Page path where event occurred */
-  path: string
-  /** Timestamp */
-  timestamp: Date
-  /** TTL for auto-deletion after aggregation */
-  ttl?: number
-}
-
-/**
- * Session (visitor session)
- */
-export interface Session {
-  /** Session ID */
-  id: string
-  /** Site ID */
-  siteId: string
-  /** Visitor ID (hashed, anonymous) */
-  visitorId: string
-  /** Entry page path */
-  entryPath: string
-  /** Exit page path */
-  exitPath: string
-  /** Referrer URL */
-  referrer?: string
-  /** Referrer source */
-  referrerSource?: string
-  /** UTM parameters */
-  utmSource?: string
-  utmMedium?: string
-  utmCampaign?: string
-  /** Country code */
-  country?: string
-  /** Device type */
-  deviceType?: DeviceType
-  /** Browser */
-  browser?: string
-  /** OS */
-  os?: string
-  /** Page view count */
-  pageViewCount: number
-  /** Event count */
-  eventCount: number
-  /** Is bounce (single page session) */
-  isBounce: boolean
-  /** Session duration (milliseconds) */
-  duration: number
-  /** Session start */
-  startedAt: Date
-  /** Session end (last activity) */
-  endedAt: Date
-  /** TTL for auto-deletion */
-  ttl?: number
-}
-
-/**
- * Time period for aggregations
- */
-export type AggregationPeriod = 'hour' | 'day' | 'month'
-
-/**
- * Aggregated stats (pre-computed for fast dashboard queries)
- */
-export interface AggregatedStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp (ISO string for consistency) */
-  periodStart: string
-  /** Page views */
-  pageViews: number
-  /** Unique visitors */
-  uniqueVisitors: number
-  /** Sessions */
-  sessions: number
-  /** Bounces */
-  bounces: number
-  /** Bounce rate (0-1) */
-  bounceRate: number
-  /** Average session duration (milliseconds) */
-  avgSessionDuration: number
-  /** Average pages per session */
-  avgPagesPerSession: number
-  /** Total time on site (milliseconds) */
-  totalTimeOnSite: number
-  /** New visitors */
-  newVisitors: number
-  /** Returning visitors */
-  returningVisitors: number
-  /** Created timestamp */
-  createdAt: Date
-  /** Updated timestamp */
-  updatedAt: Date
-}
-
-/**
- * Page-level aggregated stats
- */
-export interface PageStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** Page path */
-  path: string
-  /** Page title (most recent) */
-  title?: string
-  /** Page views */
-  pageViews: number
-  /** Unique visitors */
-  uniqueVisitors: number
-  /** Entries (sessions starting on this page) */
-  entries: number
-  /** Exits (sessions ending on this page) */
-  exits: number
-  /** Bounces */
-  bounces: number
-  /** Average time on page (milliseconds) */
-  avgTimeOnPage: number
-  /** Exit rate (0-1) */
-  exitRate: number
-}
-
-/**
- * Referrer stats
- */
-export interface ReferrerStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** Referrer source (e.g., google, twitter, direct) */
-  source: string
-  /** Full referrer URL (for non-grouped view) */
-  referrer?: string
-  /** Visitors from this referrer */
-  visitors: number
-  /** Page views from this referrer */
-  pageViews: number
-  /** Bounce rate (0-1) */
-  bounceRate: number
-  /** Average session duration (milliseconds) */
-  avgSessionDuration: number
-}
-
-/**
- * Geographic stats
- */
-export interface GeoStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** Country code */
-  country: string
-  /** Region (optional, for country drilldown) */
-  region?: string
-  /** City (optional, for region drilldown) */
-  city?: string
-  /** Visitors */
-  visitors: number
-  /** Page views */
-  pageViews: number
-  /** Bounce rate */
-  bounceRate: number
-}
-
-/**
- * Device/Browser stats
- */
-export interface DeviceStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** Dimension type */
-  dimension: 'device' | 'browser' | 'os' | 'screen'
-  /** Dimension value (e.g., "mobile", "Chrome", "Windows", "1920x1080") */
-  value: string
-  /** Visitors */
-  visitors: number
-  /** Page views */
-  pageViews: number
-  /** Bounce rate */
-  bounceRate: number
-}
-
-/**
- * UTM Campaign stats
- */
-export interface CampaignStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** UTM source */
-  utmSource: string
-  /** UTM medium */
-  utmMedium?: string
-  /** UTM campaign */
-  utmCampaign?: string
-  /** Visitors */
-  visitors: number
-  /** Page views */
-  pageViews: number
-  /** Conversions (custom events marked as goals) */
-  conversions: number
-  /** Conversion rate (0-1) */
-  conversionRate: number
-  /** Revenue (if tracking) */
-  revenue: number
-  /** Bounce rate */
-  bounceRate: number
-}
-
-/**
- * Custom event stats
- */
-export interface EventStats {
-  /** Site ID */
-  siteId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** Event name */
-  eventName: string
-  /** Total occurrences */
-  count: number
-  /** Unique visitors who triggered event */
-  uniqueVisitors: number
-  /** Total value (for revenue tracking) */
-  totalValue: number
-  /** Average value per event */
-  avgValue: number
-}
-
-/**
- * Goal/Conversion definition
- */
-export interface Goal {
-  /** Goal ID */
-  id: string
-  /** Site ID */
-  siteId: string
-  /** Goal name */
-  name: string
-  /** Goal type */
-  type: GoalType
-  /** Match pattern (path pattern or event name) */
-  pattern: string
-  /** Match type */
-  matchType: 'exact' | 'contains' | 'regex'
-  /** Revenue value per conversion (optional) */
-  value?: number
-  /** Is active */
-  isActive: boolean
-  /** Created timestamp */
-  createdAt: Date
-  /** Updated timestamp */
-  updatedAt: Date
-}
-
-/**
- * Goal type
- */
-export type GoalType = 'pageview' | 'event'
-
-/**
- * Goal stats (conversions)
- */
-export interface GoalStats {
-  /** Site ID */
-  siteId: string
-  /** Goal ID */
-  goalId: string
-  /** Period type */
-  period: AggregationPeriod
-  /** Period start timestamp */
-  periodStart: string
-  /** Conversions */
-  conversions: number
-  /** Unique visitors who converted */
-  uniqueConversions: number
-  /** Conversion rate (0-1) */
-  conversionRate: number
-  /** Total revenue */
-  revenue: number
-}
-
-/**
- * Real-time stats (last 5 minutes, stored with short TTL)
- */
-export interface RealtimeStats {
-  /** Site ID */
-  siteId: string
-  /** Minute bucket (ISO timestamp truncated to minute) */
-  minute: string
-  /** Current visitors (active in this minute) */
-  currentVisitors: number
-  /** Page views in this minute */
-  pageViews: number
-  /** Active pages (path -> visitor count) */
-  activePages: Record<string, number>
-  /** TTL (auto-delete after 10 minutes) */
-  ttl: number
-}
+export type {
+  AggregatedStats,
+  AggregationJobStatus,
+  AggregationPeriod,
+  AggregatorOptions,
+  AnalyticsStoreOptions,
+  CampaignStats,
+  Conversion,
+  CustomEvent,
+  DashboardData,
+  DashboardSummary,
+  DateRange,
+  DeviceStats,
+  DeviceType,
+  EventStats,
+  GeoStats,
+  Goal,
+  GoalMatchResult,
+  GoalPerformance,
+  GoalStats,
+  GoalType,
+  PageStats,
+  PageView,
+  PipelineJobConfig,
+  PipelineJobResult,
+  QueryOptions,
+  RealtimeData,
+  RealtimeStats,
+  ReferrerStats,
+  Session,
+  Site,
+  SiteSettings,
+  TimeSeriesPoint,
+  TopItem,
+  TrackingScriptOptions,
+} from './types'
 
 // ============================================================================
 // Analytics Store - DynamoDB Operations
 // ============================================================================
-
-/**
- * Analytics store options
- */
-export interface AnalyticsStoreOptions {
-  /** Table name */
-  tableName: string
-  /** Whether to use TTL for raw events */
-  useTtl?: boolean
-  /** TTL duration for raw events (seconds, default 30 days) */
-  rawEventTtl?: number
-  /** TTL duration for hourly aggregates (seconds, default 90 days) */
-  hourlyAggregateTtl?: number
-  /** TTL duration for daily aggregates (seconds, default 2 years) */
-  dailyAggregateTtl?: number
-}
 
 /**
  * DynamoDB key patterns for analytics entities
@@ -735,26 +338,46 @@ export class AnalyticsStore {
     }
 
     // Add optional fields
-    if (pageView.title) item.title = { S: pageView.title }
-    if (pageView.referrer) item.referrer = { S: pageView.referrer }
-    if (pageView.referrerSource) item.referrerSource = { S: pageView.referrerSource }
-    if (pageView.utmSource) item.utmSource = { S: pageView.utmSource }
-    if (pageView.utmMedium) item.utmMedium = { S: pageView.utmMedium }
-    if (pageView.utmCampaign) item.utmCampaign = { S: pageView.utmCampaign }
-    if (pageView.utmContent) item.utmContent = { S: pageView.utmContent }
-    if (pageView.utmTerm) item.utmTerm = { S: pageView.utmTerm }
-    if (pageView.country) item.country = { S: pageView.country }
-    if (pageView.region) item.region = { S: pageView.region }
-    if (pageView.city) item.city = { S: pageView.city }
-    if (pageView.deviceType) item.deviceType = { S: pageView.deviceType }
-    if (pageView.browser) item.browser = { S: pageView.browser }
-    if (pageView.browserVersion) item.browserVersion = { S: pageView.browserVersion }
-    if (pageView.os) item.os = { S: pageView.os }
-    if (pageView.osVersion) item.osVersion = { S: pageView.osVersion }
-    if (pageView.screenWidth) item.screenWidth = { N: String(pageView.screenWidth) }
-    if (pageView.screenHeight) item.screenHeight = { N: String(pageView.screenHeight) }
-    if (pageView.timeOnPage !== undefined) item.timeOnPage = { N: String(pageView.timeOnPage) }
-    if (ttl) item.ttl = { N: String(ttl) }
+    if (pageView.title)
+      item.title = { S: pageView.title }
+    if (pageView.referrer)
+      item.referrer = { S: pageView.referrer }
+    if (pageView.referrerSource)
+      item.referrerSource = { S: pageView.referrerSource }
+    if (pageView.utmSource)
+      item.utmSource = { S: pageView.utmSource }
+    if (pageView.utmMedium)
+      item.utmMedium = { S: pageView.utmMedium }
+    if (pageView.utmCampaign)
+      item.utmCampaign = { S: pageView.utmCampaign }
+    if (pageView.utmContent)
+      item.utmContent = { S: pageView.utmContent }
+    if (pageView.utmTerm)
+      item.utmTerm = { S: pageView.utmTerm }
+    if (pageView.country)
+      item.country = { S: pageView.country }
+    if (pageView.region)
+      item.region = { S: pageView.region }
+    if (pageView.city)
+      item.city = { S: pageView.city }
+    if (pageView.deviceType)
+      item.deviceType = { S: pageView.deviceType }
+    if (pageView.browser)
+      item.browser = { S: pageView.browser }
+    if (pageView.browserVersion)
+      item.browserVersion = { S: pageView.browserVersion }
+    if (pageView.os)
+      item.os = { S: pageView.os }
+    if (pageView.osVersion)
+      item.osVersion = { S: pageView.osVersion }
+    if (pageView.screenWidth)
+      item.screenWidth = { N: String(pageView.screenWidth) }
+    if (pageView.screenHeight)
+      item.screenHeight = { N: String(pageView.screenHeight) }
+    if (pageView.timeOnPage !== undefined)
+      item.timeOnPage = { N: String(pageView.timeOnPage) }
+    if (ttl)
+      item.ttl = { N: String(ttl) }
 
     return {
       command: 'PutItem',
@@ -774,17 +397,17 @@ export class AnalyticsStore {
     endDate: Date,
     options?: { path?: string, limit?: number },
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeNames: Record<string, string>
-      ExpressionAttributeValues: Record<string, unknown>
-      FilterExpression?: string
-      Limit?: number
-      ScanIndexForward: boolean
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeNames: Record<string, string>
+        ExpressionAttributeValues: Record<string, unknown>
+        FilterExpression?: string
+        Limit?: number
+        ScanIndexForward: boolean
+      }
+    } {
     const keys = AnalyticsKeyPatterns.pageView
     const startSk = keys.sk(startDate, '')
     const endSk = keys.sk(endDate, 'zzz')
@@ -865,16 +488,26 @@ export class AnalyticsStore {
     }
 
     // Add optional fields
-    if (session.referrer) item.referrer = { S: session.referrer }
-    if (session.referrerSource) item.referrerSource = { S: session.referrerSource }
-    if (session.utmSource) item.utmSource = { S: session.utmSource }
-    if (session.utmMedium) item.utmMedium = { S: session.utmMedium }
-    if (session.utmCampaign) item.utmCampaign = { S: session.utmCampaign }
-    if (session.country) item.country = { S: session.country }
-    if (session.deviceType) item.deviceType = { S: session.deviceType }
-    if (session.browser) item.browser = { S: session.browser }
-    if (session.os) item.os = { S: session.os }
-    if (ttl) item.ttl = { N: String(ttl) }
+    if (session.referrer)
+      item.referrer = { S: session.referrer }
+    if (session.referrerSource)
+      item.referrerSource = { S: session.referrerSource }
+    if (session.utmSource)
+      item.utmSource = { S: session.utmSource }
+    if (session.utmMedium)
+      item.utmMedium = { S: session.utmMedium }
+    if (session.utmCampaign)
+      item.utmCampaign = { S: session.utmCampaign }
+    if (session.country)
+      item.country = { S: session.country }
+    if (session.deviceType)
+      item.deviceType = { S: session.deviceType }
+    if (session.browser)
+      item.browser = { S: session.browser }
+    if (session.os)
+      item.os = { S: session.os }
+    if (ttl)
+      item.ttl = { N: String(ttl) }
 
     return {
       command: 'PutItem',
@@ -919,9 +552,12 @@ export class AnalyticsStore {
       _et: { S: 'CustomEvent' },
     }
 
-    if (event.value !== undefined) item.value = { N: String(event.value) }
-    if (event.properties) item.properties = { S: JSON.stringify(event.properties) }
-    if (ttl) item.ttl = { N: String(ttl) }
+    if (event.value !== undefined)
+      item.value = { N: String(event.value) }
+    if (event.properties)
+      item.properties = { S: JSON.stringify(event.properties) }
+    if (ttl)
+      item.ttl = { N: String(ttl) }
 
     return {
       command: 'PutItem',
@@ -1010,14 +646,14 @@ export class AnalyticsStore {
     startPeriod: string,
     endPeriod: string,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-      ScanIndexForward: boolean
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+        ScanIndexForward: boolean
+      }
+    } {
     const keys = AnalyticsKeyPatterns.aggregatedStats
     return {
       command: 'Query',
@@ -1113,16 +749,16 @@ export class AnalyticsStore {
     periodStart: string,
     limit: number = 10,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      IndexName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-      Limit: number
-      ScanIndexForward: boolean
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        IndexName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+        Limit: number
+        ScanIndexForward: boolean
+      }
+    } {
     const keys = AnalyticsKeyPatterns.pageStats
     return {
       command: 'Query',
@@ -1417,14 +1053,14 @@ export class AnalyticsStore {
     periodStart: string,
     limit: number = 10,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-      Limit: number
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+        Limit: number
+      }
+    } {
     const keys = AnalyticsKeyPatterns.geoStats
     return {
       command: 'Query',
@@ -1506,15 +1142,15 @@ export class AnalyticsStore {
     periodStart: string,
     dimension?: 'device' | 'browser' | 'os' | 'screen',
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-      FilterExpression?: string
-      ExpressionAttributeNames?: Record<string, string>
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+        FilterExpression?: string
+        ExpressionAttributeNames?: Record<string, string>
+      }
+    } {
     const keys = AnalyticsKeyPatterns.deviceStats
     const input: ReturnType<typeof this.getDeviceStatsCommand>['input'] = {
       TableName: this.options.tableName,
@@ -1599,13 +1235,13 @@ export class AnalyticsStore {
     period: AggregationPeriod,
     periodStart: string,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+      }
+    } {
     const keys = AnalyticsKeyPatterns.eventStats
     return {
       command: 'Query',
@@ -1687,14 +1323,14 @@ export class AnalyticsStore {
     startPeriod: string,
     endPeriod: string,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-      ScanIndexForward: boolean
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+        ScanIndexForward: boolean
+      }
+    } {
     const keys = AnalyticsKeyPatterns.goalStats
     return {
       command: 'Query',
@@ -1785,13 +1421,13 @@ export class AnalyticsStore {
     period: AggregationPeriod,
     periodStart: string,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+      }
+    } {
     const keys = AnalyticsKeyPatterns.campaignStats
     return {
       command: 'Query',
@@ -1814,7 +1450,8 @@ export class AnalyticsStore {
    * Get TTL timestamp for a period type
    */
   private getTtlForPeriod(period: AggregationPeriod): number | undefined {
-    if (!this.options.useTtl) return undefined
+    if (!this.options.useTtl)
+      return undefined
 
     const now = Math.floor(Date.now() / 1000)
     switch (period) {
@@ -1836,7 +1473,7 @@ export class AnalyticsStore {
     const iso = date.toISOString()
     switch (period) {
       case 'hour':
-        return iso.slice(0, 13) + ':00:00.000Z' // 2024-01-15T14:00:00.000Z
+        return `${iso.slice(0, 13)}:00:00.000Z` // 2024-01-15T14:00:00.000Z
       case 'day':
         return iso.slice(0, 10) // 2024-01-15
       case 'month':
@@ -1874,29 +1511,44 @@ export class AnalyticsStore {
    * Parse referrer to get source
    */
   static parseReferrerSource(referrer: string | undefined): string {
-    if (!referrer) return 'direct'
+    if (!referrer)
+      return 'direct'
 
     try {
       const url = new URL(referrer)
       const hostname = url.hostname.toLowerCase()
 
       // Search engines
-      if (hostname.includes('google')) return 'google'
-      if (hostname.includes('bing')) return 'bing'
-      if (hostname.includes('yahoo')) return 'yahoo'
-      if (hostname.includes('duckduckgo')) return 'duckduckgo'
-      if (hostname.includes('baidu')) return 'baidu'
-      if (hostname.includes('yandex')) return 'yandex'
+      if (hostname.includes('google'))
+        return 'google'
+      if (hostname.includes('bing'))
+        return 'bing'
+      if (hostname.includes('yahoo'))
+        return 'yahoo'
+      if (hostname.includes('duckduckgo'))
+        return 'duckduckgo'
+      if (hostname.includes('baidu'))
+        return 'baidu'
+      if (hostname.includes('yandex'))
+        return 'yandex'
 
       // Social media - order matters for substring matches
-      if (hostname.includes('facebook') || hostname.includes('fb.')) return 'facebook'
-      if (hostname.includes('reddit')) return 'reddit' // Check before twitter since reddit contains 't.co'
-      if (hostname.includes('twitter') || hostname === 't.co' || hostname.endsWith('.t.co')) return 'twitter'
-      if (hostname.includes('linkedin')) return 'linkedin'
-      if (hostname.includes('instagram')) return 'instagram'
-      if (hostname.includes('pinterest')) return 'pinterest'
-      if (hostname.includes('youtube')) return 'youtube'
-      if (hostname.includes('tiktok')) return 'tiktok'
+      if (hostname.includes('facebook') || hostname.includes('fb.'))
+        return 'facebook'
+      if (hostname.includes('reddit'))
+        return 'reddit' // Check before twitter since reddit contains 't.co'
+      if (hostname.includes('twitter') || hostname === 't.co' || hostname.endsWith('.t.co'))
+        return 'twitter'
+      if (hostname.includes('linkedin'))
+        return 'linkedin'
+      if (hostname.includes('instagram'))
+        return 'instagram'
+      if (hostname.includes('pinterest'))
+        return 'pinterest'
+      if (hostname.includes('youtube'))
+        return 'youtube'
+      if (hostname.includes('tiktok'))
+        return 'tiktok'
 
       // Return the domain as source
       return hostname.replace('www.', '')
@@ -1961,8 +1613,10 @@ export class AnalyticsStore {
     }
     else if (ua.includes('windows')) {
       os = 'Windows'
-      if (ua.includes('windows nt 10')) osVersion = '10'
-      else if (ua.includes('windows nt 11')) osVersion = '11'
+      if (ua.includes('windows nt 10'))
+        osVersion = '10'
+      else if (ua.includes('windows nt 11'))
+        osVersion = '11'
     }
     else if (ua.includes('mac os')) {
       os = 'macOS'
@@ -2333,7 +1987,8 @@ export class GoalMatcher {
     const results: GoalMatchResult[] = []
 
     for (const goal of this.goals) {
-      if (goal.type !== 'pageview') continue
+      if (goal.type !== 'pageview')
+        continue
 
       if (this.matchesPattern(pageView.path, goal)) {
         results.push({
@@ -2356,7 +2011,8 @@ export class GoalMatcher {
     const results: GoalMatchResult[] = []
 
     for (const goal of this.goals) {
-      if (goal.type !== 'event') continue
+      if (goal.type !== 'event')
+        continue
 
       if (this.matchesPattern(event.name, goal)) {
         results.push({
@@ -3272,14 +2928,16 @@ export function generateTrackingScript(options: TrackingScriptOptions): string {
     }));
   }
   function pv(){t('pageview');}
-  ${options.trackHashChanges ? "w.addEventListener('hashchange',pv);" : ''}
-  ${options.trackOutboundLinks ? `
+  ${options.trackHashChanges ? 'w.addEventListener(\'hashchange\',pv);' : ''}
+  ${options.trackOutboundLinks
+    ? `
   d.addEventListener('click',function(e){
     var a=e.target.closest('a');
     if(a&&a.hostname!==location.hostname){
       t('outbound',{url:a.href});
     }
-  });` : ''}
+  });`
+    : ''}
   if(d.readyState==='complete')pv();
   else w.addEventListener('load',pv);
   w.fathom={track:function(n,v){t('event',{name:n,value:v});}};
