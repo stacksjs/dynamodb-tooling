@@ -87,3 +87,47 @@ export {
   DynamoDBAnalyticsDriver,
   type StacksAnalyticsOptions,
 } from './stacks-integration'
+
+// Infrastructure (CloudFormation, CDK, Setup)
+export {
+  checkTableStatus,
+  createAnalyticsTable,
+  createPitrMigration,
+  createStreamsMigration,
+  createTimeBasedGsiMigration,
+  enableTtl,
+  generateAwsCliCommands,
+  generateCdkCode,
+  generateCdkTableCode,
+  generateCloudFormationJson,
+  generateCloudFormationTemplate,
+  generateCloudFormationYaml,
+  generateCreateTableInput,
+  generateSamTemplate,
+  generateSamYaml,
+  printSetupInstructions,
+  runMigrations,
+  type AnalyticsApiProps,
+  type AnalyticsTableProps,
+  type CloudFormationConfig,
+  type DynamoDBClientLike,
+  type MigrationResult,
+  type MigrationStep,
+  type SetupConfig,
+  type SetupResult,
+} from './infrastructure'
+
+// Model Connector (Single-Table Design Integration)
+export {
+  analyticsModelRegistry,
+  generateAccessPatternMatrix,
+  generateAnalyticsDesignDoc,
+  generateAnalyticsSingleTableDesign,
+  getAllAnalyticsModels,
+  getAnalyticsModel,
+  getAnalyticsModelNames,
+  type AccessPattern,
+  type EntityDesign,
+  type SingleTableDesign,
+  type StacksModelDefinition,
+} from './model-connector'
