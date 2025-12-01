@@ -1349,6 +1349,464 @@ export class AnalyticsStore {
   }
 
   // ==========================================================================
+  // Geo Stats Operations
+  // ==========================================================================
+
+  /**
+   * Generate command to upsert geo stats
+   */
+  upsertGeoStatsCommand(stats: GeoStats): {
+    command: 'UpdateItem'
+    input: {
+      TableName: string
+      Key: Record<string, unknown>
+      UpdateExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.geoStats
+    const ttl = this.getTtlForPeriod(stats.period)
+
+    return {
+      command: 'UpdateItem',
+      input: {
+        TableName: this.options.tableName,
+        Key: {
+          pk: { S: keys.pk(stats.siteId) },
+          sk: { S: keys.sk(stats.period, stats.periodStart, stats.country, stats.region) },
+        },
+        UpdateExpression: `
+          SET #visitors = if_not_exists(#visitors, :zero) + :visitors,
+              #pv = if_not_exists(#pv, :zero) + :pv,
+              #country = :country,
+              #et = :et
+              ${stats.region ? ', #region = :region' : ''}
+              ${stats.city ? ', #city = :city' : ''}
+              ${ttl ? ', #ttl = :ttl' : ''}
+        `.trim(),
+        ExpressionAttributeNames: {
+          '#visitors': 'visitors',
+          '#pv': 'pageViews',
+          '#country': 'country',
+          '#et': '_et',
+          ...(stats.region ? { '#region': 'region' } : {}),
+          ...(stats.city ? { '#city': 'city' } : {}),
+          ...(ttl ? { '#ttl': 'ttl' } : {}),
+        },
+        ExpressionAttributeValues: {
+          ':visitors': { N: String(stats.visitors) },
+          ':pv': { N: String(stats.pageViews) },
+          ':country': { S: stats.country },
+          ':zero': { N: '0' },
+          ':et': { S: 'GeoStats' },
+          ...(stats.region ? { ':region': { S: stats.region } } : {}),
+          ...(stats.city ? { ':city': { S: stats.city } } : {}),
+          ...(ttl ? { ':ttl': { N: String(ttl) } } : {}),
+        },
+      },
+    }
+  }
+
+  /**
+   * Generate command to get geo stats for a period
+   */
+  getGeoStatsCommand(
+    siteId: string,
+    period: AggregationPeriod,
+    periodStart: string,
+    limit: number = 10,
+  ): {
+    command: 'Query'
+    input: {
+      TableName: string
+      KeyConditionExpression: string
+      ExpressionAttributeValues: Record<string, unknown>
+      Limit: number
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.geoStats
+    return {
+      command: 'Query',
+      input: {
+        TableName: this.options.tableName,
+        KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': { S: keys.pk(siteId) },
+          ':skPrefix': { S: `GEOSTATS#${period.toUpperCase()}#${periodStart}` },
+        },
+        Limit: limit,
+      },
+    }
+  }
+
+  // ==========================================================================
+  // Device Stats Operations
+  // ==========================================================================
+
+  /**
+   * Generate command to upsert device stats
+   */
+  upsertDeviceStatsCommand(stats: DeviceStats): {
+    command: 'UpdateItem'
+    input: {
+      TableName: string
+      Key: Record<string, unknown>
+      UpdateExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.deviceStats
+    const ttl = this.getTtlForPeriod(stats.period)
+
+    return {
+      command: 'UpdateItem',
+      input: {
+        TableName: this.options.tableName,
+        Key: {
+          pk: { S: keys.pk(stats.siteId) },
+          sk: { S: keys.sk(stats.period, stats.periodStart, stats.dimension, stats.value) },
+        },
+        UpdateExpression: `
+          SET #visitors = if_not_exists(#visitors, :zero) + :visitors,
+              #pv = if_not_exists(#pv, :zero) + :pv,
+              #dimension = :dimension,
+              #value = :value,
+              #et = :et
+              ${ttl ? ', #ttl = :ttl' : ''}
+        `.trim(),
+        ExpressionAttributeNames: {
+          '#visitors': 'visitors',
+          '#pv': 'pageViews',
+          '#dimension': 'dimension',
+          '#value': 'value',
+          '#et': '_et',
+          ...(ttl ? { '#ttl': 'ttl' } : {}),
+        },
+        ExpressionAttributeValues: {
+          ':visitors': { N: String(stats.visitors) },
+          ':pv': { N: String(stats.pageViews) },
+          ':dimension': { S: stats.dimension },
+          ':value': { S: stats.value },
+          ':zero': { N: '0' },
+          ':et': { S: 'DeviceStats' },
+          ...(ttl ? { ':ttl': { N: String(ttl) } } : {}),
+        },
+      },
+    }
+  }
+
+  /**
+   * Generate command to get device stats for a period
+   */
+  getDeviceStatsCommand(
+    siteId: string,
+    period: AggregationPeriod,
+    periodStart: string,
+    dimension?: 'device' | 'browser' | 'os' | 'screen',
+  ): {
+    command: 'Query'
+    input: {
+      TableName: string
+      KeyConditionExpression: string
+      ExpressionAttributeValues: Record<string, unknown>
+      FilterExpression?: string
+      ExpressionAttributeNames?: Record<string, string>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.deviceStats
+    const input: ReturnType<typeof this.getDeviceStatsCommand>['input'] = {
+      TableName: this.options.tableName,
+      KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skPrefix)',
+      ExpressionAttributeValues: {
+        ':pk': { S: keys.pk(siteId) },
+        ':skPrefix': { S: `DEVICESTATS#${period.toUpperCase()}#${periodStart}` },
+      },
+    }
+
+    if (dimension) {
+      input.FilterExpression = '#dim = :dim'
+      input.ExpressionAttributeNames = { '#dim': 'dimension' }
+      input.ExpressionAttributeValues[':dim'] = { S: dimension }
+    }
+
+    return { command: 'Query', input }
+  }
+
+  // ==========================================================================
+  // Event Stats Operations
+  // ==========================================================================
+
+  /**
+   * Generate command to upsert event stats
+   */
+  upsertEventStatsCommand(stats: EventStats): {
+    command: 'UpdateItem'
+    input: {
+      TableName: string
+      Key: Record<string, unknown>
+      UpdateExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.eventStats
+    const ttl = this.getTtlForPeriod(stats.period)
+
+    return {
+      command: 'UpdateItem',
+      input: {
+        TableName: this.options.tableName,
+        Key: {
+          pk: { S: keys.pk(stats.siteId) },
+          sk: { S: keys.sk(stats.period, stats.periodStart, stats.eventName) },
+        },
+        UpdateExpression: `
+          SET #count = if_not_exists(#count, :zero) + :count,
+              #uv = if_not_exists(#uv, :zero) + :uv,
+              #totalValue = if_not_exists(#totalValue, :zero) + :totalValue,
+              #eventName = :eventName,
+              #et = :et
+              ${ttl ? ', #ttl = :ttl' : ''}
+        `.trim(),
+        ExpressionAttributeNames: {
+          '#count': 'count',
+          '#uv': 'uniqueVisitors',
+          '#totalValue': 'totalValue',
+          '#eventName': 'eventName',
+          '#et': '_et',
+          ...(ttl ? { '#ttl': 'ttl' } : {}),
+        },
+        ExpressionAttributeValues: {
+          ':count': { N: String(stats.count) },
+          ':uv': { N: String(stats.uniqueVisitors) },
+          ':totalValue': { N: String(stats.totalValue) },
+          ':eventName': { S: stats.eventName },
+          ':zero': { N: '0' },
+          ':et': { S: 'EventStats' },
+          ...(ttl ? { ':ttl': { N: String(ttl) } } : {}),
+        },
+      },
+    }
+  }
+
+  /**
+   * Generate command to get event stats for a period
+   */
+  getEventStatsCommand(
+    siteId: string,
+    period: AggregationPeriod,
+    periodStart: string,
+  ): {
+    command: 'Query'
+    input: {
+      TableName: string
+      KeyConditionExpression: string
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.eventStats
+    return {
+      command: 'Query',
+      input: {
+        TableName: this.options.tableName,
+        KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': { S: keys.pk(siteId) },
+          ':skPrefix': { S: `EVENTSTATS#${period.toUpperCase()}#${periodStart}` },
+        },
+      },
+    }
+  }
+
+  // ==========================================================================
+  // Goal Stats Operations
+  // ==========================================================================
+
+  /**
+   * Generate command to upsert goal stats
+   */
+  upsertGoalStatsCommand(stats: GoalStats): {
+    command: 'UpdateItem'
+    input: {
+      TableName: string
+      Key: Record<string, unknown>
+      UpdateExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.goalStats
+    const ttl = this.getTtlForPeriod(stats.period)
+
+    return {
+      command: 'UpdateItem',
+      input: {
+        TableName: this.options.tableName,
+        Key: {
+          pk: { S: keys.pk(stats.siteId) },
+          sk: { S: keys.sk(stats.goalId, stats.period, stats.periodStart) },
+        },
+        UpdateExpression: `
+          SET #conversions = if_not_exists(#conversions, :zero) + :conversions,
+              #uniqueConv = if_not_exists(#uniqueConv, :zero) + :uniqueConv,
+              #revenue = if_not_exists(#revenue, :zero) + :revenue,
+              #goalId = :goalId,
+              #et = :et
+              ${ttl ? ', #ttl = :ttl' : ''}
+        `.trim(),
+        ExpressionAttributeNames: {
+          '#conversions': 'conversions',
+          '#uniqueConv': 'uniqueConversions',
+          '#revenue': 'revenue',
+          '#goalId': 'goalId',
+          '#et': '_et',
+          ...(ttl ? { '#ttl': 'ttl' } : {}),
+        },
+        ExpressionAttributeValues: {
+          ':conversions': { N: String(stats.conversions) },
+          ':uniqueConv': { N: String(stats.uniqueConversions) },
+          ':revenue': { N: String(stats.revenue) },
+          ':goalId': { S: stats.goalId },
+          ':zero': { N: '0' },
+          ':et': { S: 'GoalStats' },
+          ...(ttl ? { ':ttl': { N: String(ttl) } } : {}),
+        },
+      },
+    }
+  }
+
+  /**
+   * Generate command to get goal stats for a period
+   */
+  getGoalStatsCommand(
+    siteId: string,
+    goalId: string,
+    period: AggregationPeriod,
+    startPeriod: string,
+    endPeriod: string,
+  ): {
+    command: 'Query'
+    input: {
+      TableName: string
+      KeyConditionExpression: string
+      ExpressionAttributeValues: Record<string, unknown>
+      ScanIndexForward: boolean
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.goalStats
+    return {
+      command: 'Query',
+      input: {
+        TableName: this.options.tableName,
+        KeyConditionExpression: 'pk = :pk AND sk BETWEEN :start AND :end',
+        ExpressionAttributeValues: {
+          ':pk': { S: keys.pk(siteId) },
+          ':start': { S: keys.sk(goalId, period, startPeriod) },
+          ':end': { S: keys.sk(goalId, period, endPeriod) },
+        },
+        ScanIndexForward: true,
+      },
+    }
+  }
+
+  // ==========================================================================
+  // Campaign Stats Operations
+  // ==========================================================================
+
+  /**
+   * Generate command to upsert campaign stats
+   */
+  upsertCampaignStatsCommand(stats: CampaignStats): {
+    command: 'UpdateItem'
+    input: {
+      TableName: string
+      Key: Record<string, unknown>
+      UpdateExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.campaignStats
+    const ttl = this.getTtlForPeriod(stats.period)
+
+    return {
+      command: 'UpdateItem',
+      input: {
+        TableName: this.options.tableName,
+        Key: {
+          pk: { S: keys.pk(stats.siteId) },
+          sk: { S: keys.sk(stats.period, stats.periodStart, stats.utmSource, stats.utmCampaign) },
+        },
+        UpdateExpression: `
+          SET #visitors = if_not_exists(#visitors, :zero) + :visitors,
+              #pv = if_not_exists(#pv, :zero) + :pv,
+              #conversions = if_not_exists(#conversions, :zero) + :conversions,
+              #revenue = if_not_exists(#revenue, :zero) + :revenue,
+              #utmSource = :utmSource,
+              #et = :et
+              ${stats.utmMedium ? ', #utmMedium = :utmMedium' : ''}
+              ${stats.utmCampaign ? ', #utmCampaign = :utmCampaign' : ''}
+              ${ttl ? ', #ttl = :ttl' : ''}
+        `.trim(),
+        ExpressionAttributeNames: {
+          '#visitors': 'visitors',
+          '#pv': 'pageViews',
+          '#conversions': 'conversions',
+          '#revenue': 'revenue',
+          '#utmSource': 'utmSource',
+          '#et': '_et',
+          ...(stats.utmMedium ? { '#utmMedium': 'utmMedium' } : {}),
+          ...(stats.utmCampaign ? { '#utmCampaign': 'utmCampaign' } : {}),
+          ...(ttl ? { '#ttl': 'ttl' } : {}),
+        },
+        ExpressionAttributeValues: {
+          ':visitors': { N: String(stats.visitors) },
+          ':pv': { N: String(stats.pageViews) },
+          ':conversions': { N: String(stats.conversions) },
+          ':revenue': { N: String(stats.revenue) },
+          ':utmSource': { S: stats.utmSource },
+          ':zero': { N: '0' },
+          ':et': { S: 'CampaignStats' },
+          ...(stats.utmMedium ? { ':utmMedium': { S: stats.utmMedium } } : {}),
+          ...(stats.utmCampaign ? { ':utmCampaign': { S: stats.utmCampaign } } : {}),
+          ...(ttl ? { ':ttl': { N: String(ttl) } } : {}),
+        },
+      },
+    }
+  }
+
+  /**
+   * Generate command to get campaign stats for a period
+   */
+  getCampaignStatsCommand(
+    siteId: string,
+    period: AggregationPeriod,
+    periodStart: string,
+  ): {
+    command: 'Query'
+    input: {
+      TableName: string
+      KeyConditionExpression: string
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const keys = AnalyticsKeyPatterns.campaignStats
+    return {
+      command: 'Query',
+      input: {
+        TableName: this.options.tableName,
+        KeyConditionExpression: 'pk = :pk AND begins_with(sk, :skPrefix)',
+        ExpressionAttributeValues: {
+          ':pk': { S: keys.pk(siteId) },
+          ':skPrefix': { S: `CAMPSTATS#${period.toUpperCase()}#${periodStart}` },
+        },
+      },
+    }
+  }
+
+  // ==========================================================================
   // Helper Methods
   // ==========================================================================
 
@@ -1795,6 +2253,975 @@ export class AnalyticsAggregator {
       visitors: visitors.size,
       pageViews,
       bounceRate: sessions.length > 0 ? bounces / sessions.length : 0,
+    }
+  }
+}
+
+// ============================================================================
+// Goal Matcher - Match PageViews/Events to Goal Definitions
+// ============================================================================
+
+/**
+ * Result of a goal match check
+ */
+export interface GoalMatchResult {
+  /** Whether the goal was matched */
+  matched: boolean
+  /** The goal that was matched */
+  goal: Goal
+  /** The value attributed to this conversion */
+  value: number
+  /** The item that triggered the match (pageview or event) */
+  trigger: PageView | CustomEvent
+  /** Timestamp of the conversion */
+  timestamp: Date
+}
+
+/**
+ * Conversion record for storage
+ */
+export interface Conversion {
+  /** Unique conversion ID */
+  id: string
+  /** Site ID */
+  siteId: string
+  /** Goal ID */
+  goalId: string
+  /** Visitor ID */
+  visitorId: string
+  /** Session ID */
+  sessionId: string
+  /** Conversion value */
+  value: number
+  /** Path where conversion occurred */
+  path: string
+  /** Timestamp */
+  timestamp: Date
+  /** TTL for auto-deletion */
+  ttl?: number
+}
+
+/**
+ * Goal Matcher for checking if pageviews/events match goal definitions
+ */
+export class GoalMatcher {
+  private goals: Goal[]
+  private compiledPatterns: Map<string, RegExp>
+
+  constructor(goals: Goal[]) {
+    this.goals = goals.filter(g => g.isActive)
+    this.compiledPatterns = new Map()
+
+    // Pre-compile regex patterns for performance
+    for (const goal of this.goals) {
+      if (goal.matchType === 'regex') {
+        try {
+          this.compiledPatterns.set(goal.id, new RegExp(goal.pattern))
+        }
+        catch {
+          // Invalid regex - skip this goal
+          console.warn(`Invalid regex pattern for goal ${goal.id}: ${goal.pattern}`)
+        }
+      }
+    }
+  }
+
+  /**
+   * Check if a pageview matches any pageview-type goals
+   */
+  matchPageView(pageView: PageView): GoalMatchResult[] {
+    const results: GoalMatchResult[] = []
+
+    for (const goal of this.goals) {
+      if (goal.type !== 'pageview') continue
+
+      if (this.matchesPattern(pageView.path, goal)) {
+        results.push({
+          matched: true,
+          goal,
+          value: goal.value ?? 0,
+          trigger: pageView,
+          timestamp: pageView.timestamp,
+        })
+      }
+    }
+
+    return results
+  }
+
+  /**
+   * Check if a custom event matches any event-type goals
+   */
+  matchEvent(event: CustomEvent): GoalMatchResult[] {
+    const results: GoalMatchResult[] = []
+
+    for (const goal of this.goals) {
+      if (goal.type !== 'event') continue
+
+      if (this.matchesPattern(event.name, goal)) {
+        results.push({
+          matched: true,
+          goal,
+          value: event.value ?? goal.value ?? 0,
+          trigger: event,
+          timestamp: event.timestamp,
+        })
+      }
+    }
+
+    return results
+  }
+
+  /**
+   * Check if a value matches a goal's pattern
+   */
+  private matchesPattern(value: string, goal: Goal): boolean {
+    switch (goal.matchType) {
+      case 'exact':
+        return value === goal.pattern
+
+      case 'contains':
+        return value.includes(goal.pattern)
+
+      case 'regex': {
+        const regex = this.compiledPatterns.get(goal.id)
+        return regex ? regex.test(value) : false
+      }
+
+      default:
+        return false
+    }
+  }
+
+  /**
+   * Get all active goals
+   */
+  getActiveGoals(): Goal[] {
+    return this.goals
+  }
+
+  /**
+   * Create a conversion record from a goal match
+   */
+  static createConversion(
+    siteId: string,
+    match: GoalMatchResult,
+  ): Conversion {
+    const trigger = match.trigger
+    return {
+      id: AnalyticsStore.generateId(),
+      siteId,
+      goalId: match.goal.id,
+      visitorId: trigger.visitorId,
+      sessionId: trigger.sessionId,
+      value: match.value,
+      path: trigger.path,
+      timestamp: match.timestamp,
+    }
+  }
+}
+
+// ============================================================================
+// Analytics Query API - High-Level Dashboard Queries
+// ============================================================================
+
+/**
+ * Date range for queries
+ */
+export interface DateRange {
+  start: Date
+  end: Date
+}
+
+/**
+ * Dashboard summary data
+ */
+export interface DashboardSummary {
+  /** Total page views in period */
+  pageViews: number
+  /** Unique visitors in period */
+  uniqueVisitors: number
+  /** Total sessions in period */
+  sessions: number
+  /** Bounce rate (0-1) */
+  bounceRate: number
+  /** Average session duration (ms) */
+  avgSessionDuration: number
+  /** Average pages per session */
+  avgPagesPerSession: number
+  /** Comparison with previous period */
+  comparison?: {
+    pageViewsChange: number
+    visitorsChange: number
+    bounceRateChange: number
+  }
+}
+
+/**
+ * Time series data point
+ */
+export interface TimeSeriesPoint {
+  timestamp: string
+  pageViews: number
+  uniqueVisitors: number
+  sessions: number
+  bounceRate: number
+}
+
+/**
+ * Top item (page, referrer, country, etc.)
+ */
+export interface TopItem {
+  name: string
+  value: number
+  percentage: number
+  change?: number
+}
+
+/**
+ * Dashboard data response
+ */
+export interface DashboardData {
+  summary: DashboardSummary
+  timeSeries: TimeSeriesPoint[]
+  topPages: TopItem[]
+  topReferrers: TopItem[]
+  topCountries: TopItem[]
+  topDevices: TopItem[]
+  topBrowsers: TopItem[]
+  goals?: GoalPerformance[]
+  realtime?: RealtimeData
+}
+
+/**
+ * Goal performance data
+ */
+export interface GoalPerformance {
+  goalId: string
+  goalName: string
+  conversions: number
+  conversionRate: number
+  revenue: number
+}
+
+/**
+ * Realtime dashboard data
+ */
+export interface RealtimeData {
+  currentVisitors: number
+  pageViewsLastHour: number
+  topActivePages: TopItem[]
+}
+
+/**
+ * Query options
+ */
+export interface QueryOptions {
+  /** Site ID */
+  siteId: string
+  /** Date range */
+  dateRange: DateRange
+  /** Whether to include comparison with previous period */
+  includeComparison?: boolean
+  /** Whether to include realtime data */
+  includeRealtime?: boolean
+  /** Whether to include goal performance */
+  includeGoals?: boolean
+  /** Limit for top items */
+  topLimit?: number
+  /** Timezone for date calculations */
+  timezone?: string
+}
+
+/**
+ * Analytics Query API for dashboard data
+ */
+export class AnalyticsQueryAPI {
+  private store: AnalyticsStore
+
+  constructor(store: AnalyticsStore) {
+    this.store = store
+  }
+
+  /**
+   * Determine the best aggregation period for a date range
+   */
+  static determinePeriod(dateRange: DateRange): AggregationPeriod {
+    const diffMs = dateRange.end.getTime() - dateRange.start.getTime()
+    const diffDays = diffMs / (1000 * 60 * 60 * 24)
+
+    if (diffDays <= 2) {
+      return 'hour'
+    }
+    else if (diffDays <= 90) {
+      return 'day'
+    }
+    else {
+      return 'month'
+    }
+  }
+
+  /**
+   * Get the previous period for comparison
+   */
+  static getPreviousPeriod(dateRange: DateRange): DateRange {
+    const diffMs = dateRange.end.getTime() - dateRange.start.getTime()
+    return {
+      start: new Date(dateRange.start.getTime() - diffMs),
+      end: new Date(dateRange.start.getTime() - 1),
+    }
+  }
+
+  /**
+   * Generate query commands for fetching dashboard data
+   * Returns an object with all the DynamoDB commands needed
+   */
+  generateDashboardQueries(options: QueryOptions): {
+    aggregatedStats: ReturnType<AnalyticsStore['getAggregatedStatsCommand']>
+    topPages: ReturnType<AnalyticsStore['getTopPagesCommand']>
+    realtimeStats?: ReturnType<AnalyticsStore['getRealtimeStatsCommand']>
+    goals?: ReturnType<AnalyticsStore['listGoalsCommand']>
+    previousPeriodStats?: ReturnType<AnalyticsStore['getAggregatedStatsCommand']>
+  } {
+    const period = AnalyticsQueryAPI.determinePeriod(options.dateRange)
+    const startPeriod = AnalyticsStore.getPeriodStart(options.dateRange.start, period)
+    const endPeriod = AnalyticsStore.getPeriodStart(options.dateRange.end, period)
+    const limit = options.topLimit ?? 10
+
+    const queries: ReturnType<AnalyticsQueryAPI['generateDashboardQueries']> = {
+      aggregatedStats: this.store.getAggregatedStatsCommand(
+        options.siteId,
+        period,
+        startPeriod,
+        endPeriod,
+      ),
+      topPages: this.store.getTopPagesCommand(
+        options.siteId,
+        period,
+        endPeriod, // Use end date for most recent stats
+        limit,
+      ),
+    }
+
+    if (options.includeRealtime) {
+      queries.realtimeStats = this.store.getRealtimeStatsCommand(options.siteId, 5)
+    }
+
+    if (options.includeGoals) {
+      queries.goals = this.store.listGoalsCommand(options.siteId)
+    }
+
+    if (options.includeComparison) {
+      const prevPeriod = AnalyticsQueryAPI.getPreviousPeriod(options.dateRange)
+      const prevStartPeriod = AnalyticsStore.getPeriodStart(prevPeriod.start, period)
+      const prevEndPeriod = AnalyticsStore.getPeriodStart(prevPeriod.end, period)
+
+      queries.previousPeriodStats = this.store.getAggregatedStatsCommand(
+        options.siteId,
+        period,
+        prevStartPeriod,
+        prevEndPeriod,
+      )
+    }
+
+    return queries
+  }
+
+  /**
+   * Process aggregated stats results into dashboard summary
+   */
+  static processSummary(
+    stats: AggregatedStats[],
+    previousStats?: AggregatedStats[],
+  ): DashboardSummary {
+    // Sum up all stats in the period
+    const totals = stats.reduce(
+      (acc, s) => ({
+        pageViews: acc.pageViews + s.pageViews,
+        uniqueVisitors: acc.uniqueVisitors + s.uniqueVisitors,
+        sessions: acc.sessions + s.sessions,
+        bounces: acc.bounces + s.bounces,
+        totalTime: acc.totalTime + s.totalTimeOnSite,
+        totalPages: acc.totalPages + (s.sessions * s.avgPagesPerSession),
+      }),
+      { pageViews: 0, uniqueVisitors: 0, sessions: 0, bounces: 0, totalTime: 0, totalPages: 0 },
+    )
+
+    const summary: DashboardSummary = {
+      pageViews: totals.pageViews,
+      uniqueVisitors: totals.uniqueVisitors,
+      sessions: totals.sessions,
+      bounceRate: totals.sessions > 0 ? totals.bounces / totals.sessions : 0,
+      avgSessionDuration: totals.sessions > 0 ? totals.totalTime / totals.sessions : 0,
+      avgPagesPerSession: totals.sessions > 0 ? totals.totalPages / totals.sessions : 0,
+    }
+
+    if (previousStats && previousStats.length > 0) {
+      const prevTotals = previousStats.reduce(
+        (acc, s) => ({
+          pageViews: acc.pageViews + s.pageViews,
+          uniqueVisitors: acc.uniqueVisitors + s.uniqueVisitors,
+          bounces: acc.bounces + s.bounces,
+          sessions: acc.sessions + s.sessions,
+        }),
+        { pageViews: 0, uniqueVisitors: 0, bounces: 0, sessions: 0 },
+      )
+
+      const prevBounceRate = prevTotals.sessions > 0 ? prevTotals.bounces / prevTotals.sessions : 0
+
+      summary.comparison = {
+        pageViewsChange: prevTotals.pageViews > 0
+          ? ((totals.pageViews - prevTotals.pageViews) / prevTotals.pageViews) * 100
+          : 0,
+        visitorsChange: prevTotals.uniqueVisitors > 0
+          ? ((totals.uniqueVisitors - prevTotals.uniqueVisitors) / prevTotals.uniqueVisitors) * 100
+          : 0,
+        bounceRateChange: summary.bounceRate - prevBounceRate,
+      }
+    }
+
+    return summary
+  }
+
+  /**
+   * Convert aggregated stats to time series data
+   */
+  static processTimeSeries(stats: AggregatedStats[]): TimeSeriesPoint[] {
+    return stats
+      .sort((a, b) => a.periodStart.localeCompare(b.periodStart))
+      .map(s => ({
+        timestamp: s.periodStart,
+        pageViews: s.pageViews,
+        uniqueVisitors: s.uniqueVisitors,
+        sessions: s.sessions,
+        bounceRate: s.bounceRate,
+      }))
+  }
+
+  /**
+   * Process page stats into top items
+   */
+  static processTopPages(pageStats: PageStats[], totalPageViews: number): TopItem[] {
+    return pageStats
+      .sort((a, b) => b.pageViews - a.pageViews)
+      .map(p => ({
+        name: p.path,
+        value: p.pageViews,
+        percentage: totalPageViews > 0 ? (p.pageViews / totalPageViews) * 100 : 0,
+      }))
+  }
+
+  /**
+   * Process referrer stats into top items
+   */
+  static processTopReferrers(referrerStats: ReferrerStats[], totalVisitors: number): TopItem[] {
+    return referrerStats
+      .sort((a, b) => b.visitors - a.visitors)
+      .map(r => ({
+        name: r.source,
+        value: r.visitors,
+        percentage: totalVisitors > 0 ? (r.visitors / totalVisitors) * 100 : 0,
+      }))
+  }
+
+  /**
+   * Process geo stats into top items
+   */
+  static processTopCountries(geoStats: GeoStats[], totalVisitors: number): TopItem[] {
+    return geoStats
+      .filter(g => !g.region) // Only country-level stats
+      .sort((a, b) => b.visitors - a.visitors)
+      .map(g => ({
+        name: g.country,
+        value: g.visitors,
+        percentage: totalVisitors > 0 ? (g.visitors / totalVisitors) * 100 : 0,
+      }))
+  }
+
+  /**
+   * Process device stats into top items
+   */
+  static processTopDevices(
+    deviceStats: DeviceStats[],
+    dimension: 'device' | 'browser' | 'os',
+    totalVisitors: number,
+  ): TopItem[] {
+    return deviceStats
+      .filter(d => d.dimension === dimension)
+      .sort((a, b) => b.visitors - a.visitors)
+      .map(d => ({
+        name: d.value,
+        value: d.visitors,
+        percentage: totalVisitors > 0 ? (d.visitors / totalVisitors) * 100 : 0,
+      }))
+  }
+
+  /**
+   * Process realtime stats
+   */
+  static processRealtimeData(
+    realtimeStats: RealtimeStats[],
+  ): RealtimeData {
+    // Sum up recent minutes
+    const currentVisitors = realtimeStats.length > 0
+      ? realtimeStats[0].currentVisitors
+      : 0
+
+    const pageViewsLastHour = realtimeStats.reduce((sum, s) => sum + s.pageViews, 0)
+
+    // Aggregate active pages across all minutes
+    const activePageCounts = new Map<string, number>()
+    for (const stat of realtimeStats) {
+      for (const [page, count] of Object.entries(stat.activePages)) {
+        activePageCounts.set(page, (activePageCounts.get(page) ?? 0) + count)
+      }
+    }
+
+    const totalActive = Array.from(activePageCounts.values()).reduce((a, b) => a + b, 0)
+    const topActivePages: TopItem[] = Array.from(activePageCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percentage: totalActive > 0 ? (value / totalActive) * 100 : 0,
+      }))
+
+    return {
+      currentVisitors,
+      pageViewsLastHour,
+      topActivePages,
+    }
+  }
+
+  /**
+   * Process goal stats into performance data
+   */
+  static processGoalPerformance(
+    goals: Goal[],
+    goalStats: GoalStats[],
+    totalVisitors: number,
+  ): GoalPerformance[] {
+    return goals.map((goal) => {
+      const stats = goalStats.filter(gs => gs.goalId === goal.id)
+      const totalConversions = stats.reduce((sum, s) => sum + s.conversions, 0)
+      const totalRevenue = stats.reduce((sum, s) => sum + s.revenue, 0)
+
+      return {
+        goalId: goal.id,
+        goalName: goal.name,
+        conversions: totalConversions,
+        conversionRate: totalVisitors > 0 ? totalConversions / totalVisitors : 0,
+        revenue: totalRevenue,
+      }
+    })
+  }
+}
+
+// ============================================================================
+// Aggregation Pipeline - Scheduled Job Utilities
+// ============================================================================
+
+/**
+ * Pipeline job configuration
+ */
+export interface PipelineJobConfig {
+  /** Site ID to process */
+  siteId: string
+  /** Period to aggregate */
+  period: AggregationPeriod
+  /** Start time for aggregation window */
+  windowStart: Date
+  /** End time for aggregation window */
+  windowEnd: Date
+  /** Whether to delete raw events after aggregation */
+  deleteRawEvents?: boolean
+}
+
+/**
+ * Pipeline job result
+ */
+export interface PipelineJobResult {
+  /** Job configuration */
+  config: PipelineJobConfig
+  /** Whether the job succeeded */
+  success: boolean
+  /** Error message if failed */
+  error?: string
+  /** Number of page views processed */
+  pageViewsProcessed: number
+  /** Number of sessions processed */
+  sessionsProcessed: number
+  /** Number of events processed */
+  eventsProcessed: number
+  /** Number of conversions tracked */
+  conversionsTracked: number
+  /** Commands generated for DynamoDB writes */
+  commands: Array<{
+    command: string
+    input: Record<string, unknown>
+  }>
+  /** Processing duration (ms) */
+  durationMs: number
+}
+
+/**
+ * Aggregation job status
+ */
+export interface AggregationJobStatus {
+  /** Job ID */
+  jobId: string
+  /** Site ID */
+  siteId: string
+  /** Period being aggregated */
+  period: AggregationPeriod
+  /** Job status */
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  /** Start time */
+  startedAt?: Date
+  /** Completion time */
+  completedAt?: Date
+  /** Error if failed */
+  error?: string
+  /** Progress percentage (0-100) */
+  progress: number
+}
+
+/**
+ * Aggregation Pipeline for scheduled processing of analytics data
+ */
+export class AggregationPipeline {
+  private store: AnalyticsStore
+  private aggregator: AnalyticsAggregator
+
+  constructor(store: AnalyticsStore, aggregator?: AnalyticsAggregator) {
+    this.store = store
+    this.aggregator = aggregator ?? new AnalyticsAggregator({ store })
+  }
+
+  /**
+   * Generate commands to run an aggregation job
+   * This processes raw events and generates aggregated stats
+   */
+  runAggregationJob(
+    config: PipelineJobConfig,
+    pageViews: PageView[],
+    sessions: Session[],
+    events: CustomEvent[],
+    goals: Goal[],
+  ): PipelineJobResult {
+    const startTime = Date.now()
+    const commands: PipelineJobResult['commands'] = []
+    let conversionsTracked = 0
+
+    try {
+      // 1. Generate aggregated stats
+      const aggregatedStats = this.aggregator.aggregateHourlyStats(
+        config.siteId,
+        config.windowStart,
+        pageViews,
+        sessions,
+      )
+      // Adjust period if not hourly
+      aggregatedStats.period = config.period
+      aggregatedStats.periodStart = AnalyticsStore.getPeriodStart(config.windowStart, config.period)
+
+      const statsCmd = this.store.upsertAggregatedStatsCommand(aggregatedStats)
+      commands.push({ command: statsCmd.command, input: statsCmd.input })
+
+      // 2. Generate page stats
+      const pageStats = this.aggregator.aggregatePageStats(
+        config.siteId,
+        config.period,
+        config.windowStart,
+        pageViews,
+      )
+      for (const ps of pageStats) {
+        const cmd = this.store.upsertPageStatsCommand(ps)
+        commands.push({ command: cmd.command, input: cmd.input })
+      }
+
+      // 3. Generate referrer stats
+      const referrerStats = this.aggregator.aggregateReferrerStats(
+        config.siteId,
+        config.period,
+        config.windowStart,
+        sessions,
+      )
+      for (const rs of referrerStats) {
+        const cmd = this.store.upsertReferrerStatsCommand(rs)
+        commands.push({ command: cmd.command, input: cmd.input })
+      }
+
+      // 4. Generate geo stats
+      const geoStats = this.aggregator.aggregateGeoStats(
+        config.siteId,
+        config.period,
+        config.windowStart,
+        sessions,
+      )
+      for (const gs of geoStats) {
+        const cmd = this.store.upsertGeoStatsCommand(gs)
+        commands.push({ command: cmd.command, input: cmd.input })
+      }
+
+      // 5. Generate device stats
+      const deviceStats = this.aggregator.aggregateDeviceStats(
+        config.siteId,
+        config.period,
+        config.windowStart,
+        sessions,
+      )
+      for (const ds of deviceStats) {
+        const cmd = this.store.upsertDeviceStatsCommand(ds)
+        commands.push({ command: cmd.command, input: cmd.input })
+      }
+
+      // 6. Process goal conversions
+      if (goals.length > 0) {
+        const goalMatcher = new GoalMatcher(goals)
+        const conversions: Conversion[] = []
+
+        // Match pageviews to goals
+        for (const pv of pageViews) {
+          const matches = goalMatcher.matchPageView(pv)
+          for (const match of matches) {
+            conversions.push(GoalMatcher.createConversion(config.siteId, match))
+          }
+        }
+
+        // Match events to goals
+        for (const event of events) {
+          const matches = goalMatcher.matchEvent(event)
+          for (const match of matches) {
+            conversions.push(GoalMatcher.createConversion(config.siteId, match))
+          }
+        }
+
+        conversionsTracked = conversions.length
+
+        // Generate goal stats grouped by goal
+        const goalGroups = new Map<string, Conversion[]>()
+        for (const conv of conversions) {
+          const existing = goalGroups.get(conv.goalId) ?? []
+          existing.push(conv)
+          goalGroups.set(conv.goalId, existing)
+        }
+
+        for (const [goalId, convs] of goalGroups) {
+          const goalStats = this.createGoalStats(
+            config.siteId,
+            goalId,
+            config.period,
+            config.windowStart,
+            convs,
+            aggregatedStats.uniqueVisitors,
+          )
+          const cmd = this.store.upsertGoalStatsCommand(goalStats)
+          commands.push({ command: cmd.command, input: cmd.input })
+        }
+      }
+
+      // 7. Generate event stats
+      const eventStats = this.aggregateEventStats(
+        config.siteId,
+        config.period,
+        config.windowStart,
+        events,
+      )
+      for (const es of eventStats) {
+        const cmd = this.store.upsertEventStatsCommand(es)
+        commands.push({ command: cmd.command, input: cmd.input })
+      }
+
+      return {
+        config,
+        success: true,
+        pageViewsProcessed: pageViews.length,
+        sessionsProcessed: sessions.length,
+        eventsProcessed: events.length,
+        conversionsTracked,
+        commands,
+        durationMs: Date.now() - startTime,
+      }
+    }
+    catch (error) {
+      return {
+        config,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        pageViewsProcessed: 0,
+        sessionsProcessed: 0,
+        eventsProcessed: 0,
+        conversionsTracked: 0,
+        commands,
+        durationMs: Date.now() - startTime,
+      }
+    }
+  }
+
+  /**
+   * Get the next scheduled job times for a site
+   */
+  static getScheduledJobTimes(now: Date = new Date()): {
+    hourly: Date
+    daily: Date
+    monthly: Date
+  } {
+    // Hourly: next hour boundary
+    const hourly = new Date(now)
+    hourly.setMinutes(0, 0, 0)
+    hourly.setHours(hourly.getHours() + 1)
+
+    // Daily: next midnight UTC
+    const daily = new Date(now)
+    daily.setUTCHours(0, 0, 0, 0)
+    daily.setUTCDate(daily.getUTCDate() + 1)
+
+    // Monthly: first of next month UTC
+    const monthly = new Date(now)
+    monthly.setUTCHours(0, 0, 0, 0)
+    monthly.setUTCDate(1)
+    monthly.setUTCMonth(monthly.getUTCMonth() + 1)
+
+    return { hourly, daily, monthly }
+  }
+
+  /**
+   * Generate a cron expression for aggregation jobs
+   */
+  static getCronExpression(period: AggregationPeriod): string {
+    switch (period) {
+      case 'hour':
+        return '0 * * * *' // Every hour at minute 0
+      case 'day':
+        return '0 0 * * *' // Every day at midnight
+      case 'month':
+        return '0 0 1 * *' // First day of every month
+      default:
+        return '0 * * * *'
+    }
+  }
+
+  /**
+   * Get the aggregation window for a period
+   */
+  static getAggregationWindow(period: AggregationPeriod, referenceTime: Date = new Date()): {
+    start: Date
+    end: Date
+  } {
+    const end = new Date(referenceTime)
+
+    switch (period) {
+      case 'hour': {
+        // Previous hour
+        end.setMinutes(0, 0, 0)
+        const start = new Date(end)
+        start.setHours(start.getHours() - 1)
+        return { start, end }
+      }
+      case 'day': {
+        // Previous day
+        end.setUTCHours(0, 0, 0, 0)
+        const start = new Date(end)
+        start.setUTCDate(start.getUTCDate() - 1)
+        return { start, end }
+      }
+      case 'month': {
+        // Previous month
+        end.setUTCDate(1)
+        end.setUTCHours(0, 0, 0, 0)
+        const start = new Date(end)
+        start.setUTCMonth(start.getUTCMonth() - 1)
+        return { start, end }
+      }
+      default:
+        return { start: end, end }
+    }
+  }
+
+  /**
+   * Create a job configuration for a site and period
+   */
+  static createJobConfig(
+    siteId: string,
+    period: AggregationPeriod,
+    referenceTime?: Date,
+  ): PipelineJobConfig {
+    const window = AggregationPipeline.getAggregationWindow(period, referenceTime)
+    return {
+      siteId,
+      period,
+      windowStart: window.start,
+      windowEnd: window.end,
+      deleteRawEvents: period === 'hour', // Only delete after hourly aggregation
+    }
+  }
+
+  /**
+   * Helper to aggregate event stats
+   */
+  private aggregateEventStats(
+    siteId: string,
+    period: AggregationPeriod,
+    periodStart: Date,
+    events: CustomEvent[],
+  ): EventStats[] {
+    const periodStartStr = AnalyticsStore.getPeriodStart(periodStart, period)
+
+    // Group by event name
+    const eventGroups = new Map<string, CustomEvent[]>()
+    for (const event of events) {
+      const existing = eventGroups.get(event.name) ?? []
+      existing.push(event)
+      eventGroups.set(event.name, existing)
+    }
+
+    const results: EventStats[] = []
+    for (const [eventName, groupEvents] of eventGroups) {
+      const uniqueVisitors = new Set(groupEvents.map(e => e.visitorId))
+      const values = groupEvents.filter(e => e.value !== undefined).map(e => e.value!)
+      const totalValue = values.reduce((a, b) => a + b, 0)
+
+      results.push({
+        siteId,
+        period,
+        periodStart: periodStartStr,
+        eventName,
+        count: groupEvents.length,
+        uniqueVisitors: uniqueVisitors.size,
+        totalValue,
+        avgValue: values.length > 0 ? totalValue / values.length : 0,
+      })
+    }
+
+    return results
+  }
+
+  /**
+   * Helper to create goal stats
+   */
+  private createGoalStats(
+    siteId: string,
+    goalId: string,
+    period: AggregationPeriod,
+    periodStart: Date,
+    conversions: Conversion[],
+    totalVisitors: number,
+  ): GoalStats {
+    const periodStartStr = AnalyticsStore.getPeriodStart(periodStart, period)
+    const uniqueConversions = new Set(conversions.map(c => c.visitorId))
+    const revenue = conversions.reduce((sum, c) => sum + c.value, 0)
+
+    return {
+      siteId,
+      goalId,
+      period,
+      periodStart: periodStartStr,
+      conversions: conversions.length,
+      uniqueConversions: uniqueConversions.size,
+      conversionRate: totalVisitors > 0 ? uniqueConversions.size / totalVisitors : 0,
+      revenue,
     }
   }
 }

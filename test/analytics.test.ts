@@ -1,12 +1,20 @@
 import { describe, expect, it, beforeEach } from 'bun:test'
 import {
+  AggregationPipeline,
   AnalyticsAggregator,
   AnalyticsKeyPatterns,
+  AnalyticsQueryAPI,
   AnalyticsStore,
   generateTrackingScript,
+  GoalMatcher,
   type AggregatedStats,
   type CustomEvent,
+  type DateRange,
+  type DeviceStats,
+  type EventStats,
+  type GeoStats,
   type Goal,
+  type GoalStats,
   type PageStats,
   type PageView,
   type RealtimeStats,
@@ -1060,3 +1068,766 @@ function createSessionWithDevice(
     os,
   }
 }
+
+function createGoal(
+  id: string,
+  type: 'pageview' | 'event',
+  pattern: string,
+  matchType: 'exact' | 'contains' | 'regex',
+  value?: number,
+): Goal {
+  return {
+    id,
+    siteId: 'site-123',
+    name: `Goal ${id}`,
+    type,
+    pattern,
+    matchType,
+    value,
+    isActive: true,
+    createdAt: new Date('2024-01-15T00:00:00.000Z'),
+    updatedAt: new Date('2024-01-15T00:00:00.000Z'),
+  }
+}
+
+function createCustomEvent(
+  id: string,
+  visitorId: string,
+  sessionId: string,
+  name: string,
+  value?: number,
+): CustomEvent {
+  return {
+    id,
+    siteId: 'site-123',
+    visitorId,
+    sessionId,
+    name,
+    value,
+    path: '/checkout',
+    timestamp: new Date('2024-01-15T14:30:00.000Z'),
+  }
+}
+
+// ============================================================================
+// GoalMatcher Tests
+// ============================================================================
+
+describe('GoalMatcher', () => {
+  describe('matchPageView', () => {
+    it('should match exact pageview patterns', () => {
+      const goals = [createGoal('goal-1', 'pageview', '/checkout/success', 'exact', 29.99)]
+      const matcher = new GoalMatcher(goals)
+
+      const matchingPv = createPageView('pv-1', 'visitor-1', 'session-1', '/checkout/success', true, false)
+      const nonMatchingPv = createPageView('pv-2', 'visitor-1', 'session-1', '/checkout', true, false)
+
+      const matches = matcher.matchPageView(matchingPv)
+      expect(matches).toHaveLength(1)
+      expect(matches[0].matched).toBe(true)
+      expect(matches[0].goal.id).toBe('goal-1')
+      expect(matches[0].value).toBe(29.99)
+
+      const noMatches = matcher.matchPageView(nonMatchingPv)
+      expect(noMatches).toHaveLength(0)
+    })
+
+    it('should match contains pageview patterns', () => {
+      const goals = [createGoal('goal-1', 'pageview', '/blog/', 'contains')]
+      const matcher = new GoalMatcher(goals)
+
+      const matchingPv = createPageView('pv-1', 'visitor-1', 'session-1', '/blog/my-post', true, false)
+      const nonMatchingPv = createPageView('pv-2', 'visitor-1', 'session-1', '/about', true, false)
+
+      const matches = matcher.matchPageView(matchingPv)
+      expect(matches).toHaveLength(1)
+
+      const noMatches = matcher.matchPageView(nonMatchingPv)
+      expect(noMatches).toHaveLength(0)
+    })
+
+    it('should match regex pageview patterns', () => {
+      const goals = [createGoal('goal-1', 'pageview', '^/products/\\d+$', 'regex')]
+      const matcher = new GoalMatcher(goals)
+
+      const matchingPv = createPageView('pv-1', 'visitor-1', 'session-1', '/products/123', true, false)
+      const nonMatchingPv = createPageView('pv-2', 'visitor-1', 'session-1', '/products/abc', true, false)
+
+      const matches = matcher.matchPageView(matchingPv)
+      expect(matches).toHaveLength(1)
+
+      const noMatches = matcher.matchPageView(nonMatchingPv)
+      expect(noMatches).toHaveLength(0)
+    })
+
+    it('should match multiple goals', () => {
+      const goals = [
+        createGoal('goal-1', 'pageview', '/checkout', 'contains'),
+        createGoal('goal-2', 'pageview', '/checkout/success', 'exact', 50),
+      ]
+      const matcher = new GoalMatcher(goals)
+
+      const pv = createPageView('pv-1', 'visitor-1', 'session-1', '/checkout/success', true, false)
+      const matches = matcher.matchPageView(pv)
+
+      expect(matches).toHaveLength(2)
+    })
+
+    it('should ignore inactive goals', () => {
+      const goals = [{
+        ...createGoal('goal-1', 'pageview', '/checkout', 'exact'),
+        isActive: false,
+      }]
+      const matcher = new GoalMatcher(goals)
+
+      const pv = createPageView('pv-1', 'visitor-1', 'session-1', '/checkout', true, false)
+      const matches = matcher.matchPageView(pv)
+
+      expect(matches).toHaveLength(0)
+    })
+
+    it('should not match event-type goals to pageviews', () => {
+      const goals = [createGoal('goal-1', 'event', 'purchase', 'exact')]
+      const matcher = new GoalMatcher(goals)
+
+      const pv = createPageView('pv-1', 'visitor-1', 'session-1', 'purchase', true, false)
+      const matches = matcher.matchPageView(pv)
+
+      expect(matches).toHaveLength(0)
+    })
+  })
+
+  describe('matchEvent', () => {
+    it('should match exact event patterns', () => {
+      const goals = [createGoal('goal-1', 'event', 'purchase', 'exact', 99.99)]
+      const matcher = new GoalMatcher(goals)
+
+      const matchingEvent = createCustomEvent('evt-1', 'visitor-1', 'session-1', 'purchase', 149.99)
+      const nonMatchingEvent = createCustomEvent('evt-2', 'visitor-1', 'session-1', 'add_to_cart')
+
+      const matches = matcher.matchEvent(matchingEvent)
+      expect(matches).toHaveLength(1)
+      expect(matches[0].value).toBe(149.99) // Event value takes precedence
+
+      const noMatches = matcher.matchEvent(nonMatchingEvent)
+      expect(noMatches).toHaveLength(0)
+    })
+
+    it('should match contains event patterns', () => {
+      const goals = [createGoal('goal-1', 'event', 'signup', 'contains')]
+      const matcher = new GoalMatcher(goals)
+
+      const matchingEvent = createCustomEvent('evt-1', 'visitor-1', 'session-1', 'newsletter_signup')
+      const matches = matcher.matchEvent(matchingEvent)
+
+      expect(matches).toHaveLength(1)
+    })
+
+    it('should use goal value when event has no value', () => {
+      const goals = [createGoal('goal-1', 'event', 'signup', 'exact', 10)]
+      const matcher = new GoalMatcher(goals)
+
+      const event = createCustomEvent('evt-1', 'visitor-1', 'session-1', 'signup')
+      const matches = matcher.matchEvent(event)
+
+      expect(matches).toHaveLength(1)
+      expect(matches[0].value).toBe(10)
+    })
+  })
+
+  describe('createConversion', () => {
+    it('should create conversion from goal match', () => {
+      const goals = [createGoal('goal-1', 'pageview', '/checkout', 'exact', 50)]
+      const matcher = new GoalMatcher(goals)
+
+      const pv = createPageView('pv-1', 'visitor-1', 'session-1', '/checkout', true, false)
+      const matches = matcher.matchPageView(pv)
+
+      const conversion = GoalMatcher.createConversion('site-123', matches[0])
+
+      expect(conversion.siteId).toBe('site-123')
+      expect(conversion.goalId).toBe('goal-1')
+      expect(conversion.visitorId).toBe('visitor-1')
+      expect(conversion.sessionId).toBe('session-1')
+      expect(conversion.value).toBe(50)
+      expect(conversion.path).toBe('/checkout')
+      expect(conversion.id).toBeDefined()
+    })
+  })
+})
+
+// ============================================================================
+// AnalyticsQueryAPI Tests
+// ============================================================================
+
+describe('AnalyticsQueryAPI', () => {
+  let store: AnalyticsStore
+  let queryApi: AnalyticsQueryAPI
+
+  beforeEach(() => {
+    store = new AnalyticsStore({ tableName: 'analytics-table' })
+    queryApi = new AnalyticsQueryAPI(store)
+  })
+
+  describe('determinePeriod', () => {
+    it('should return hour for ranges <= 2 days', () => {
+      const range: DateRange = {
+        start: new Date('2024-01-15T00:00:00Z'),
+        end: new Date('2024-01-16T12:00:00Z'),
+      }
+      expect(AnalyticsQueryAPI.determinePeriod(range)).toBe('hour')
+    })
+
+    it('should return day for ranges <= 90 days', () => {
+      const range: DateRange = {
+        start: new Date('2024-01-01T00:00:00Z'),
+        end: new Date('2024-02-15T00:00:00Z'),
+      }
+      expect(AnalyticsQueryAPI.determinePeriod(range)).toBe('day')
+    })
+
+    it('should return month for ranges > 90 days', () => {
+      const range: DateRange = {
+        start: new Date('2024-01-01T00:00:00Z'),
+        end: new Date('2024-06-01T00:00:00Z'),
+      }
+      expect(AnalyticsQueryAPI.determinePeriod(range)).toBe('month')
+    })
+  })
+
+  describe('getPreviousPeriod', () => {
+    it('should calculate previous period correctly', () => {
+      const range: DateRange = {
+        start: new Date('2024-01-15T00:00:00Z'),
+        end: new Date('2024-01-22T00:00:00Z'),
+      }
+
+      const prevPeriod = AnalyticsQueryAPI.getPreviousPeriod(range)
+
+      expect(prevPeriod.start.toISOString()).toBe('2024-01-08T00:00:00.000Z')
+      expect(prevPeriod.end.getTime()).toBeLessThan(range.start.getTime())
+    })
+  })
+
+  describe('generateDashboardQueries', () => {
+    it('should generate basic dashboard queries', () => {
+      const queries = queryApi.generateDashboardQueries({
+        siteId: 'site-123',
+        dateRange: {
+          start: new Date('2024-01-15T00:00:00Z'),
+          end: new Date('2024-01-22T00:00:00Z'),
+        },
+      })
+
+      expect(queries.aggregatedStats).toBeDefined()
+      expect(queries.aggregatedStats.command).toBe('Query')
+      expect(queries.topPages).toBeDefined()
+      expect(queries.topPages.command).toBe('Query')
+    })
+
+    it('should include realtime stats when requested', () => {
+      const queries = queryApi.generateDashboardQueries({
+        siteId: 'site-123',
+        dateRange: {
+          start: new Date('2024-01-15T00:00:00Z'),
+          end: new Date('2024-01-22T00:00:00Z'),
+        },
+        includeRealtime: true,
+      })
+
+      expect(queries.realtimeStats).toBeDefined()
+    })
+
+    it('should include goals when requested', () => {
+      const queries = queryApi.generateDashboardQueries({
+        siteId: 'site-123',
+        dateRange: {
+          start: new Date('2024-01-15T00:00:00Z'),
+          end: new Date('2024-01-22T00:00:00Z'),
+        },
+        includeGoals: true,
+      })
+
+      expect(queries.goals).toBeDefined()
+    })
+
+    it('should include comparison period when requested', () => {
+      const queries = queryApi.generateDashboardQueries({
+        siteId: 'site-123',
+        dateRange: {
+          start: new Date('2024-01-15T00:00:00Z'),
+          end: new Date('2024-01-22T00:00:00Z'),
+        },
+        includeComparison: true,
+      })
+
+      expect(queries.previousPeriodStats).toBeDefined()
+    })
+  })
+
+  describe('processSummary', () => {
+    it('should process aggregated stats into summary', () => {
+      const stats: AggregatedStats[] = [
+        {
+          siteId: 'site-123',
+          period: 'day',
+          periodStart: '2024-01-15',
+          pageViews: 100,
+          uniqueVisitors: 50,
+          sessions: 60,
+          bounces: 15,
+          bounceRate: 0.25,
+          avgSessionDuration: 120000,
+          avgPagesPerSession: 1.67,
+          totalTimeOnSite: 7200000,
+          newVisitors: 40,
+          returningVisitors: 10,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          siteId: 'site-123',
+          period: 'day',
+          periodStart: '2024-01-16',
+          pageViews: 150,
+          uniqueVisitors: 75,
+          sessions: 80,
+          bounces: 20,
+          bounceRate: 0.25,
+          avgSessionDuration: 150000,
+          avgPagesPerSession: 1.87,
+          totalTimeOnSite: 12000000,
+          newVisitors: 50,
+          returningVisitors: 25,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ]
+
+      const summary = AnalyticsQueryAPI.processSummary(stats)
+
+      expect(summary.pageViews).toBe(250)
+      expect(summary.uniqueVisitors).toBe(125)
+      expect(summary.sessions).toBe(140)
+      expect(summary.bounceRate).toBeCloseTo(0.25, 2)
+    })
+
+    it('should calculate comparison when previous stats provided', () => {
+      const currentStats: AggregatedStats[] = [{
+        siteId: 'site-123',
+        period: 'day',
+        periodStart: '2024-01-15',
+        pageViews: 200,
+        uniqueVisitors: 100,
+        sessions: 100,
+        bounces: 25,
+        bounceRate: 0.25,
+        avgSessionDuration: 120000,
+        avgPagesPerSession: 2,
+        totalTimeOnSite: 12000000,
+        newVisitors: 80,
+        returningVisitors: 20,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }]
+
+      const previousStats: AggregatedStats[] = [{
+        siteId: 'site-123',
+        period: 'day',
+        periodStart: '2024-01-14',
+        pageViews: 100,
+        uniqueVisitors: 50,
+        sessions: 50,
+        bounces: 15,
+        bounceRate: 0.3,
+        avgSessionDuration: 100000,
+        avgPagesPerSession: 2,
+        totalTimeOnSite: 5000000,
+        newVisitors: 40,
+        returningVisitors: 10,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }]
+
+      const summary = AnalyticsQueryAPI.processSummary(currentStats, previousStats)
+
+      expect(summary.comparison).toBeDefined()
+      expect(summary.comparison!.pageViewsChange).toBe(100) // 100% increase
+      expect(summary.comparison!.visitorsChange).toBe(100) // 100% increase
+    })
+  })
+
+  describe('processTimeSeries', () => {
+    it('should convert stats to sorted time series', () => {
+      const stats: AggregatedStats[] = [
+        {
+          siteId: 'site-123', period: 'day', periodStart: '2024-01-16',
+          pageViews: 150, uniqueVisitors: 75, sessions: 80, bounces: 20, bounceRate: 0.25,
+          avgSessionDuration: 150000, avgPagesPerSession: 1.87, totalTimeOnSite: 12000000,
+          newVisitors: 50, returningVisitors: 25, createdAt: new Date(), updatedAt: new Date(),
+        },
+        {
+          siteId: 'site-123', period: 'day', periodStart: '2024-01-15',
+          pageViews: 100, uniqueVisitors: 50, sessions: 60, bounces: 15, bounceRate: 0.25,
+          avgSessionDuration: 120000, avgPagesPerSession: 1.67, totalTimeOnSite: 7200000,
+          newVisitors: 40, returningVisitors: 10, createdAt: new Date(), updatedAt: new Date(),
+        },
+      ]
+
+      const timeSeries = AnalyticsQueryAPI.processTimeSeries(stats)
+
+      expect(timeSeries).toHaveLength(2)
+      expect(timeSeries[0].timestamp).toBe('2024-01-15')
+      expect(timeSeries[1].timestamp).toBe('2024-01-16')
+    })
+  })
+
+  describe('processTopPages', () => {
+    it('should process page stats into top items with percentages', () => {
+      const pageStats: PageStats[] = [
+        {
+          siteId: 'site-123', period: 'day', periodStart: '2024-01-15',
+          path: '/home', pageViews: 100, uniqueVisitors: 80, entries: 70,
+          exits: 30, bounces: 10, avgTimeOnPage: 45000, exitRate: 0.3,
+        },
+        {
+          siteId: 'site-123', period: 'day', periodStart: '2024-01-15',
+          path: '/about', pageViews: 50, uniqueVisitors: 40, entries: 30,
+          exits: 20, bounces: 5, avgTimeOnPage: 60000, exitRate: 0.4,
+        },
+      ]
+
+      const topPages = AnalyticsQueryAPI.processTopPages(pageStats, 150)
+
+      expect(topPages).toHaveLength(2)
+      expect(topPages[0].name).toBe('/home')
+      expect(topPages[0].percentage).toBeCloseTo(66.67, 1)
+      expect(topPages[1].name).toBe('/about')
+      expect(topPages[1].percentage).toBeCloseTo(33.33, 1)
+    })
+  })
+
+  describe('processRealtimeData', () => {
+    it('should aggregate realtime stats', () => {
+      const realtimeStats: RealtimeStats[] = [
+        {
+          siteId: 'site-123', minute: '2024-01-15T14:30',
+          currentVisitors: 25, pageViews: 50,
+          activePages: { '/home': 10, '/blog': 8 },
+          ttl: Math.floor(Date.now() / 1000) + 600,
+        },
+        {
+          siteId: 'site-123', minute: '2024-01-15T14:29',
+          currentVisitors: 22, pageViews: 45,
+          activePages: { '/home': 8, '/pricing': 7 },
+          ttl: Math.floor(Date.now() / 1000) + 540,
+        },
+      ]
+
+      const realtimeData = AnalyticsQueryAPI.processRealtimeData(realtimeStats)
+
+      expect(realtimeData.currentVisitors).toBe(25)
+      expect(realtimeData.pageViewsLastHour).toBe(95)
+      expect(realtimeData.topActivePages).toHaveLength(3)
+    })
+  })
+})
+
+// ============================================================================
+// AggregationPipeline Tests
+// ============================================================================
+
+describe('AggregationPipeline', () => {
+  let store: AnalyticsStore
+  let pipeline: AggregationPipeline
+
+  beforeEach(() => {
+    store = new AnalyticsStore({ tableName: 'analytics-table' })
+    pipeline = new AggregationPipeline(store)
+  })
+
+  describe('getScheduledJobTimes', () => {
+    it('should calculate next hourly job time', () => {
+      const now = new Date('2024-01-15T14:30:00Z')
+      const times = AggregationPipeline.getScheduledJobTimes(now)
+
+      expect(times.hourly.getHours()).toBe(15)
+      expect(times.hourly.getMinutes()).toBe(0)
+    })
+
+    it('should calculate next daily job time', () => {
+      const now = new Date('2024-01-15T14:30:00Z')
+      const times = AggregationPipeline.getScheduledJobTimes(now)
+
+      expect(times.daily.getUTCDate()).toBe(16)
+      expect(times.daily.getUTCHours()).toBe(0)
+    })
+
+    it('should calculate next monthly job time', () => {
+      const now = new Date('2024-01-15T14:30:00Z')
+      const times = AggregationPipeline.getScheduledJobTimes(now)
+
+      expect(times.monthly.getUTCMonth()).toBe(1) // February
+      expect(times.monthly.getUTCDate()).toBe(1)
+    })
+  })
+
+  describe('getCronExpression', () => {
+    it('should return correct cron for hourly', () => {
+      expect(AggregationPipeline.getCronExpression('hour')).toBe('0 * * * *')
+    })
+
+    it('should return correct cron for daily', () => {
+      expect(AggregationPipeline.getCronExpression('day')).toBe('0 0 * * *')
+    })
+
+    it('should return correct cron for monthly', () => {
+      expect(AggregationPipeline.getCronExpression('month')).toBe('0 0 1 * *')
+    })
+  })
+
+  describe('getAggregationWindow', () => {
+    it('should return previous hour window', () => {
+      const now = new Date('2024-01-15T14:30:00Z')
+      const window = AggregationPipeline.getAggregationWindow('hour', now)
+
+      expect(window.start.getHours()).toBe(13)
+      expect(window.end.getHours()).toBe(14)
+    })
+
+    it('should return previous day window', () => {
+      const now = new Date('2024-01-15T14:30:00Z')
+      const window = AggregationPipeline.getAggregationWindow('day', now)
+
+      expect(window.start.getUTCDate()).toBe(14)
+      expect(window.end.getUTCDate()).toBe(15)
+    })
+
+    it('should return previous month window', () => {
+      const now = new Date('2024-02-15T14:30:00Z')
+      const window = AggregationPipeline.getAggregationWindow('month', now)
+
+      expect(window.start.getUTCMonth()).toBe(0) // January
+      expect(window.end.getUTCMonth()).toBe(1) // February
+    })
+  })
+
+  describe('createJobConfig', () => {
+    it('should create job config with correct window', () => {
+      const config = AggregationPipeline.createJobConfig(
+        'site-123',
+        'hour',
+        new Date('2024-01-15T14:30:00Z'),
+      )
+
+      expect(config.siteId).toBe('site-123')
+      expect(config.period).toBe('hour')
+      expect(config.deleteRawEvents).toBe(true)
+    })
+
+    it('should not delete raw events for daily aggregation', () => {
+      const config = AggregationPipeline.createJobConfig('site-123', 'day')
+      expect(config.deleteRawEvents).toBe(false)
+    })
+  })
+
+  describe('runAggregationJob', () => {
+    it('should run aggregation job and generate commands', () => {
+      const config = AggregationPipeline.createJobConfig(
+        'site-123',
+        'hour',
+        new Date('2024-01-15T14:30:00Z'),
+      )
+
+      const pageViews: PageView[] = [
+        createPageView('pv-1', 'visitor-1', 'session-1', '/home', true, false),
+        createPageView('pv-2', 'visitor-2', 'session-2', '/about', true, true),
+      ]
+
+      const sessions: Session[] = [
+        createSession('session-1', 'visitor-1', 2, false, 120000),
+        createSession('session-2', 'visitor-2', 1, true, 5000),
+      ]
+
+      const result = pipeline.runAggregationJob(config, pageViews, sessions, [], [])
+
+      expect(result.success).toBe(true)
+      expect(result.pageViewsProcessed).toBe(2)
+      expect(result.sessionsProcessed).toBe(2)
+      expect(result.commands.length).toBeGreaterThan(0)
+      expect(result.durationMs).toBeGreaterThanOrEqual(0)
+    })
+
+    it('should track goal conversions', () => {
+      const config = AggregationPipeline.createJobConfig(
+        'site-123',
+        'hour',
+        new Date('2024-01-15T14:30:00Z'),
+      )
+
+      const pageViews: PageView[] = [
+        createPageView('pv-1', 'visitor-1', 'session-1', '/checkout/success', true, false),
+      ]
+
+      const sessions: Session[] = [
+        createSession('session-1', 'visitor-1', 1, false, 60000),
+      ]
+
+      const goals: Goal[] = [
+        createGoal('goal-1', 'pageview', '/checkout/success', 'exact', 50),
+      ]
+
+      const result = pipeline.runAggregationJob(config, pageViews, sessions, [], goals)
+
+      expect(result.success).toBe(true)
+      expect(result.conversionsTracked).toBe(1)
+    })
+
+    it('should process custom events and track event-based goals', () => {
+      const config = AggregationPipeline.createJobConfig(
+        'site-123',
+        'hour',
+        new Date('2024-01-15T14:30:00Z'),
+      )
+
+      const events: CustomEvent[] = [
+        createCustomEvent('evt-1', 'visitor-1', 'session-1', 'purchase', 99.99),
+        createCustomEvent('evt-2', 'visitor-2', 'session-2', 'add_to_cart'),
+      ]
+
+      const goals: Goal[] = [
+        createGoal('goal-1', 'event', 'purchase', 'exact', 0),
+      ]
+
+      const result = pipeline.runAggregationJob(config, [], [], events, goals)
+
+      expect(result.success).toBe(true)
+      expect(result.eventsProcessed).toBe(2)
+      expect(result.conversionsTracked).toBe(1)
+    })
+  })
+})
+
+// ============================================================================
+// Additional AnalyticsStore Command Tests
+// ============================================================================
+
+describe('AnalyticsStore - Additional Commands', () => {
+  let store: AnalyticsStore
+
+  beforeEach(() => {
+    store = new AnalyticsStore({ tableName: 'analytics-table', useTtl: true })
+  })
+
+  describe('geoStats commands', () => {
+    it('should generate upsertGeoStatsCommand', () => {
+      const stats: GeoStats = {
+        siteId: 'site-123',
+        period: 'day',
+        periodStart: '2024-01-15',
+        country: 'US',
+        visitors: 100,
+        pageViews: 250,
+        bounceRate: 0.3,
+      }
+
+      const command = store.upsertGeoStatsCommand(stats)
+
+      expect(command.command).toBe('UpdateItem')
+      expect(command.input.ExpressionAttributeValues[':country']).toEqual({ S: 'US' })
+      expect(command.input.ExpressionAttributeValues[':visitors']).toEqual({ N: '100' })
+    })
+
+    it('should generate getGeoStatsCommand', () => {
+      const command = store.getGeoStatsCommand('site-123', 'day', '2024-01-15')
+
+      expect(command.command).toBe('Query')
+      expect(command.input.KeyConditionExpression).toContain('begins_with')
+    })
+  })
+
+  describe('deviceStats commands', () => {
+    it('should generate upsertDeviceStatsCommand', () => {
+      const stats: DeviceStats = {
+        siteId: 'site-123',
+        period: 'day',
+        periodStart: '2024-01-15',
+        dimension: 'device',
+        value: 'mobile',
+        visitors: 50,
+        pageViews: 100,
+        bounceRate: 0.4,
+      }
+
+      const command = store.upsertDeviceStatsCommand(stats)
+
+      expect(command.command).toBe('UpdateItem')
+      expect(command.input.ExpressionAttributeValues[':dimension']).toEqual({ S: 'device' })
+      expect(command.input.ExpressionAttributeValues[':value']).toEqual({ S: 'mobile' })
+    })
+
+    it('should generate getDeviceStatsCommand with dimension filter', () => {
+      const command = store.getDeviceStatsCommand('site-123', 'day', '2024-01-15', 'browser')
+
+      expect(command.command).toBe('Query')
+      expect(command.input.FilterExpression).toBe('#dim = :dim')
+      expect(command.input.ExpressionAttributeValues![':dim']).toEqual({ S: 'browser' })
+    })
+  })
+
+  describe('eventStats commands', () => {
+    it('should generate upsertEventStatsCommand', () => {
+      const stats: EventStats = {
+        siteId: 'site-123',
+        period: 'day',
+        periodStart: '2024-01-15',
+        eventName: 'button_click',
+        count: 50,
+        uniqueVisitors: 30,
+        totalValue: 500,
+        avgValue: 10,
+      }
+
+      const command = store.upsertEventStatsCommand(stats)
+
+      expect(command.command).toBe('UpdateItem')
+      expect(command.input.ExpressionAttributeValues[':eventName']).toEqual({ S: 'button_click' })
+      expect(command.input.ExpressionAttributeValues[':count']).toEqual({ N: '50' })
+    })
+  })
+
+  describe('goalStats commands', () => {
+    it('should generate upsertGoalStatsCommand', () => {
+      const stats: GoalStats = {
+        siteId: 'site-123',
+        goalId: 'goal-456',
+        period: 'day',
+        periodStart: '2024-01-15',
+        conversions: 25,
+        uniqueConversions: 20,
+        conversionRate: 0.1,
+        revenue: 500,
+      }
+
+      const command = store.upsertGoalStatsCommand(stats)
+
+      expect(command.command).toBe('UpdateItem')
+      expect(command.input.ExpressionAttributeValues[':goalId']).toEqual({ S: 'goal-456' })
+      expect(command.input.ExpressionAttributeValues[':conversions']).toEqual({ N: '25' })
+      expect(command.input.ExpressionAttributeValues[':revenue']).toEqual({ N: '500' })
+    })
+
+    it('should generate getGoalStatsCommand', () => {
+      const command = store.getGoalStatsCommand(
+        'site-123',
+        'goal-456',
+        'day',
+        '2024-01-01',
+        '2024-01-31',
+      )
+
+      expect(command.command).toBe('Query')
+      expect(command.input.KeyConditionExpression).toContain('BETWEEN')
+    })
+  })
+})
