@@ -131,3 +131,46 @@ export {
   type SingleTableDesign,
   type StacksModelDefinition,
 } from './model-connector'
+
+// Dashboard UI Components
+export {
+  // Components
+  AnalyticsDashboard,
+  DateRangePicker,
+  DeviceBreakdown,
+  RealtimeCounter,
+  StatCard,
+  TimeSeriesChart,
+  TopList,
+  // Composables
+  AnalyticsClient,
+  createAnalyticsComposable,
+  createRealtimePoller,
+  fetchDashboardData,
+  useAnalytics,
+  // Theme
+  defaultTheme,
+  darkTheme,
+  // Utilities
+  calculateAxisTicks,
+  calculateChange,
+  calculatePercentageChange,
+  dateRangePresets,
+  formatCompact,
+  formatDate,
+  formatDateRange,
+  formatDuration,
+  formatNumber,
+  formatPercentage,
+  getDateRangeFromPreset,
+  getDateRangePreset,
+  // Types
+  type AnalyticsApiConfig,
+  type ChartProps,
+  type DashboardTheme,
+  type DateRangePreset,
+  type RealtimeCounterProps,
+  type StatCardProps,
+  type TimeSeriesDataPoint,
+  type TopListProps,
+} from './dashboard'
