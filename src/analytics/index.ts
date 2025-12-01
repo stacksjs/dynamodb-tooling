@@ -4,12 +4,12 @@ export {
   type AggregationJobStatus,
   type AggregationPeriod,
   type AggregatorOptions,
+  AggregationPipeline,
   AnalyticsAggregator,
   AnalyticsKeyPatterns,
   AnalyticsQueryAPI,
   AnalyticsStore,
   type AnalyticsStoreOptions,
-  AggregationPipeline,
   type CampaignStats,
   type Conversion,
   type CustomEvent,
@@ -42,3 +42,27 @@ export {
   type TopItem,
   type TrackingScriptOptions,
 } from './Analytics'
+
+// API Handlers
+export {
+  AnalyticsAPI,
+  type AnalyticsAPIConfig,
+  type AnalyticsRequest,
+  type AnalyticsResponse,
+  type CollectPayload,
+  createBunRouter,
+  createLambdaHandler,
+  type HandlerContext,
+  type SessionStore,
+} from './api'
+
+// Stacks Integration
+export {
+  createAnalyticsDriver,
+  createAnalyticsMiddleware,
+  createDashboardActions,
+  createServerTrackingMiddleware,
+  DynamoDBAnalyticsDriver,
+  type DynamoDBAnalyticsConfig,
+  type StacksAnalyticsOptions,
+} from './stacks-integration'
