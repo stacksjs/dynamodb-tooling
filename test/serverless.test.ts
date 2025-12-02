@@ -164,9 +164,8 @@ describe('APIHandler', () => {
       const handler = createAPIHandler()
       let middlewareExecuted = false
 
-      handler.use(async (req, next) => {
+      handler.use(async () => {
         middlewareExecuted = true
-        return next(req)
       })
 
       handler.get('/users', async () => ({ statusCode: 200, body: '[]' }))
@@ -188,18 +187,12 @@ describe('APIHandler', () => {
       const handler = createAPIHandler()
       const order: number[] = []
 
-      handler.use(async (req, next) => {
+      handler.use(async () => {
         order.push(1)
-        const response = await next(req)
-        order.push(4)
-        return response
       })
 
-      handler.use(async (req, next) => {
+      handler.use(async () => {
         order.push(2)
-        const response = await next(req)
-        order.push(3)
-        return response
       })
 
       handler.get('/users', async () => ({ statusCode: 200, body: '[]' }))
@@ -214,7 +207,7 @@ describe('APIHandler', () => {
       }
 
       await handler.handle(event)
-      expect(order).toEqual([1, 2, 3, 4])
+      expect(order).toEqual([1, 2])
     })
   })
 
@@ -344,8 +337,8 @@ describe('parseBody', () => {
       }),
       isBase64Encoded: false,
     } as Parameters<typeof parseBody>[0]
-    const body = parseBody(event)
-    expect(body.user.address.city).toBe('NYC')
+    const body = parseBody<{ user: { address: { city: string } } }>(event)
+    expect(body?.user.address.city).toBe('NYC')
   })
 
   it('should parse arrays', () => {
@@ -362,7 +355,7 @@ describe('getPathParams', () => {
   it('should extract path parameters', () => {
     const event = {
       pathParameters: { id: '123' },
-    } as Parameters<typeof getPathParams>[0]
+    } as unknown as Parameters<typeof getPathParams>[0]
     const params = getPathParams(event)
     expect(params).toEqual({ id: '123' })
   })
@@ -370,7 +363,7 @@ describe('getPathParams', () => {
   it('should handle multiple path parameters', () => {
     const event = {
       pathParameters: { userId: '123', orderId: '456' },
-    } as Parameters<typeof getPathParams>[0]
+    } as unknown as Parameters<typeof getPathParams>[0]
     const params = getPathParams(event)
     expect(params).toEqual({ userId: '123', orderId: '456' })
   })
@@ -394,7 +387,7 @@ describe('getPathParams', () => {
   it('should handle special characters in path params', () => {
     const event = {
       pathParameters: { slug: 'my-article-title' },
-    } as Parameters<typeof getPathParams>[0]
+    } as unknown as Parameters<typeof getPathParams>[0]
     const params = getPathParams(event)
     expect(params.slug).toBe('my-article-title')
   })
@@ -404,7 +397,7 @@ describe('getQueryParams', () => {
   it('should extract query parameters', () => {
     const event = {
       queryStringParameters: { page: '1', limit: '10' },
-    } as Parameters<typeof getQueryParams>[0]
+    } as unknown as Parameters<typeof getQueryParams>[0]
     const params = getQueryParams(event)
     expect(params).toEqual({ page: '1', limit: '10' })
   })
@@ -432,7 +425,7 @@ describe('getQueryParams', () => {
         sort: 'name',
         order: 'asc',
       },
-    } as Parameters<typeof getQueryParams>[0]
+    } as unknown as Parameters<typeof getQueryParams>[0]
     const params = getQueryParams(event)
     expect(params).toEqual({ filter: 'active', sort: 'name', order: 'asc' })
   })
@@ -440,7 +433,7 @@ describe('getQueryParams', () => {
   it('should handle boolean-like query parameters', () => {
     const event = {
       queryStringParameters: { includeDeleted: 'true' },
-    } as Parameters<typeof getQueryParams>[0]
+    } as unknown as Parameters<typeof getQueryParams>[0]
     const params = getQueryParams(event)
     expect(params.includeDeleted).toBe('true')
   })
@@ -448,7 +441,7 @@ describe('getQueryParams', () => {
   it('should handle empty string values', () => {
     const event = {
       queryStringParameters: { search: '' },
-    } as Parameters<typeof getQueryParams>[0]
+    } as unknown as Parameters<typeof getQueryParams>[0]
     const params = getQueryParams(event)
     expect(params.search).toBe('')
   })

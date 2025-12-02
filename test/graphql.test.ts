@@ -117,7 +117,7 @@ describe('GraphQLSchemaBuilder', () => {
 
       const types = builder.getTypes()
       const user = types.find(t => t.name === 'User')
-      expect(user?.fields.find(f => f.name === 'nickname')?.required).toBe(false)
+      expect(user?.fields.nickname?.required).toBe(false)
     })
   })
 

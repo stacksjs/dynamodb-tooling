@@ -344,7 +344,7 @@ describe('DataImporter', () => {
       ])
 
       const items = importer.parse(data, { format: 'json', tableName: 'Test' })
-      expect(items[0].profile.city).toBe('NYC')
+      expect((items[0].profile as { city: string }).city).toBe('NYC')
     })
 
     it('should handle arrays in JSON', () => {
@@ -454,7 +454,7 @@ describe('DataImporter', () => {
       ])
 
       const items = importer.parse(data, { format: 'dynamodb-json', tableName: 'Test' })
-      expect(items[0].profile.name).toBe('John')
+      expect((items[0].profile as { name: string }).name).toBe('John')
     })
 
     it('should handle null types', () => {
@@ -563,7 +563,7 @@ describe('DataImporter', () => {
         tableName: 'Test',
         transform: (item) => ({
           ...item,
-          name: item.name.toUpperCase(),
+          name: (item.name as string).toUpperCase(),
         }),
       })
       expect(items[0].name).toBe('JOHN')
@@ -613,7 +613,7 @@ describe('DataImporter', () => {
       ])
 
       const items = importer.parse(data, { format: 'json', tableName: 'Test' })
-      expect(items[0].data.length).toBe(100000)
+      expect((items[0].data as string).length).toBe(100000)
     })
 
     it('should handle items with many attributes', () => {

@@ -370,7 +370,7 @@ export function generateSamTemplate(config: CloudFormationConfig = {}): Record<s
     },
 
     Parameters: {
-      ...(cfnTemplate as Record<string, unknown>).Parameters,
+      ...((cfnTemplate as Record<string, unknown>).Parameters as Record<string, unknown> || {}),
       CorsOrigins: {
         Type: 'String',
         Default: '*',

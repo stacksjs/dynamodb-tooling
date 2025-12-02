@@ -163,7 +163,7 @@ describe('DataGenerator', () => {
         .build()
 
       const product = productGenerator.generate()
-      expect(['active', 'inactive', 'pending']).toContain(product.status)
+      expect(['active', 'inactive', 'pending']).toContain(product.status as string)
     })
   })
 
@@ -254,9 +254,10 @@ describe('DataGenerator', () => {
 
       const item = generator.generate()
       expect(item.address).toBeDefined()
-      expect(item.address.street).toBeDefined()
-      expect(item.address.city).toBeDefined()
-      expect(item.address.zip).toBeDefined()
+      const address = item.address as Record<string, unknown>
+      expect(address.street).toBeDefined()
+      expect(address.city).toBeDefined()
+      expect(address.zip).toBeDefined()
     })
   })
 })

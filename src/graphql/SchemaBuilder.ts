@@ -48,6 +48,58 @@ export interface GraphQLMutationDef {
 }
 
 /**
+ * Relationship definition
+ */
+export interface RelationshipDefinition {
+  type: 'hasOne' | 'hasMany' | 'belongsTo' | 'manyToMany'
+  model: string
+  foreignKey?: string
+  /** For manyToMany - the join table */
+  through?: string
+}
+
+/**
+ * Auth directive configuration
+ */
+export interface AuthConfig {
+  rules: Array<{
+    allow: 'owner' | 'groups' | 'private' | 'public'
+    groups?: string[]
+    operations?: Array<'create' | 'read' | 'update' | 'delete'>
+  }>
+}
+
+/**
+ * Custom mutation definition
+ */
+export interface CustomMutationDef {
+  args?: Record<string, { type: string, required?: boolean }>
+  returnType?: string
+}
+
+/**
+ * Nested property definition (recursive)
+ */
+export interface NestedPropertyDef {
+  type: string
+  required?: boolean
+  properties?: Record<string, NestedPropertyDef>
+}
+
+/**
+ * Model attribute definition
+ */
+export interface ModelAttribute {
+  type: string
+  required?: boolean
+  description?: string
+  /** For array types, the item type - can be string or object */
+  items?: string | { type: string }
+  /** For object types, nested properties */
+  properties?: Record<string, NestedPropertyDef>
+}
+
+/**
  * Model definition for schema generation
  */
 export interface ModelDefinition {
@@ -55,16 +107,53 @@ export interface ModelDefinition {
   tableName: string
   primaryKey: string
   sortKey?: string
-  attributes: Record<string, {
-    type: string
-    required?: boolean
-    description?: string
-  }>
+  attributes: Record<string, ModelAttribute>
   indexes?: Array<{
     name: string
     partitionKey: string
     sortKey?: string
   }>
+  /** Relationship definitions */
+  relationships?: Record<string, RelationshipDefinition>
+  /** Auth directives */
+  auth?: AuthConfig
+  /** Custom mutations - false to disable, or object for custom mutations */
+  mutations?: false | Record<string, CustomMutationDef>
+}
+
+/**
+ * Naming convention options
+ */
+export interface NamingOptions {
+  /** Naming convention for types */
+  types?: 'PascalCase' | 'camelCase'
+  /** Naming convention for fields */
+  fields?: 'camelCase' | 'snake_case'
+  /** Naming convention for queries */
+  queries?: 'camelCase' | 'PascalCase'
+  /** Prefix for query operations */
+  queryPrefix?: string
+  /** Prefix for mutation operations */
+  mutationPrefix?: string
+}
+
+/**
+ * Custom scalar definition
+ */
+export interface CustomScalar {
+  name: string
+  description?: string
+  serialize?: string
+  parseValue?: string
+}
+
+/**
+ * Directive definition
+ */
+export interface DirectiveDefinition {
+  name: string
+  locations: string[]
+  args?: Record<string, { type: string, required?: boolean }>
 }
 
 /**
@@ -77,8 +166,37 @@ export interface SchemaBuilderOptions {
   generateConnections?: boolean
   /** Generate filter input types */
   generateFilters?: boolean
+  /** Generate subscription types */
+  generateSubscriptions?: boolean
+  /** Use Relay-style connections */
+  useConnections?: boolean
   /** Custom scalar mappings */
   scalarMappings?: Record<string, GraphQLScalarType>
+  /** Naming conventions */
+  naming?: NamingOptions
+  /** Custom scalars - can be string names or full definitions */
+  scalars?: (string | CustomScalar)[]
+  /** Custom directives - can be string names or full definitions */
+  directives?: (string | DirectiveDefinition)[]
+}
+
+/**
+ * Resolver mapping type
+ */
+export interface ResolverMapping {
+  type: string
+  field: string
+  dataSource: string
+  requestMappingTemplate: string
+  responseMappingTemplate: string
+}
+
+/**
+ * Validation result
+ */
+export interface ValidationResult {
+  valid: boolean
+  errors: string[]
 }
 
 /**
@@ -88,14 +206,21 @@ export class GraphQLSchemaBuilder {
   private types: Map<string, GraphQLTypeDef> = new Map()
   private queries: Map<string, GraphQLQueryDef> = new Map()
   private mutations: Map<string, GraphQLMutationDef> = new Map()
-  private options: Required<SchemaBuilderOptions>
+  private customDirectives: DirectiveDefinition[] = []
+  private models: ModelDefinition[] = []
+  private options: Required<Omit<SchemaBuilderOptions, 'naming' | 'scalars' | 'directives'>> & Pick<SchemaBuilderOptions, 'naming' | 'scalars' | 'directives'>
 
   constructor(options?: SchemaBuilderOptions) {
     this.options = {
       generateInputTypes: true,
       generateConnections: true,
       generateFilters: true,
+      generateSubscriptions: false,
+      useConnections: false,
       scalarMappings: {},
+      naming: options?.naming,
+      scalars: options?.scalars,
+      directives: options?.directives,
       ...options,
     }
   }
@@ -104,6 +229,9 @@ export class GraphQLSchemaBuilder {
    * Add a model to the schema
    */
   addModel(model: ModelDefinition): this {
+    // Store model for later use
+    this.models.push(model)
+
     // Create main type
     const typeDef: GraphQLTypeDef = {
       name: model.name,
@@ -111,10 +239,43 @@ export class GraphQLSchemaBuilder {
     }
 
     for (const [fieldName, attr] of Object.entries(model.attributes)) {
-      typeDef.fields[fieldName] = {
-        type: this.mapType(attr.type),
-        required: attr.required,
-        description: attr.description,
+      // Handle array types with items
+      if (attr.items) {
+        const itemType = typeof attr.items === 'string' ? attr.items : attr.items.type
+        typeDef.fields[fieldName] = {
+          type: this.mapType(itemType),
+          list: true,
+          required: attr.required,
+          description: attr.description,
+        }
+      }
+      // Handle nested object types with properties
+      else if (attr.properties) {
+        const nestedTypeName = `${model.name}${this.capitalize(fieldName)}`
+        this.generateNestedType(nestedTypeName, attr.properties)
+        typeDef.fields[fieldName] = {
+          type: nestedTypeName,
+          required: attr.required,
+          description: attr.description,
+        }
+      }
+      else {
+        typeDef.fields[fieldName] = {
+          type: this.mapType(attr.type),
+          required: attr.required,
+          description: attr.description,
+        }
+      }
+    }
+
+    // Add relationship fields
+    if (model.relationships) {
+      for (const [fieldName, rel] of Object.entries(model.relationships)) {
+        typeDef.fields[fieldName] = {
+          type: rel.model,
+          list: rel.type === 'hasMany' || rel.type === 'manyToMany',
+          required: false,
+        }
       }
     }
 
@@ -123,8 +284,15 @@ export class GraphQLSchemaBuilder {
     // Generate queries
     this.generateQueries(model)
 
-    // Generate mutations
-    this.generateMutations(model)
+    // Generate mutations (unless disabled)
+    if (model.mutations !== false) {
+      this.generateMutations(model)
+    }
+
+    // Generate custom mutations
+    if (model.mutations && typeof model.mutations === 'object') {
+      this.generateCustomMutations(model)
+    }
 
     // Generate input types
     if (this.options.generateInputTypes) {
@@ -142,6 +310,45 @@ export class GraphQLSchemaBuilder {
     }
 
     return this
+  }
+
+  /**
+   * Generate nested type from properties
+   */
+  private generateNestedType(name: string, properties: Record<string, { type: string, required?: boolean }>): void {
+    const fields: Record<string, GraphQLFieldDef> = {}
+    for (const [propName, prop] of Object.entries(properties)) {
+      fields[propName] = {
+        type: this.mapType(prop.type),
+        required: prop.required,
+      }
+    }
+    this.types.set(name, { name, fields })
+  }
+
+  /**
+   * Generate custom mutations from model definition
+   */
+  private generateCustomMutations(model: ModelDefinition): void {
+    if (!model.mutations) return
+
+    for (const [mutationName, mutationDef] of Object.entries(model.mutations)) {
+      const args: Record<string, GraphQLFieldDef> = {}
+      if (mutationDef.args) {
+        for (const [argName, argDef] of Object.entries(mutationDef.args)) {
+          args[argName] = {
+            type: this.mapType(argDef.type),
+            required: argDef.required,
+          }
+        }
+      }
+
+      this.mutations.set(mutationName, {
+        name: mutationName,
+        args,
+        returnType: mutationDef.returnType || model.name,
+      })
+    }
   }
 
   /**
@@ -523,6 +730,231 @@ export class GraphQLSchemaBuilder {
 
   private capitalize(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1)
+  }
+
+  /**
+   * Add a custom directive
+   * @param nameOrDirective - Either a directive name string or a full DirectiveDefinition
+   * @param options - Optional directive options when nameOrDirective is a string
+   */
+  addDirective(nameOrDirective: string | DirectiveDefinition, options?: Partial<Omit<DirectiveDefinition, 'name'>>): this {
+    if (typeof nameOrDirective === 'string') {
+      this.customDirectives.push({
+        name: nameOrDirective,
+        locations: options?.locations || ['FIELD_DEFINITION'],
+        args: options?.args,
+      })
+    }
+    else {
+      this.customDirectives.push(nameOrDirective)
+    }
+    return this
+  }
+
+  /**
+   * Get resolver mappings for AppSync (structured by type)
+   */
+  getResolverMappings(): { Query?: Record<string, ResolverMapping>, Mutation?: Record<string, ResolverMapping> } {
+    const result: { Query?: Record<string, ResolverMapping>, Mutation?: Record<string, ResolverMapping> } = {}
+
+    // Generate resolver mappings for queries
+    if (this.queries.size > 0) {
+      result.Query = {}
+      for (const query of this.queries.values()) {
+        result.Query[query.name] = {
+          type: 'Query',
+          field: query.name,
+          dataSource: 'DynamoDB',
+          requestMappingTemplate: this.generateQueryRequestTemplate(query),
+          responseMappingTemplate: '$util.toJson($ctx.result)',
+        }
+      }
+    }
+
+    // Generate resolver mappings for mutations
+    if (this.mutations.size > 0) {
+      result.Mutation = {}
+      for (const mutation of this.mutations.values()) {
+        result.Mutation[mutation.name] = {
+          type: 'Mutation',
+          field: mutation.name,
+          dataSource: 'DynamoDB',
+          requestMappingTemplate: this.generateMutationRequestTemplate(mutation),
+          responseMappingTemplate: '$util.toJson($ctx.result)',
+        }
+      }
+    }
+
+    return result
+  }
+
+  /**
+   * Get DynamoDB resolver templates for AppSync VTL
+   */
+  getDynamoDBResolverTemplates(): Record<string, { request: string, response: string }> {
+    const templates: Record<string, { request: string, response: string }> = {}
+
+    for (const model of this.models) {
+      const name = model.name
+
+      // GetItem template
+      templates[`get${name}`] = {
+        request: `{
+  "version": "2018-05-29",
+  "operation": "GetItem",
+  "key": {
+    "${model.primaryKey}": $util.dynamodb.toDynamoDBJson($ctx.args.${model.primaryKey})${model.sortKey ? `,\n    "${model.sortKey}": $util.dynamodb.toDynamoDBJson($ctx.args.${model.sortKey})` : ''}
+  }
+}`,
+        response: '$util.toJson($ctx.result)',
+      }
+
+      // Query template
+      templates[`list${name}s`] = {
+        request: `{
+  "version": "2018-05-29",
+  "operation": "Scan",
+  "limit": $util.defaultIfNull($ctx.args.limit, 20),
+  "nextToken": $util.toJson($ctx.args.nextToken)
+}`,
+        response: '$util.toJson($ctx.result)',
+      }
+
+      // PutItem template
+      templates[`create${name}`] = {
+        request: `{
+  "version": "2018-05-29",
+  "operation": "PutItem",
+  "key": {
+    "${model.primaryKey}": $util.dynamodb.toDynamoDBJson($util.autoId())
+  },
+  "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input)
+}`,
+        response: '$util.toJson($ctx.result)',
+      }
+
+      // UpdateItem template
+      templates[`update${name}`] = {
+        request: this.generateUpdateTemplate(model),
+        response: '$util.toJson($ctx.result)',
+      }
+
+      // DeleteItem template
+      templates[`delete${name}`] = {
+        request: `{
+  "version": "2018-05-29",
+  "operation": "DeleteItem",
+  "key": {
+    "${model.primaryKey}": $util.dynamodb.toDynamoDBJson($ctx.args.${model.primaryKey})${model.sortKey ? `,\n    "${model.sortKey}": $util.dynamodb.toDynamoDBJson($ctx.args.${model.sortKey})` : ''}
+  }
+}`,
+        response: '$util.toJson($ctx.result)',
+      }
+    }
+
+    return templates
+  }
+
+  /**
+   * Validate the schema
+   */
+  validate(): ValidationResult {
+    const errors: string[] = []
+
+    // Check for duplicate type names
+    const typeNames = new Set<string>()
+    for (const typeDef of this.types.values()) {
+      if (typeNames.has(typeDef.name)) {
+        errors.push(`Duplicate type name: ${typeDef.name}`)
+      }
+      typeNames.add(typeDef.name)
+    }
+
+    // Check for missing referenced types
+    for (const typeDef of this.types.values()) {
+      for (const [fieldName, field] of Object.entries(typeDef.fields)) {
+        const fieldType = field.type.replace(/[\[\]!]/g, '')
+        if (!this.isScalarType(fieldType) && !typeNames.has(fieldType)) {
+          errors.push(`Type "${typeDef.name}" field "${fieldName}" references unknown type: ${fieldType}`)
+        }
+      }
+    }
+
+    // Check for empty types
+    for (const typeDef of this.types.values()) {
+      if (Object.keys(typeDef.fields).length === 0) {
+        errors.push(`Type "${typeDef.name}" has no fields`)
+      }
+    }
+
+    // Check model relationships
+    for (const model of this.models) {
+      if (model.relationships) {
+        for (const [relName, rel] of Object.entries(model.relationships)) {
+          if (!this.models.some(m => m.name === rel.model)) {
+            errors.push(`Model "${model.name}" relationship "${relName}" references unknown model: ${rel.model}`)
+          }
+        }
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+    }
+  }
+
+  private isScalarType(type: string): boolean {
+    return ['String', 'Int', 'Float', 'Boolean', 'ID', 'AWSDateTime', 'AWSJSON'].includes(type)
+  }
+
+  private generateQueryRequestTemplate(query: GraphQLQueryDef): string {
+    return `{
+  "version": "2018-05-29",
+  "operation": "Query",
+  "query": $util.toJson($ctx.args)
+}`
+  }
+
+  private generateMutationRequestTemplate(mutation: GraphQLMutationDef): string {
+    return `{
+  "version": "2018-05-29",
+  "operation": "PutItem",
+  "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input)
+}`
+  }
+
+  private generateUpdateTemplate(model: ModelDefinition): string {
+    return `#set($input = $ctx.args.input)
+#set($expressionNames = {})
+#set($expressionValues = {})
+#set($updateExpression = "SET ")
+#set($first = true)
+
+#foreach($entry in $input.entrySet())
+  #if($entry.key != "${model.primaryKey}"${model.sortKey ? ` && $entry.key != "${model.sortKey}"` : ''})
+    #if(!$first)
+      #set($updateExpression = "$updateExpression, ")
+    #end
+    #set($expressionNames["#$entry.key"] = "$entry.key")
+    #set($expressionValues[":$entry.key"] = $util.dynamodb.toDynamoDB($entry.value))
+    #set($updateExpression = "$updateExpression#$entry.key = :$entry.key")
+    #set($first = false)
+  #end
+#end
+
+{
+  "version": "2018-05-29",
+  "operation": "UpdateItem",
+  "key": {
+    "${model.primaryKey}": $util.dynamodb.toDynamoDBJson($input.${model.primaryKey})${model.sortKey ? `,\n    "${model.sortKey}": $util.dynamodb.toDynamoDBJson($input.${model.sortKey})` : ''}
+  },
+  "update": {
+    "expression": "$updateExpression",
+    "expressionNames": $util.toJson($expressionNames),
+    "expressionValues": $util.toJson($expressionValues)
+  }
+}`
   }
 }
 

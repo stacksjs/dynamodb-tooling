@@ -77,7 +77,7 @@ export const c = {
 // Icons
 // ============================================================================
 
-export const icons = {
+export const icons: Record<string, string> = {
   success: isColorSupported ? '✓' : '[OK]',
   error: isColorSupported ? '✗' : '[ERROR]',
   warning: isColorSupported ? '⚠' : '[WARN]',

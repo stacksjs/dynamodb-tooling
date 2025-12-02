@@ -23,17 +23,17 @@ export interface LambdaContext {
 export interface APIGatewayEvent {
   httpMethod: string
   path: string
-  pathParameters?: Record<string, string>
-  queryStringParameters?: Record<string, string>
+  pathParameters?: Record<string, string> | null
+  queryStringParameters?: Record<string, string> | null
   headers?: Record<string, string>
-  body?: string
-  isBase64Encoded: boolean
-  requestContext: {
-    requestId: string
-    stage: string
+  body?: string | null
+  isBase64Encoded?: boolean
+  requestContext?: {
+    requestId?: string
+    stage?: string
     identity?: {
-      sourceIp: string
-      userAgent: string
+      sourceIp?: string
+      userAgent?: string
     }
   }
 }
@@ -101,12 +101,20 @@ export interface HandlerResult<T = unknown> {
 }
 
 /**
+ * Route handler function type - can return HandlerResult or APIGatewayResponse directly
+ */
+export type RouteHandler = (
+  event: APIGatewayEvent,
+  context: LambdaContext,
+) => Promise<HandlerResult | APIGatewayResponse | { statusCode: number, body: string }>
+
+/**
  * Route definition for API handler
  */
 export interface RouteDefinition {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS'
   path: string
-  handler: (event: APIGatewayEvent, context: LambdaContext) => Promise<HandlerResult>
+  handler: RouteHandler
   middleware?: Array<(event: APIGatewayEvent, context: LambdaContext) => Promise<void>>
 }
 
@@ -190,6 +198,28 @@ export class APIHandler {
   }
 
   /**
+   * Handle a request directly (convenience method)
+   */
+  async handle(event: APIGatewayEvent, context?: LambdaContext): Promise<APIGatewayResponse> {
+    const handler = this.build()
+    return handler(event, context ?? this.createDefaultContext())
+  }
+
+  private createDefaultContext(): LambdaContext {
+    return {
+      functionName: 'test',
+      functionVersion: '1',
+      invokedFunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:test',
+      memoryLimitInMB: '128',
+      awsRequestId: 'test-request-id',
+      logGroupName: '/aws/lambda/test',
+      logStreamName: '2024/01/01/[$LATEST]test',
+      getRemainingTimeInMillis: () => 30000,
+      callbackWaitsForEmptyEventLoop: true,
+    }
+  }
+
+  /**
    * Build the Lambda handler
    */
   build(): (event: APIGatewayEvent, context: LambdaContext) => Promise<APIGatewayResponse> {
@@ -221,11 +251,23 @@ export class APIHandler {
         // Execute handler
         const result = await route.handler(event, context)
 
-        if (result.success) {
-          return this.buildResponse(200, result.data)
+        // Check if result is a direct response (has statusCode) or HandlerResult
+        if ('statusCode' in result) {
+          // Direct response format
+          return result as APIGatewayResponse
+        }
+        else if ('success' in result) {
+          // HandlerResult format
+          if (result.success) {
+            return this.buildResponse(200, result.data)
+          }
+          else {
+            return this.buildResponse(400, { error: result.error })
+          }
         }
         else {
-          return this.buildResponse(400, { error: result.error })
+          // Assume it's data to return
+          return this.buildResponse(200, result)
         }
       }
       catch (error) {
@@ -485,8 +527,28 @@ export class SQSHandler {
 /**
  * Create an API handler
  */
-export function createAPIHandler(): APIHandler {
-  return new APIHandler()
+/**
+ * Options for creating an API handler
+ */
+export interface APIHandlerOptions {
+  cors?: boolean | CORSConfig
+  defaultHeaders?: Record<string, string>
+  basePath?: string
+  /** Custom error handler */
+  errorHandler?: (error: Error, event: APIGatewayEvent) => APIGatewayResponse
+}
+
+export function createAPIHandler(options?: APIHandlerOptions): APIHandler {
+  const handler = new APIHandler()
+
+  if (options?.cors) {
+    const corsConfig: CORSConfig = typeof options.cors === 'boolean'
+      ? { origins: '*' }
+      : options.cors
+    handler.cors(corsConfig)
+  }
+
+  return handler
 }
 
 /**

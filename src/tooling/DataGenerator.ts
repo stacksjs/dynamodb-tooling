@@ -98,8 +98,11 @@ export const generators = {
   /**
    * Generate a random email
    */
-  email: (domain?: string): string => {
+  email: (domainOrOptions?: string | { domain?: string }): string => {
     const localPart = generators.string({ length: 8, charset: 'abcdefghijklmnopqrstuvwxyz' })
+    const domain = typeof domainOrOptions === 'string'
+      ? domainOrOptions
+      : domainOrOptions?.domain
     const d = domain ?? `${generators.string({ length: 6, charset: 'abcdefghijklmnopqrstuvwxyz' })}.com`
     return `${localPart}@${d}`
   },
@@ -454,6 +457,16 @@ export class EntityGeneratorBuilder {
       generator: () => generators.sk(pattern, ...parts),
     }
     return this
+  }
+
+  /**
+   * Add a custom field with generator function
+   */
+  custom<T>(name: string, generator: GeneratorFn<T>, options?: { optional?: boolean }): this {
+    return this.field(name, {
+      generator,
+      optional: options?.optional,
+    })
   }
 
   /**

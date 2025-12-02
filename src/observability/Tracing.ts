@@ -592,6 +592,7 @@ export function createTracer(options?: {
   exporters?: SpanExporter[]
   batchSize?: number
   flushIntervalMs?: number
+  serviceName?: string
 }): Tracer {
   return new Tracer(options)
 }

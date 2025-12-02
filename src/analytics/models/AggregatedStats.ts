@@ -1,4 +1,4 @@
-import type { Model } from '@stacksjs/types'
+import type { Model } from './types'
 
 /**
  * Aggregated stats (pre-computed for fast dashboard queries)

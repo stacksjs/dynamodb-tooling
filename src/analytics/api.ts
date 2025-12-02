@@ -929,7 +929,7 @@ export function createBunRouter(api: AnalyticsAPI, executeCommand: HandlerContex
         params: {},
         query: Object.fromEntries(url.searchParams),
         body: method !== 'GET' ? await request.json().catch(() => ({})) : {},
-        headers: Object.fromEntries(request.headers),
+        headers: Object.fromEntries(request.headers as unknown as Iterable<[string, string]>),
         ip: request.headers.get('x-forwarded-for') || request.headers.get('cf-connecting-ip') || undefined,
         userAgent: request.headers.get('user-agent') || undefined,
       }

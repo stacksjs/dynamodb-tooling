@@ -25,10 +25,22 @@ export interface ExportOptions {
   expressionAttributeValues?: Record<string, unknown>
   /** Batch size for scanning */
   batchSize?: number
+  /** Limit for scanning */
+  limit?: number
   /** Segment for parallel scan */
   segment?: number
   /** Total segments for parallel scan */
   totalSegments?: number
+}
+
+/**
+ * Exporter creation options
+ */
+export interface ExporterOptions {
+  /** Default batch size */
+  batchSize?: number
+  /** Include metadata by default */
+  includeMetadata?: boolean
 }
 
 /**
@@ -45,6 +57,7 @@ export interface ExportResult {
     format: ExportFormat
     exportedAt: string
     attributes?: string[]
+    itemCount?: number
   }
 }
 
@@ -99,6 +112,7 @@ export class DataExporter {
         format,
         exportedAt: new Date().toISOString(),
         attributes,
+        itemCount: exportItems.length,
       },
     }
   }
@@ -151,7 +165,10 @@ export class DataExporter {
       input.ExpressionAttributeValues = options.expressionAttributeValues
     }
 
-    if (options.batchSize) {
+    if (options.limit) {
+      input.Limit = options.limit
+    }
+    else if (options.batchSize) {
       input.Limit = options.batchSize
     }
 
@@ -266,6 +283,6 @@ export class DataExporter {
 /**
  * Create a data exporter
  */
-export function createDataExporter(): DataExporter {
+export function createDataExporter(_options?: ExporterOptions): DataExporter {
   return new DataExporter()
 }

@@ -171,7 +171,7 @@ describe('CacheManager', () => {
       const cache = createCacheManager({ ttl: 50 })
 
       await cache.set('key1', 'value1')
-      expect(await cache.get('key1')).toBe('value1')
+      expect(await cache.get<string>('key1')).toBe('value1')
 
       await new Promise(resolve => setTimeout(resolve, 60))
       expect(await cache.get('key1')).toBeUndefined()
@@ -186,7 +186,7 @@ describe('CacheManager', () => {
       await new Promise(resolve => setTimeout(resolve, 60))
 
       expect(await cache.get('key1')).toBeUndefined()
-      expect(await cache.get('key2')).toBe('value2')
+      expect(await cache.get<string>('key2')).toBe('value2')
     })
 
     it('should refresh TTL on access if configured', async () => {
@@ -200,11 +200,11 @@ describe('CacheManager', () => {
       // Access multiple times to keep refreshing
       for (let i = 0; i < 5; i++) {
         await new Promise(resolve => setTimeout(resolve, 30))
-        expect(await cache.get('key1')).toBe('value1')
+        expect(await cache.get<string>('key1')).toBe('value1')
       }
 
       // Value should still be alive after 150ms total
-      expect(await cache.get('key1')).toBe('value1')
+      expect(await cache.get<string>('key1')).toBe('value1')
     })
   })
 
@@ -333,7 +333,7 @@ describe('CacheManager', () => {
 
       // key1 should be evicted
       expect(await cache.get('key1')).toBeUndefined()
-      expect(await cache.get('key4')).toBe('value4')
+      expect(await cache.get<string>('key4')).toBe('value4')
     })
 
     it('should use LRU eviction when configured', async () => {
@@ -353,7 +353,7 @@ describe('CacheManager', () => {
 
       // key2 should be evicted (least recently used)
       expect(await cache.get('key2')).toBeUndefined()
-      expect(await cache.get('key1')).toBe('value1')
+      expect(await cache.get<string>('key1')).toBe('value1')
     })
   })
 })
@@ -503,7 +503,7 @@ describe('cache integration with DynamoDB queries', () => {
     const cache = createCacheManager()
     let dbCalls = 0
 
-    const executeQuery = async (query: object) => {
+    const executeQuery = async (query: Record<string, unknown>) => {
       const key = hashQuery(query)
       return cache.getOrSet(key, async () => {
         dbCalls++
@@ -560,7 +560,7 @@ describe('edge cases', () => {
     const longKey = 'k'.repeat(10000)
 
     await cache.set(longKey, 'value')
-    expect(await cache.get(longKey)).toBe('value')
+    expect(await cache.get<string>(longKey)).toBe('value')
   })
 
   it('should handle special characters in keys', async () => {
@@ -568,7 +568,7 @@ describe('edge cases', () => {
     const specialKey = 'key:with/special#chars@!$%^&*()'
 
     await cache.set(specialKey, 'value')
-    expect(await cache.get(specialKey)).toBe('value')
+    expect(await cache.get<string>(specialKey)).toBe('value')
   })
 
   it('should handle unicode in keys and values', async () => {
@@ -577,7 +577,7 @@ describe('edge cases', () => {
     const unicodeValue = '值👋'
 
     await cache.set(unicodeKey, unicodeValue)
-    expect(await cache.get(unicodeKey)).toBe(unicodeValue)
+    expect(await cache.get<string>(unicodeKey)).toBe(unicodeValue)
   })
 
   it('should handle large values', async () => {
@@ -585,8 +585,8 @@ describe('edge cases', () => {
     const largeValue = { data: 'x'.repeat(100000) }
 
     await cache.set('large', largeValue)
-    const result = await cache.get('large')
-    expect(result.data.length).toBe(100000)
+    const result = await cache.get<{ data: string }>('large')
+    expect(result?.data.length).toBe(100000)
   })
 
   it('should handle many concurrent getOrSet calls for same key', async () => {

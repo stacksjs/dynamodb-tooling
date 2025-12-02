@@ -59,15 +59,15 @@ async function executeCommand(
 
   switch (cmd) {
     case 'GetItem':
-      return docClient.send(new GetCommand(input as Parameters<typeof GetCommand>[0]))
+      return docClient.send(new GetCommand(input as ConstructorParameters<typeof GetCommand>[0]))
     case 'PutItem':
-      return docClient.send(new PutCommand(input as Parameters<typeof PutCommand>[0]))
+      return docClient.send(new PutCommand(input as ConstructorParameters<typeof PutCommand>[0]))
     case 'UpdateItem':
-      return docClient.send(new UpdateCommand(input as Parameters<typeof UpdateCommand>[0]))
+      return docClient.send(new UpdateCommand(input as ConstructorParameters<typeof UpdateCommand>[0]))
     case 'DeleteItem':
-      return docClient.send(new DeleteCommand(input as Parameters<typeof DeleteCommand>[0]))
+      return docClient.send(new DeleteCommand(input as ConstructorParameters<typeof DeleteCommand>[0]))
     case 'Query':
-      return docClient.send(new QueryCommand(input as Parameters<typeof QueryCommand>[0]))
+      return docClient.send(new QueryCommand(input as ConstructorParameters<typeof QueryCommand>[0]))
     default:
       throw new Error(`Unknown command: ${cmd}`)
   }
@@ -107,7 +107,7 @@ async function parseRequest(request: Request, url: URL): Promise<AnalyticsReques
     params: {}, // Will be populated by router
     query: Object.fromEntries(url.searchParams),
     body,
-    headers: Object.fromEntries(request.headers),
+    headers: Object.fromEntries(request.headers as unknown as Iterable<[string, string]>),
     ip: request.headers.get('x-forwarded-for')
       || request.headers.get('cf-connecting-ip')
       || undefined,
@@ -256,7 +256,7 @@ Bun.serve({
         params: {},
         query: {},
         body: {},
-        headers: Object.fromEntries(request.headers),
+        headers: Object.fromEntries(request.headers as unknown as Iterable<[string, string]>),
       }))
     }
 

@@ -49,6 +49,8 @@ export interface LogEntry {
   spanId?: string
   /** Parent span ID */
   parentSpanId?: string
+  /** Allow additional properties */
+  [key: string]: unknown
 }
 
 /**
@@ -106,7 +108,7 @@ export class ConsoleTransport implements LogTransport {
 
   private reset = '\x1B[0m'
 
-  constructor(options?: { json?: boolean, colors?: boolean, redactFields?: string[] }) {
+  constructor(options?: { json?: boolean, colors?: boolean, redactFields?: string[], level?: LogLevel }) {
     this.json = options?.json ?? false
     this.colors = options?.colors ?? true
     this.redactFields = options?.redactFields ?? []

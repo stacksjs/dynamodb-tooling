@@ -22,6 +22,24 @@ export interface ImportOptions {
   batchSize?: number
   /** Overwrite existing items */
   overwrite?: boolean
+  /** CSV delimiter */
+  delimiter?: string
+  /** Primary key for conflict detection */
+  primaryKey?: string
+  /** Sort key for conflict detection */
+  sortKey?: string
+  /** Filter function for items */
+  filter?: (item: Record<string, unknown>) => boolean
+}
+
+/**
+ * Importer creation options
+ */
+export interface ImporterOptions {
+  /** Default batch size */
+  batchSize?: number
+  /** Validate items before import */
+  validateItems?: boolean
 }
 
 /**
@@ -311,6 +329,6 @@ export class DataImporter {
 /**
  * Create a data importer
  */
-export function createDataImporter(): DataImporter {
+export function createDataImporter(_options?: ImporterOptions): DataImporter {
   return new DataImporter()
 }

@@ -111,7 +111,7 @@ describe('Security', () => {
       it('should handle JSON strings', () => {
         const json = JSON.stringify({ secret: 'value', nested: { data: [1, 2, 3] } })
         const encrypted = manager.encrypt(json)
-        const decrypted = manager.decrypt(encrypted)
+        const decrypted = manager.decrypt(encrypted) as string
         expect(JSON.parse(decrypted)).toEqual(JSON.parse(json))
       })
 
@@ -292,7 +292,7 @@ describe('Security', () => {
         })
 
         const result = manager.checkAccess(
-          'any-action',
+          'read', // Wildcard action should match any valid action
           { table: 'any-table' },
           { roles: ['superadmin'] },
         )

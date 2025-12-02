@@ -1,4 +1,4 @@
-import type { Model } from '@stacksjs/types'
+import type { Model } from './types'
 
 /**
  * Site/Website being tracked

@@ -3,6 +3,42 @@
 // ============================================================================
 
 /**
+ * DynamoDB AttributeValue types for event items
+ */
+export interface AttributeValue {
+  S?: string
+  N?: string
+  B?: string
+  BOOL?: boolean
+  NULL?: boolean
+  M?: Record<string, AttributeValue>
+  L?: AttributeValue[]
+  SS?: string[]
+  NS?: string[]
+  BS?: string[]
+}
+
+/**
+ * Event item in DynamoDB format
+ */
+export interface EventItem {
+  pk: { S: string }
+  sk: { S: string }
+  eventId: { S: string }
+  eventType: { S: string }
+  aggregateId: { S: string }
+  aggregateType: { S: string }
+  version: { N: string }
+  data: { S: string }
+  metadata: { S: string } | { NULL: boolean }
+  timestamp: { S: string }
+  correlationId: { S: string } | { NULL: boolean }
+  causationId: { S: string } | { NULL: boolean }
+  _et: { S: string }
+  [key: string]: AttributeValue
+}
+
+/**
  * Domain event
  */
 export interface DomainEvent<T = unknown> {
@@ -52,6 +88,10 @@ export interface EventStoreOptions {
   snapshotTableName?: string
   /** Snapshot frequency (every N events) */
   snapshotFrequency?: number
+  /** Event TTL in seconds (optional) */
+  eventTTL?: number
+  /** Partition strategy (optional) */
+  partitionStrategy?: 'aggregate' | 'time' | 'hybrid'
 }
 
 /**
@@ -76,10 +116,18 @@ export interface Snapshot<T = unknown> {
 export type EventHandler<T = unknown> = (event: DomainEvent<T>) => void | Promise<void>
 
 /**
+ * Resolved event store options with defaults applied
+ */
+type ResolvedEventStoreOptions = Required<Pick<EventStoreOptions, 'tableName' | 'snapshotTableName' | 'snapshotFrequency'>> & {
+  eventTTL?: number
+  partitionStrategy?: 'aggregate' | 'time' | 'hybrid'
+}
+
+/**
  * Event store for DynamoDB
  */
 export class EventStore {
-  private options: Required<EventStoreOptions>
+  private options: ResolvedEventStoreOptions
   private handlers: Map<string, EventHandler[]> = new Map()
 
   constructor(options: EventStoreOptions) {
@@ -97,7 +145,7 @@ export class EventStore {
     command: 'PutItem'
     input: {
       TableName: string
-      Item: Record<string, unknown>
+      Item: EventItem
       ConditionExpression: string
       ExpressionAttributeNames: Record<string, string>
     }
@@ -138,7 +186,12 @@ export class EventStore {
   getEventsCommand(
     aggregateType: string,
     aggregateId: string,
-    fromVersion?: number,
+    options?: number | {
+      fromVersion?: number
+      toVersion?: number
+      limit?: number
+      ascending?: boolean
+    },
   ): {
     command: 'Query'
     input: {
@@ -147,8 +200,15 @@ export class EventStore {
       ExpressionAttributeNames: Record<string, string>
       ExpressionAttributeValues: Record<string, unknown>
       ScanIndexForward: boolean
+      Limit?: number
     }
   } {
+    // Handle backward compatibility: number = fromVersion
+    const opts = typeof options === 'number'
+      ? { fromVersion: options }
+      : options ?? {}
+
+    const fromVersion = opts.fromVersion
     const skCondition = fromVersion
       ? '#sk >= :skStart'
       : 'begins_with(#sk, :skPrefix)'
@@ -157,21 +217,34 @@ export class EventStore {
       ? { S: `EVENT#${String(fromVersion).padStart(10, '0')}` }
       : { S: 'EVENT#' }
 
+    const input: {
+      TableName: string
+      KeyConditionExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+      ScanIndexForward: boolean
+      Limit?: number
+    } = {
+      TableName: this.options.tableName,
+      KeyConditionExpression: `#pk = :pk AND ${skCondition}`,
+      ExpressionAttributeNames: {
+        '#pk': 'pk',
+        '#sk': 'sk',
+      },
+      ExpressionAttributeValues: {
+        ':pk': { S: `AGG#${aggregateType}#${aggregateId}` },
+        [fromVersion ? ':skStart' : ':skPrefix']: skValue,
+      },
+      ScanIndexForward: opts.ascending ?? true,
+    }
+
+    if (opts.limit) {
+      input.Limit = opts.limit
+    }
+
     return {
       command: 'Query',
-      input: {
-        TableName: this.options.tableName,
-        KeyConditionExpression: `#pk = :pk AND ${skCondition}`,
-        ExpressionAttributeNames: {
-          '#pk': 'pk',
-          '#sk': 'sk',
-        },
-        ExpressionAttributeValues: {
-          ':pk': { S: `AGG#${aggregateType}#${aggregateId}` },
-          [fromVersion ? ':skStart' : ':skPrefix']: skValue,
-        },
-        ScanIndexForward: true,
-      },
+      input,
     }
   }
 
@@ -329,6 +402,93 @@ export class EventStore {
     return this.options.snapshotTableName
   }
 
+  /**
+   * Alias for getLatestSnapshotCommand
+   */
+  getSnapshotCommand(aggregateType: string, aggregateId: string): ReturnType<EventStore['getLatestSnapshotCommand']> {
+    return this.getLatestSnapshotCommand(aggregateType, aggregateId)
+  }
+
+  /**
+   * Append event with optimistic locking
+   */
+  appendEventWithLock<T>(
+    event: Omit<DomainEvent<T>, 'eventId' | 'timestamp'>,
+    expectedVersion: number,
+  ): {
+    command: 'PutItem'
+    input: {
+      TableName: string
+      Item: EventItem
+      ConditionExpression: string
+      ExpressionAttributeNames: Record<string, string>
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const cmd = this.appendEvent(event)
+    return {
+      command: cmd.command,
+      input: {
+        TableName: cmd.input.TableName,
+        Item: cmd.input.Item,
+        ConditionExpression: 'attribute_not_exists(#pk) OR #version < :expectedVersion',
+        ExpressionAttributeNames: {
+          '#pk': 'pk',
+          '#version': 'version',
+        },
+        ExpressionAttributeValues: {
+          ':expectedVersion': { N: String(expectedVersion) },
+        },
+      },
+    }
+  }
+
+  /**
+   * Create a projection query
+   */
+  createProjectionQuery(
+    aggregateType: string,
+    options?: { eventTypes?: string[], fromTimestamp?: Date },
+  ): {
+    command: 'Scan'
+    input: {
+      TableName: string
+      FilterExpression: string
+      ExpressionAttributeValues: Record<string, unknown>
+    }
+  } {
+    const filterExpressions: string[] = []
+    const expressionAttributeValues: Record<string, unknown> = {
+      ':pkPrefix': { S: `AGG#${aggregateType}#` },
+    }
+
+    if (options?.eventTypes?.length) {
+      const typeConditions = options.eventTypes.map((_, i) => `:eventType${i}`)
+      filterExpressions.push(`eventType IN (${typeConditions.join(', ')})`)
+      options.eventTypes.forEach((type, i) => {
+        expressionAttributeValues[`:eventType${i}`] = { S: type }
+      })
+    }
+
+    if (options?.fromTimestamp) {
+      filterExpressions.push('timestamp >= :fromTimestamp')
+      expressionAttributeValues[':fromTimestamp'] = { S: options.fromTimestamp.toISOString() }
+    }
+
+    const filterExpression: string = filterExpressions.length > 0
+      ? `begins_with(pk, :pkPrefix) AND ${filterExpressions.join(' AND ')}`
+      : 'begins_with(pk, :pkPrefix)'
+
+    return {
+      command: 'Scan',
+      input: {
+        TableName: this.options.tableName,
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionAttributeValues,
+      },
+    }
+  }
+
   private generateEventId(): string {
     return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 11)}`
   }
@@ -344,17 +504,17 @@ export function createEventStore(options: EventStoreOptions): EventStore {
 /**
  * Aggregate root base class
  */
-export abstract class AggregateRoot<TState = unknown> {
-  protected id: string
+export class AggregateRoot<TState = unknown> {
+  public id: string
   protected type: string
-  protected version: number = 0
+  public version: number = 0
   protected state: TState
   protected uncommittedEvents: DomainEvent[] = []
 
-  constructor(id: string, type: string, initialState: TState) {
+  constructor(id: string, type?: string, initialState?: TState) {
     this.id = id
-    this.type = type
-    this.state = initialState
+    this.type = type ?? this.constructor.name
+    this.state = initialState ?? {} as TState
   }
 
   /**
@@ -379,9 +539,12 @@ export abstract class AggregateRoot<TState = unknown> {
   }
 
   /**
-   * Mutate state based on event (implement in subclass)
+   * Mutate state based on event (override in subclass)
+   * Default implementation does nothing - override to handle events
    */
-  protected abstract mutate(event: DomainEvent): void
+  protected mutate(_event: DomainEvent): void {
+    // Default no-op - subclasses should override
+  }
 
   /**
    * Replay events to rebuild state
@@ -416,10 +579,24 @@ export abstract class AggregateRoot<TState = unknown> {
   }
 
   /**
-   * Get current state
+   * Alias for markEventsAsCommitted
    */
-  getState(): TState {
-    return this.state
+  markChangesAsCommitted(): void {
+    this.markEventsAsCommitted()
+  }
+
+  /**
+   * Raise an event (public alias for apply)
+   */
+  raiseEvent<T>(eventType: string, data: T, metadata?: Record<string, unknown>): void {
+    this.apply(eventType, data, metadata)
+  }
+
+  /**
+   * Load from history (alias for replay)
+   */
+  loadFromHistory(events: DomainEvent[]): void {
+    this.replay(events)
   }
 
   /**
@@ -434,6 +611,13 @@ export abstract class AggregateRoot<TState = unknown> {
    */
   getVersion(): number {
     return this.version
+  }
+
+  /**
+   * Get current state
+   */
+  getState(): TState {
+    return this.state
   }
 
   /**

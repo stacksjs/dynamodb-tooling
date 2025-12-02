@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import type { DomainEvent } from '../src'
 import {
   AggregateRoot,
   createEventStore,
@@ -317,10 +318,15 @@ describe('EventStore', () => {
     it('should generate save snapshot command', () => {
       const store = createEventStore({ tableName: 'Events' })
 
-      const command = store.saveSnapshotCommand('User', '123', 10, { name: 'John', age: 30 })
+      const command = store.saveSnapshotCommand({
+        aggregateType: 'User',
+        aggregateId: '123',
+        version: 10,
+        state: { name: 'John', age: 30 },
+      })
 
       expect(command.command).toBe('PutItem')
-      expect(command.input.Item.version.N).toBe('10')
+      expect((command.input.Item.version as { N: string }).N).toBe('10')
     })
 
     it('should generate get snapshot command', () => {
@@ -328,7 +334,7 @@ describe('EventStore', () => {
 
       const command = store.getSnapshotCommand('User', '123')
 
-      expect(command.command).toBe('GetItem')
+      expect(command.command).toBe('Query')
     })
 
     it('should parse snapshot', () => {
@@ -336,12 +342,14 @@ describe('EventStore', () => {
 
       const item = {
         pk: { S: 'SNAPSHOT#User#123' },
+        aggregateId: { S: '123' },
+        aggregateType: { S: 'User' },
         version: { N: '10' },
         state: { S: '{"name":"John","age":30}' },
         timestamp: { S: '2024-01-01T00:00:00.000Z' },
       }
 
-      const snapshot = store.parseSnapshot(item)
+      const snapshot = store.parseSnapshot<{ name: string, age: number }>(item)
       expect(snapshot?.version).toBe(10)
       expect(snapshot?.state.name).toBe('John')
     })
@@ -357,7 +365,6 @@ describe('EventStore', () => {
         aggregateType: 'User',
         version: 5,
         data: {},
-        expectedVersion: 4,
       })
 
       expect(command.input.ConditionExpression).toBeDefined()
@@ -372,7 +379,7 @@ describe('EventStore', () => {
         aggregateType: 'User',
         version: 5,
         data: {},
-      })
+      }, 4) // expectedVersion as second argument
 
       expect(command.input.ConditionExpression).toContain('attribute_not_exists')
     })
@@ -382,18 +389,18 @@ describe('EventStore', () => {
     it('should generate projection query', () => {
       const store = createEventStore({ tableName: 'Events' })
 
-      const command = store.createProjectionQuery({
+      const command = store.createProjectionQuery('User', {
         eventTypes: ['UserCreated', 'UserUpdated'],
-        fromTimestamp: '2024-01-01T00:00:00.000Z',
+        fromTimestamp: new Date('2024-01-01T00:00:00.000Z'),
       })
 
-      expect(command.command).toBe('Query')
+      expect(command.command).toBe('Scan')
     })
 
     it('should filter by event type', () => {
       const store = createEventStore({ tableName: 'Events' })
 
-      const command = store.createProjectionQuery({
+      const command = store.createProjectionQuery('User', {
         eventTypes: ['UserCreated'],
       })
 
@@ -461,7 +468,7 @@ describe('AggregateRoot', () => {
       user.loadFromHistory([
         { eventType: 'UserCreated', data: { name: 'John', email: 'john@test.com' }, version: 1 },
         { eventType: 'NameChanged', data: { newName: 'Jane' }, version: 2 },
-      ])
+      ] as unknown as DomainEvent[])
 
       expect(user.name).toBe('Jane')
       expect(user.email).toBe('john@test.com')
@@ -478,7 +485,7 @@ describe('AggregateRoot', () => {
         { eventType: 'Event1', data: {}, version: 1 },
         { eventType: 'Event2', data: {}, version: 2 },
         { eventType: 'Event3', data: {}, version: 3 },
-      ])
+      ] as unknown as DomainEvent[])
 
       expect(agg.version).toBe(3)
     })
@@ -589,11 +596,11 @@ describe('AggregateRoot', () => {
       const user = new UserAggregate('user-123')
       user.loadFromHistory([
         { eventType: 'UserCreated', data: { name: 'John', email: 'john@test.com' }, version: 1 },
-      ])
+      ] as unknown as DomainEvent[])
 
       const snapshot = user.createSnapshot()
       expect(snapshot.version).toBe(1)
-      expect(snapshot.state.name).toBe('John')
+      expect((snapshot.state as { name: string }).name).toBe('John')
     })
 
     it('should restore from snapshot', () => {
@@ -649,7 +656,7 @@ describe('AggregateRoot', () => {
       })
       user.loadFromHistory([
         { eventType: 'NameChanged', data: { newName: 'Jane' }, version: 11 },
-      ])
+      ] as unknown as DomainEvent[])
 
       expect(user.version).toBe(11)
       expect(user.name).toBe('Jane')

@@ -771,8 +771,9 @@ describe('Streams Processing', () => {
         sequenceNumber: '1',
       })
 
-      expect(receivedKeys).toEqual({ pk: 'USER#123' })
-      expect(receivedKeys?.sk).toBeUndefined()
+      const keys = receivedKeys as { pk: string, sk?: string } | null
+      expect(keys?.pk).toBe('USER#123')
+      expect(keys?.sk).toBeUndefined()
     })
 
     it('should handle empty newImage and oldImage', () => {

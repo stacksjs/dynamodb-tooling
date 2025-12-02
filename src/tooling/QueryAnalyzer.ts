@@ -75,12 +75,18 @@ export interface QueryCharacteristics {
   isFullScan: boolean
   /** Uses filter expression */
   usesFilter: boolean
+  /** Has filter expression (alias for usesFilter) */
+  hasFilter: boolean
   /** Uses projection */
   usesProjection: boolean
   /** Is consistent read */
   consistentRead: boolean
   /** Uses pagination */
   usesPagination: boolean
+  /** Is a point read (GetItem) */
+  isPointRead: boolean
+  /** Is a write operation */
+  isWrite: boolean
   /** Estimated items scanned */
   estimatedItemsScanned: number
   /** Estimated items returned */
@@ -93,14 +99,16 @@ export interface QueryCharacteristics {
 export interface QueryInput {
   /** Operation type */
   operation: QueryOperationType
-  /** Table name */
-  tableName: string
+  /** Table name (optional for batch/transact operations) */
+  tableName?: string
   /** Key condition expression */
   keyConditionExpression?: string
   /** Filter expression */
   filterExpression?: string
   /** Projection expression */
   projectionExpression?: string
+  /** Update expression (for UpdateItem) */
+  updateExpression?: string
   /** Expression attribute names */
   expressionAttributeNames?: Record<string, string>
   /** Expression attribute values */
@@ -117,6 +125,10 @@ export interface QueryInput {
   key?: Record<string, unknown>
   /** Item (for PutItem) */
   item?: Record<string, unknown>
+  /** Request items for BatchGetItem/BatchWriteItem */
+  requestItems?: Record<string, unknown>
+  /** Transact items for TransactGetItems/TransactWriteItems */
+  transactItems?: unknown[]
 }
 
 /**
@@ -166,7 +178,7 @@ export class QueryAnalyzer {
   analyze(input: QueryInput): QueryAnalysis {
     const issues: QueryIssue[] = []
     const recommendations: QueryRecommendation[] = []
-    const metadata = this.tableMetadata.get(input.tableName)
+    const metadata = input.tableName ? this.tableMetadata.get(input.tableName) : undefined
 
     // Analyze characteristics
     const characteristics = this.analyzeCharacteristics(input, metadata)
@@ -205,7 +217,7 @@ export class QueryAnalyzer {
       sortKey?: string
     }
   } {
-    const metadata = this.tableMetadata.get(input.tableName)
+    const metadata = input.tableName ? this.tableMetadata.get(input.tableName) : undefined
     if (!metadata) {
       return { suggestion: 'Cannot suggest index without table metadata', indexType: 'none' }
     }
@@ -287,11 +299,11 @@ export class QueryAnalyzer {
    * Explain a query in human-readable format
    */
   explain(input: QueryInput): string {
-    const metadata = this.tableMetadata.get(input.tableName)
+    const metadata = input.tableName ? this.tableMetadata.get(input.tableName) : undefined
     const lines: string[] = []
 
     lines.push(`Operation: ${input.operation}`)
-    lines.push(`Table: ${input.tableName}`)
+    lines.push(`Table: ${input.tableName ?? 'N/A'}`)
 
     if (input.indexName) {
       lines.push(`Index: ${input.indexName}`)
@@ -353,6 +365,10 @@ export class QueryAnalyzer {
     const usesPartitionKey = this.usesPartitionKey(input, metadata)
     const usesSortKey = this.usesSortKey(input, metadata)
     const isFullScan = input.operation === 'Scan'
+    const usesFilter = !!input.filterExpression
+    const isPointRead = input.operation === 'GetItem'
+    const writeOperations: QueryOperationType[] = ['PutItem', 'UpdateItem', 'DeleteItem', 'BatchWriteItem', 'TransactWriteItems']
+    const isWrite = writeOperations.includes(input.operation)
 
     // Estimate items scanned
     let estimatedItemsScanned = 0
@@ -384,10 +400,13 @@ export class QueryAnalyzer {
       usesIndex: !!input.indexName,
       indexName: input.indexName,
       isFullScan,
-      usesFilter: !!input.filterExpression,
+      usesFilter,
+      hasFilter: usesFilter,
       usesProjection: !!input.projectionExpression,
       consistentRead: input.consistentRead ?? false,
       usesPagination: !!input.limit,
+      isPointRead,
+      isWrite,
       estimatedItemsScanned,
       estimatedItemsReturned,
     }
@@ -691,8 +710,18 @@ export class QueryAnalyzer {
 }
 
 /**
+ * Query analyzer options
+ */
+export interface QueryAnalyzerOptions {
+  /** Warn on scan operations */
+  warnOnScan?: boolean
+  /** Warn on missing index */
+  warnOnMissingIndex?: boolean
+}
+
+/**
  * Create a query analyzer
  */
-export function createQueryAnalyzer(): QueryAnalyzer {
+export function createQueryAnalyzer(_options?: QueryAnalyzerOptions): QueryAnalyzer {
   return new QueryAnalyzer()
 }

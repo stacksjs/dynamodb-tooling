@@ -59,6 +59,13 @@ export class MemoryCacheStore implements CacheStore {
     this.cleanupInterval = setInterval(() => this.cleanup(), cleanupIntervalMs)
   }
 
+  /**
+   * Get current cache size
+   */
+  get size(): number {
+    return this.cache.size
+  }
+
   async get<T>(key: string): Promise<T | undefined> {
     const entry = this.cache.get(key)
     if (!entry) return undefined
@@ -124,12 +131,38 @@ export class MemoryCacheStore implements CacheStore {
 }
 
 /**
+ * Eviction policy for cache
+ */
+export type EvictionPolicy = 'fifo' | 'lru' | 'lfu'
+
+/**
+ * Cache manager options
+ */
+export interface CacheManagerOptions {
+  store?: CacheStore
+  defaultTtl?: number
+  prefix?: string
+  /** Alias for defaultTtl */
+  ttl?: number
+  /** Max cache size (entries) */
+  maxSize?: number
+  /** Refresh TTL on access */
+  refreshOnAccess?: boolean
+  /** Eviction policy when max size is reached */
+  evictionPolicy?: EvictionPolicy
+}
+
+/**
  * Cache manager for DynamoDB operations
  */
 export class CacheManager {
   private store: CacheStore
   private defaultTtl: number
   private prefix: string
+  private maxSize?: number
+  private refreshOnAccess: boolean
+  private evictionPolicy: EvictionPolicy
+  private accessOrder: string[] = []
   private stats: CacheStats = {
     hits: 0,
     misses: 0,
@@ -139,14 +172,13 @@ export class CacheManager {
     size: 0,
   }
 
-  constructor(options?: {
-    store?: CacheStore
-    defaultTtl?: number
-    prefix?: string
-  }) {
+  constructor(options?: CacheManagerOptions) {
     this.store = options?.store ?? new MemoryCacheStore()
-    this.defaultTtl = options?.defaultTtl ?? 300000 // 5 minutes
+    this.defaultTtl = options?.defaultTtl ?? options?.ttl ?? 300000 // 5 minutes
     this.prefix = options?.prefix ?? 'dynamodb:'
+    this.maxSize = options?.maxSize
+    this.refreshOnAccess = options?.refreshOnAccess ?? false
+    this.evictionPolicy = options?.evictionPolicy ?? 'fifo'
   }
 
   /**
@@ -158,6 +190,14 @@ export class CacheManager {
 
     if (value !== undefined) {
       this.stats.hits++
+
+      // Refresh TTL on access if configured
+      if (this.refreshOnAccess) {
+        await this.store.set(fullKey, value, { ttl: this.defaultTtl })
+      }
+
+      // Update LRU access order
+      this.updateAccessOrder(fullKey)
     }
     else {
       this.stats.misses++
@@ -172,12 +212,57 @@ export class CacheManager {
    */
   async set<T>(key: string, value: T, options?: CacheOptions): Promise<void> {
     const fullKey = this.buildKey(key)
+
+    // Handle eviction if max size is set
+    if (this.maxSize && this.stats.size >= this.maxSize) {
+      await this.evict()
+    }
+
     await this.store.set(fullKey, value, {
       ttl: options?.ttl ?? this.defaultTtl,
       ...options,
     })
+
+    // Track access order for eviction
+    if (!this.accessOrder.includes(fullKey)) {
+      this.accessOrder.push(fullKey)
+      this.stats.size++
+    }
     this.stats.sets++
-    this.stats.size++
+  }
+
+  /**
+   * Update access order for LRU tracking
+   */
+  private updateAccessOrder(key: string): void {
+    const index = this.accessOrder.indexOf(key)
+    if (index > -1) {
+      this.accessOrder.splice(index, 1)
+      this.accessOrder.push(key)
+    }
+  }
+
+  /**
+   * Evict oldest/least recently used item
+   */
+  private async evict(): Promise<void> {
+    if (this.accessOrder.length === 0) return
+
+    // For FIFO, evict from front; for LRU, also from front (since accessed items move to back)
+    const keyToEvict = this.accessOrder.shift()
+    if (keyToEvict) {
+      await this.store.delete(keyToEvict)
+      this.stats.deletes++
+      this.stats.size--
+    }
+  }
+
+  /**
+   * Check if item exists in cache
+   */
+  async has(key: string): Promise<boolean> {
+    const fullKey = this.buildKey(key)
+    return this.store.has(fullKey)
   }
 
   /**
@@ -302,11 +387,7 @@ export class CacheManager {
 /**
  * Create a cache manager
  */
-export function createCacheManager(options?: {
-  store?: CacheStore
-  defaultTtl?: number
-  prefix?: string
-}): CacheManager {
+export function createCacheManager(options?: CacheManagerOptions): CacheManager {
   return new CacheManager(options)
 }
 

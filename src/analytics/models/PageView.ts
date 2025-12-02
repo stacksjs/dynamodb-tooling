@@ -1,4 +1,4 @@
-import type { Model } from '@stacksjs/types'
+import type { Model } from './types'
 
 /**
  * Page view event (raw event - stored temporarily for aggregation)

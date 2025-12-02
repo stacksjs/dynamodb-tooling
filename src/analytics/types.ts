@@ -702,6 +702,8 @@ export interface AnalyticsStoreOptions {
  * Aggregator options
  */
 export interface AggregatorOptions {
-  tableName: string
+  /** Analytics store instance */
+  store: unknown // AnalyticsStore - using unknown to avoid circular dependency
+  /** Batch size for processing events */
   batchSize?: number
 }

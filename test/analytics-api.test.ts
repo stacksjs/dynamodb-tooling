@@ -56,7 +56,7 @@ function createMockExecuteCommand() {
         const pk = key.pk?.S
         const sk = key.sk?.S
         // Simplified: just store a marker
-        storage.set(`${pk}#${sk}`, { updated: true, ...input.ExpressionAttributeValues })
+        storage.set(`${pk}#${sk}`, { updated: true, ...(input.ExpressionAttributeValues ?? {}) })
         return {}
       }
 
