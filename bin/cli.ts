@@ -9,7 +9,9 @@ import { version } from '../package.json'
 import {
   registerLocalCommands,
   registerMigrateCommands,
+  registerModelsCommands,
   registerQueryCommands,
+  registerSchemaCommands,
   registerTableCommands,
   registerUtilityCommands,
 } from '../src/cli/commands'
@@ -22,6 +24,8 @@ registerMigrateCommands(cli)
 registerQueryCommands(cli)
 registerUtilityCommands(cli)
 registerLocalCommands(cli)
+registerSchemaCommands(cli)
+registerModelsCommands(cli)
 
 // config - Show current configuration
 cli

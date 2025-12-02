@@ -5,14 +5,29 @@
 import type { CAC } from 'cac'
 import { getConfig } from '../../config'
 import {
-  formatDiffSummary,
   formatSchemaSummary,
   generateSchema,
   getMigrationStatus,
   InMemoryMigrationStateStore,
   previewMigration,
 } from '../../migrations'
-import { handleError } from '../utils'
+import { handleCommandError } from '../error-formatter'
+import {
+  box,
+  c,
+  createSpinner,
+  divider,
+  formatDiff,
+  formatKeyValue,
+  formatTable,
+  header,
+  icons,
+  info,
+  newline,
+  step,
+  success,
+  warning,
+} from '../ui'
 
 /**
  * Register migration commands
@@ -29,33 +44,60 @@ export function registerMigrateCommands(cli: CAC): void {
         const config = await getConfig()
         const stateStore = new InMemoryMigrationStateStore()
 
-        console.log('Analyzing models and generating migration plan...\n')
+        const spinner = createSpinner('Analyzing models and generating migration plan...')
+        spinner.start()
 
         const preview = await previewMigration(stateStore, config)
 
         if (!preview.diff.hasChanges) {
-          console.log('No changes detected. Database is up to date.')
+          spinner.succeed('No changes detected. Database is up to date.')
           return
         }
 
-        console.log(formatDiffSummary(preview.diff))
+        spinner.stop()
+
+        header(`${icons.rocket} Migration Preview`, 'The following changes will be applied')
+
+        // Display changes in a visual format
+        displayMigrationPreview(preview.diff, options.verbose)
 
         if (options.dryRun) {
-          console.log('\n[DRY RUN] No changes were applied.')
+          newline()
+          console.log(box(
+            [
+              `${c.cyan(icons.info)} This is a dry run preview.`,
+              '',
+              'No changes have been applied to your database.',
+              '',
+              `Run ${c.cyan('dbtooling migrate')} without --dry-run to apply changes.`,
+            ].join('\n'),
+            { title: 'DRY RUN', titleColor: c.cyan, borderColor: c.cyan },
+          ))
           return
         }
 
         if (preview.diff.hasBreakingChanges && !options.force) {
-          console.log('\nWARNING: This migration contains breaking changes!')
-          console.log('Use --force to proceed anyway.')
+          newline()
+          console.log(box(
+            [
+              `${c.red(icons.warning)} This migration contains BREAKING CHANGES!`,
+              '',
+              'Breaking changes may cause data loss or application errors.',
+              'Please review the changes above carefully.',
+              '',
+              `Use ${c.yellow('--force')} to proceed anyway.`,
+            ].join('\n'),
+            { title: 'WARNING', titleColor: c.red, borderColor: c.red },
+          ))
           return
         }
 
-        console.log('\nTo execute migrations, integrate with a DynamoDB client.')
-        console.log('Use the migration plan above to apply changes.')
+        newline()
+        info('To execute migrations, integrate with a DynamoDB client.')
+        info('Use the migration plan above to apply changes.')
       }
       catch (error) {
-        handleError(error)
+        handleCommandError(error, 'migrate')
       }
     })
 
@@ -83,23 +125,41 @@ export function registerMigrateCommands(cli: CAC): void {
           }, null, 2))
         }
         else {
-          console.log('Migration Status')
-          console.log('================')
-          console.log(`Current Version: ${status.currentVersion ?? 'No migrations applied'}`)
-          console.log(`Applied At: ${status.appliedAt ?? 'N/A'}`)
-          console.log(`Entity Types: ${status.entityTypes.length}`)
-          console.log(`GSI Count: ${status.gsiCount}`)
-          console.log(`LSI Count: ${status.lsiCount}`)
-          console.log('')
-          console.log(`Pending Changes: ${status.pendingChanges ? 'Yes' : 'No'}`)
+          header(`${icons.database} Migration Status`)
+
+          console.log(box(
+            formatKeyValue({
+              'Current Version': status.currentVersion ?? c.dim('No migrations applied'),
+              'Applied At': status.appliedAt ?? c.dim('N/A'),
+              'Entity Types': status.entityTypes.length,
+              'GSI Count': status.gsiCount,
+              'LSI Count': status.lsiCount,
+            }),
+            { title: 'Schema State' },
+          ))
+
+          newline()
+
           if (status.pendingChanges) {
-            console.log(`  Change Count: ${status.pendingChangeCount}`)
-            console.log(`  Breaking Changes: ${status.hasBreakingChanges ? 'Yes' : 'No'}`)
+            console.log(box(
+              formatKeyValue({
+                'Pending Changes': c.yellow('Yes'),
+                'Change Count': status.pendingChangeCount,
+                'Breaking Changes': status.hasBreakingChanges ? c.red('Yes') : c.green('No'),
+              }),
+              { title: 'Pending', titleColor: c.yellow, borderColor: c.yellow },
+            ))
+
+            newline()
+            info(`Run ${c.cyan('dbtooling migrate --dry-run')} to preview changes`)
+          }
+          else {
+            success('Database is up to date. No pending changes.')
           }
         }
       }
       catch (error) {
-        handleError(error)
+        handleCommandError(error, 'migrate:status')
       }
     })
 
@@ -110,15 +170,27 @@ export function registerMigrateCommands(cli: CAC): void {
     .option('--force', 'Skip confirmation prompts')
     .action(async (options: { step: number, force?: boolean }) => {
       try {
-        console.log(`Rolling back ${options.step} migration(s)...`)
-        console.log('\nNote: DynamoDB schema changes are not easily reversible.')
-        console.log('Rollback support is limited. Consider these alternatives:')
-        console.log('  1. Create a new migration that reverts the changes')
-        console.log('  2. Recreate the table with the desired schema')
-        console.log('  3. For GSI changes, delete and recreate the GSI')
+        header(`${icons.warning} Migration Rollback`)
+
+        warning(`Rolling back ${options.step} migration(s)...`)
+
+        newline()
+        console.log(box(
+          [
+            `${c.yellow(icons.warning)} DynamoDB schema changes are not easily reversible.`,
+            '',
+            'Rollback support is limited. Consider these alternatives:',
+            '',
+            `  ${icons.bullet} Create a new migration that reverts the changes`,
+            `  ${icons.bullet} Recreate the table with the desired schema`,
+            `  ${icons.bullet} For GSI changes, delete and recreate the GSI`,
+          ].join('\n'),
+          { title: 'Important', titleColor: c.yellow, borderColor: c.yellow },
+        ))
+
       }
       catch (error) {
-        handleError(error)
+        handleCommandError(error, 'migrate:rollback')
       }
     })
 
@@ -130,24 +202,43 @@ export function registerMigrateCommands(cli: CAC): void {
     .action(async (options: { seed?: boolean, force?: boolean }) => {
       try {
         if (!options.force) {
-          console.log('WARNING: This will DELETE ALL DATA and recreate the table!')
-          console.log('Use --force to proceed.')
+          newline()
+          console.log(box(
+            [
+              `${c.red(icons.error)} DANGER ZONE`,
+              '',
+              'This command will:',
+              `  ${c.red('1.')} ${c.red('DELETE ALL DATA')} in the table`,
+              `  ${c.dim('2.')} Wait for table deletion`,
+              `  ${c.green('3.')} Create a new table with current schema`,
+              `  ${c.dim('4.')} Wait for table to become active`,
+              ...(options.seed ? [`  ${c.cyan('5.')} Run seeders`] : []),
+              '',
+              `Use ${c.yellow('--force')} to proceed.`,
+            ].join('\n'),
+            { title: 'WARNING', titleColor: c.red, borderColor: c.red },
+          ))
           return
         }
 
-        console.log('Dropping and recreating table...')
-        console.log('\nNote: Implement DynamoDB client integration to:')
-        console.log('  1. Delete existing table')
-        console.log('  2. Wait for deletion')
-        console.log('  3. Create new table with current schema')
-        console.log('  4. Wait for table to become active')
+        const spinner = createSpinner('Dropping and recreating table...')
+        spinner.start()
+
+        // Steps would go here
+        step(1, 4, 'Deleting existing table...')
+        step(2, 4, 'Waiting for deletion...')
+        step(3, 4, 'Creating new table with current schema...')
+        step(4, 4, 'Waiting for table to become active...')
 
         if (options.seed) {
-          console.log('  5. Run seeders')
+          step(5, 5, 'Running seeders...')
         }
+
+        spinner.stop()
+        info('Note: Implement DynamoDB client integration to execute these steps.')
       }
       catch (error) {
-        handleError(error)
+        handleCommandError(error, 'migrate:fresh')
       }
     })
 
@@ -158,8 +249,13 @@ export function registerMigrateCommands(cli: CAC): void {
     .option('--format <format>', 'Output format (json, summary)', { default: 'summary' })
     .action(async (options: { output?: string, format: string }) => {
       try {
+        const spinner = createSpinner('Generating schema from models...')
+        spinner.start()
+
         const config = await getConfig()
         const schema = await generateSchema(config)
+
+        spinner.stop()
 
         let output: string
         if (options.format === 'json') {
@@ -172,14 +268,104 @@ export function registerMigrateCommands(cli: CAC): void {
         if (options.output) {
           const fs = await import('node:fs/promises')
           await fs.writeFile(options.output, output)
-          console.log(`Schema written to ${options.output}`)
+          success(`Schema written to ${c.cyan(options.output)}`)
         }
         else {
           console.log(output)
         }
       }
       catch (error) {
-        handleError(error)
+        handleCommandError(error, 'migrate:generate')
       }
     })
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+interface SchemaDiff {
+  hasChanges: boolean
+  hasBreakingChanges: boolean
+  changes: Array<{
+    type: string
+    severity: 'info' | 'low' | 'medium' | 'high' | 'critical'
+    description: string
+    details?: string
+  }>
+}
+
+function displayMigrationPreview(diff: SchemaDiff, verbose?: boolean): void {
+  // Group changes by severity
+  const critical = diff.changes.filter(c => c.severity === 'critical')
+  const high = diff.changes.filter(c => c.severity === 'high')
+  const medium = diff.changes.filter(c => c.severity === 'medium')
+  const low = diff.changes.filter(c => c.severity === 'low')
+  const infoChanges = diff.changes.filter(c => c.severity === 'info')
+
+  // Summary
+  console.log(box(
+    formatKeyValue({
+      'Total Changes': diff.changes.length,
+      'Breaking Changes': diff.hasBreakingChanges ? c.red('Yes') : c.green('No'),
+      'Critical': critical.length > 0 ? c.red(String(critical.length)) : c.dim('0'),
+      'High': high.length > 0 ? c.red(String(high.length)) : c.dim('0'),
+      'Medium': medium.length > 0 ? c.yellow(String(medium.length)) : c.dim('0'),
+      'Low': low.length > 0 ? c.blue(String(low.length)) : c.dim('0'),
+      'Info': infoChanges.length > 0 ? c.dim(String(infoChanges.length)) : c.dim('0'),
+    }),
+    { title: 'Change Summary' },
+  ))
+
+  newline()
+
+  // Display changes by severity
+  if (critical.length > 0) {
+    console.log(c.bold(c.red(`${icons.error} Critical Changes (${critical.length})`)))
+    divider()
+    for (const change of critical) {
+      console.log(`  ${c.red(icons.cross)} ${change.description}`)
+      if (verbose && change.details) {
+        console.log(`    ${c.dim(change.details)}`)
+      }
+    }
+    newline()
+  }
+
+  if (high.length > 0) {
+    console.log(c.bold(c.red(`${icons.warning} High Severity (${high.length})`)))
+    divider()
+    for (const change of high) {
+      console.log(`  ${c.red(icons.warning)} ${change.description}`)
+      if (verbose && change.details) {
+        console.log(`    ${c.dim(change.details)}`)
+      }
+    }
+    newline()
+  }
+
+  if (medium.length > 0) {
+    console.log(c.bold(c.yellow(`${icons.warning} Medium Severity (${medium.length})`)))
+    divider()
+    for (const change of medium) {
+      console.log(`  ${c.yellow(icons.bullet)} ${change.description}`)
+      if (verbose && change.details) {
+        console.log(`    ${c.dim(change.details)}`)
+      }
+    }
+    newline()
+  }
+
+  if ((low.length > 0 || infoChanges.length > 0) && verbose) {
+    console.log(c.bold(c.blue(`${icons.info} Low/Info (${low.length + infoChanges.length})`)))
+    divider()
+    for (const change of [...low, ...infoChanges]) {
+      console.log(`  ${c.dim(icons.bullet)} ${change.description}`)
+    }
+    newline()
+  }
+  else if (low.length > 0 || infoChanges.length > 0) {
+    info(`${low.length + infoChanges.length} low severity changes (use --verbose to see)`)
+    newline()
+  }
 }
