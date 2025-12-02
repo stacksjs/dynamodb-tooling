@@ -613,34 +613,5 @@ export {
   type SchemaBuilderOptions,
 } from './graphql'
 
-// Analytics (Phase 28 - Fathom-style Web Analytics)
-export {
-  AnalyticsStore,
-  AnalyticsAggregator,
-  AnalyticsKeyPatterns,
-  generateTrackingScript,
-  type Site,
-  type SiteSettings,
-  type PageView,
-  type CustomEvent,
-  type Session,
-  type AggregatedStats,
-  type PageStats,
-  type ReferrerStats,
-  type GeoStats,
-  type DeviceStats,
-  type CampaignStats,
-  type EventStats,
-  type Goal,
-  type GoalStats,
-  type RealtimeStats,
-  type AggregationPeriod,
-  type DeviceType,
-  type GoalType,
-  type AnalyticsStoreOptions,
-  type AggregatorOptions,
-  type TrackingScriptOptions,
-} from './analytics'
-
 // Utilities
 export * from './utils'
