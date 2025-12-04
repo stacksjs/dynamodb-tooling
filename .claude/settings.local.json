@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun run typecheck:*)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(cat:*)",
+      "Bash(bun run build:*)",
+      "Bash(bun install:*)",
+      "Bash(bun --bun tsc:*)",
+      "Bash(for file in src/analytics/models/AggregatedStats.ts src/analytics/models/CampaignStats.ts src/analytics/models/Conversion.ts src/analytics/models/CustomEvent.ts src/analytics/models/DeviceStats.ts src/analytics/models/EventStats.ts src/analytics/models/GeoStats.ts src/analytics/models/Goal.ts src/analytics/models/GoalStats.ts src/analytics/models/PageStats.ts src/analytics/models/PageView.ts src/analytics/models/RealtimeStats.ts src/analytics/models/ReferrerStats.ts src/analytics/models/Session.ts src/analytics/models/Site.ts)",
+      "Bash(do sed -i '' \"s|import type { Model } from ''@stacksjs/types''|import type { Model } from ''./types''|g\" \"$file\")",
+      "Bash(done)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "dynamodb-tooling",
   "type": "module",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "A toolkit of useful DynamoDB goodies.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
@@ -13,7 +13,13 @@
   "bugs": {
     "url": "https://github.com/stacksjs/dynamodb-tooling/issues"
   },
-  "keywords": ["dynamodb", "utilities", "typescript", "bun", "package"],
+  "keywords": [
+    "dynamodb",
+    "utilities",
+    "typescript",
+    "bun",
+    "package"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -28,7 +34,10 @@
   "bin": {
     "dbtooling": "./dist/cli.js"
   },
-  "files": ["dist", "src"],
+  "files": [
+    "dist",
+    "src"
+  ],
   "scripts": {
     "build": "bun --bun build.ts && bun --bun run compile",
     "compile": "bun build ./bin/cli.ts --compile --minify --outfile dist/dbtooling",
@@ -38,7 +47,7 @@
     "lint:fix": "bunx --bun eslint . --fix",
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
-    "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
+    "release": "bun --bun run changelog:generate && bunx --bun bumpx prompt --recursive",
     "postinstall": "bunx git-hooks",
     "prepublishOnly": "bun --bun run build",
     "test": "bun test",
