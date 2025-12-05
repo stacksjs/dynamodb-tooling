@@ -3,6 +3,9 @@ export * from './config'
 // DynamoDB Local
 export * from './dynamodb'
 
+// Driver Plugin System (Phase 3-6)
+export * from './drivers'
+
 // Factory System
 export * from './factories'
 
