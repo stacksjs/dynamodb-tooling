@@ -1,4 +1,4 @@
-name: CI
+name: Releaser
 
 on:
   push:
@@ -7,27 +7,29 @@ on:
 
 jobs:
   release:
-    name: Release
+    name: release
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set Node.js
-        uses: actions/setup-node@v6
-        with:
-          registry-url: 'https://registry.npmjs.org'
-
-      - name: Install Bun
+      - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup pantry
+        uses: stacksjs/pantry@v0.7
+        with:
+          setup-only: 'true'
 
       - name: Use cached node_modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: node-modules-${{ hashFiles('**/bun.lockb') }}
+          key: node-modules-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
             node-modules-
 
@@ -38,11 +40,11 @@ jobs:
         run: bun run build
 
       - name: Publish to npm
-        run: npm publish --access public --no-git-checks
+        run: pantry publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          BUN_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
 
       - name: Create GitHub release
-        run: npx changelogithub
+        run: bunx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
