@@ -1,35 +1,65 @@
-![Social Card of this repo](.github/art/cover.png)
-
-# DynamoDB Tooling
+<p align="center"><img src=".github/art/cover.png" alt="Social Card of this repo"></p>
 
 [![npm version][npm-version-src]][npm-version-href]
 [![GitHub Actions][github-actions-src]][github-actions-href]
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+<!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
+<!-- [![Codecov][codecov-src]][codecov-href] -->
+
+# dynamodb-tooling
 
 A comprehensive DynamoDB toolkit for TypeScript/JavaScript with automatic single-table design, Laravel-style ORM, migrations, and CLI tools.
 
+Define your models once and get automatic key pattern generation, GSI derivation, and a type-safe query experience powered by DynamoDB best practices.
+
 ## Features
 
-- **Zero-Config Single-Table Design** - Automatically generates pk/sk patterns and GSIs from your model definitions
-- **Laravel-Style ORM** - Familiar query builder with `where()`, `with()`, `orderBy()`, and more
-- **Automated Migrations** - Schema generation, diffing, and migrations from your models
-- **Factory System** - Generate fake data for testing with states and sequences
-- **Seeding System** - Populate your database with test data
-- **CLI Tools** - Manage tables, run migrations, seed data, and more
-- **DynamoDB Local** - Built-in support for local development
-- **TypeScript First** - Full type safety and IntelliSense support
+### Core Query Building
 
-## Installation
+- **Laravel-Style ORM**: Familiar query builder with `where()`, `with()`, `orderBy()`, `limit()`, and more.
+- **Fluent Builder**: `select/create/update/delete`, `where/andWhere/orWhere`, `whereIn/whereBetween/whereNull`, `orderBy/orderByDesc`.
+- **Aggregations**: `count()`, `sum()`, `avg()`, `min()`, `max()` with full type safety.
+- **Batch Operations**: `batchGet()`, `batchWrite()`, `transactWrite()` for efficient bulk operations.
+
+### Single-Table Design
+
+- **Zero-Config Key Patterns**: Automatically generates pk/sk patterns from your model definitions.
+- **GSI Derivation**: Intelligent GSI assignment based on relationships and access patterns.
+- **LSI Support**: Local Secondary Index derivation for alternative sort keys.
+- **Sparse Indexes**: Cost-effective sparse GSI patterns for status-based queries.
+
+### Advanced Features
+
+- **Relations**: `with(...)`, `withCount(...)`, `has()`, `doesntHave()`, `whereHas()` with eager loading support.
+- **Query Scopes**: Define reusable query constraints on models for cleaner, more maintainable code.
+- **Soft Deletes**: `withTrashed()`, `onlyTrashed()`, `restore()`, `forceDelete()` for logical deletion.
+- **Model Hooks**: Lifecycle events - `beforeCreate`, `afterCreate`, `beforeUpdate`, `afterUpdate`, `beforeDelete`, `afterDelete`.
+
+### Database Operations
+
+- **Migrations**: Generate and execute migrations from models with full diff support.
+- **Factories**: Generate fake data for testing with states and sequences.
+- **Seeders**: Database seeding with configurable data generation.
+- **DynamoDB Local**: Built-in support for local development and testing.
+
+### Configuration & CLI
+
+- **TypeScript First**: Full type safety and IntelliSense support throughout.
+- **Configurable**: Single-table settings, capacity modes, TTL, streams, and more.
+- **CLI Tools**: Manage tables, run migrations, seed data, query items, and more.
+- **bun-query-builder Integration**: Use as a DynamoDB driver for bun-query-builder.
+
+## Get Started
+
+### Installation
 
 ```bash
-bun install dynamodb-tooling
+bun add dynamodb-tooling
 # or
 npm install dynamodb-tooling
 ```
 
-## Quick Start
-
-### 1. Configure DynamoDB
+### Configuration
 
 Create a `dynamodb.config.ts` file:
 
@@ -55,37 +85,7 @@ export default {
 } satisfies DynamoDBConfig
 ```
 
-### 2. Define Models
-
-Create models in your `app/models` directory:
-
-```ts
-// app/models/User.ts
-import { DynamoDBModel } from 'dynamodb-tooling'
-
-export class User extends DynamoDBModel {
-  static table = 'users'
-  static primaryKey = 'id'
-  static timestamps = true
-  static softDeletes = true
-
-  // Attributes
-  attributes = {
-    id: { type: 'string', required: true },
-    email: { type: 'string', required: true, unique: true },
-    name: { type: 'string', required: true },
-    age: { type: 'number' },
-  }
-
-  // Relationships
-  relationships = {
-    posts: { type: 'hasMany', model: 'Post', foreignKey: 'userId' },
-    profile: { type: 'hasOne', model: 'Profile', foreignKey: 'userId' },
-  }
-}
-```
-
-### 3. Use the Query Builder
+### Usage
 
 ```ts
 import { User } from './app/models/User'
@@ -105,73 +105,37 @@ const users = await User.query()
 const usersWithPosts = await User.query()
   .with('posts')
   .get()
-
-// Create
-const newUser = await User.create({
-  email: 'john@example.com',
-  name: 'John Doe',
-})
-
-// Update
-await user.update({ name: 'Jane Doe' })
-
-// Soft delete
-await user.delete()
-
-// Force delete
-await user.forceDelete()
 ```
 
-## CLI Commands
-
-The CLI is available as `dbtooling`:
-
-```bash
-# DynamoDB Local
-dbtooling start              # Start DynamoDB Local
-dbtooling stop               # Stop DynamoDB Local
-dbtooling status             # Show running instances
-dbtooling install            # Install DynamoDB Local
-
-# Migrations
-dbtooling migrate            # Run migrations
-dbtooling migrate:status     # Show migration status
-dbtooling migrate:rollback   # Rollback last migration
-dbtooling migrate:fresh      # Drop and re-migrate
-dbtooling migrate:generate   # Generate migration from models
-
-# Tables
-dbtooling table:create       # Create table from models
-dbtooling table:describe     # Describe a table
-dbtooling table:list         # List all tables
-dbtooling table:delete       # Delete a table
-
-# Seeding
-dbtooling seed               # Run seeders
-dbtooling make:seeder User   # Generate a seeder
-dbtooling make:factory User  # Generate a factory
-dbtooling db:fresh           # Drop, migrate, and seed
-
-# Queries
-dbtooling query --pk USER#1  # Query by partition key
-dbtooling scan               # Scan table
-dbtooling get --pk X --sk Y  # Get single item
-
-# Utilities
-dbtooling access-patterns    # Show access patterns
-dbtooling export             # Export table data
-dbtooling import             # Import data
-dbtooling ci:validate        # Validate models for CI
-```
-
-## Query Builder API
-
-### Basic Queries
+### Defining Models
 
 ```ts
-// Select specific columns
-User.query().select('id', 'name', 'email').get()
+// app/models/User.ts
+import { DynamoDBModel } from 'dynamodb-tooling'
 
+export class User extends DynamoDBModel {
+  static table = 'users'
+  static primaryKey = 'id'
+  static timestamps = true
+  static softDeletes = true
+
+  attributes = {
+    id: { type: 'string', required: true },
+    email: { type: 'string', required: true, unique: true },
+    name: { type: 'string', required: true },
+    age: { type: 'number' },
+  }
+
+  relationships = {
+    posts: { type: 'hasMany', model: 'Post', foreignKey: 'userId' },
+    profile: { type: 'hasOne', model: 'Profile', foreignKey: 'userId' },
+  }
+}
+```
+
+### Query Builder
+
+```ts
 // Where conditions
 User.query().where('status', 'active').get()
 User.query().where('age', '>=', 18).get()
@@ -181,15 +145,12 @@ User.query().whereNull('deletedAt').get()
 User.query().whereBeginsWith('sk', 'USER#').get()
 User.query().whereContains('tags', 'featured').get()
 
-// Ordering
+// Ordering and limiting
 User.query().orderBy('name').get()
 User.query().orderByDesc('createdAt').get()
 User.query().latest().get() // orderBy('createdAt', 'desc')
 User.query().oldest().get() // orderBy('createdAt', 'asc')
-
-// Limiting
 User.query().limit(10).get()
-User.query().take(10).get()
 
 // Pagination
 const page1 = await User.query().paginate(20)
@@ -248,16 +209,23 @@ await user.restore()
 await user.forceDelete()
 ```
 
-### Scopes
+### CRUD Operations
 
 ```ts
-// Define global scopes
-User.addGlobalScope('active', (query) => {
-  return query.where('status', 'active')
+// Create
+const newUser = await User.create({
+  email: 'john@example.com',
+  name: 'John Doe',
 })
 
-// Use scopes
-User.query().scope('active').get()
+// Update
+await user.update({ name: 'Jane Doe' })
+
+// Delete (soft delete if enabled)
+await user.delete()
+
+// Force delete
+await user.forceDelete()
 ```
 
 ## Factory System
@@ -311,6 +279,31 @@ export class UserSeeder extends Seeder {
 }
 ```
 
+## Migration System
+
+Migrations are automatically generated from your models:
+
+```bash
+# Generate migration
+dbtooling migrate:generate
+
+# Preview changes
+dbtooling migrate --dry-run
+
+# Apply migration
+dbtooling migrate
+
+# Rollback
+dbtooling migrate:rollback
+```
+
+The migration system handles:
+- Table creation with pk/sk
+- GSI creation/deletion
+- LSI configuration
+- TTL settings
+- Stream configuration
+
 ## Single-Table Design
 
 The toolkit automatically generates single-table design patterns from your models:
@@ -341,30 +334,99 @@ View patterns with:
 dbtooling access-patterns --format markdown
 ```
 
-## Migration System
+## CLI Commands
 
-Migrations are automatically generated from your models:
+The CLI is available as `dbtooling`:
 
 ```bash
-# Generate migration
-dbtooling migrate:generate
+# DynamoDB Local
+dbtooling start              # Start DynamoDB Local
+dbtooling stop               # Stop DynamoDB Local
+dbtooling status             # Show running instances
+dbtooling install            # Install DynamoDB Local
 
-# Preview changes
-dbtooling migrate --dry-run
+# Migrations
+dbtooling migrate            # Run migrations
+dbtooling migrate:status     # Show migration status
+dbtooling migrate:rollback   # Rollback last migration
+dbtooling migrate:fresh      # Drop and re-migrate
+dbtooling migrate:generate   # Generate migration from models
 
-# Apply migration
-dbtooling migrate
+# Tables
+dbtooling table:create       # Create table from models
+dbtooling table:describe     # Describe a table
+dbtooling table:list         # List all tables
+dbtooling table:delete       # Delete a table
 
-# Rollback
-dbtooling migrate:rollback
+# Seeding
+dbtooling seed               # Run seeders
+dbtooling make:seeder User   # Generate a seeder
+dbtooling make:factory User  # Generate a factory
+dbtooling db:fresh           # Drop, migrate, and seed
+
+# Queries
+dbtooling query --pk USER#1  # Query by partition key
+dbtooling scan               # Scan table
+dbtooling get --pk X --sk Y  # Get single item
+
+# Utilities
+dbtooling access-patterns    # Show access patterns
+dbtooling export             # Export table data
+dbtooling import             # Import data
+dbtooling ci:validate        # Validate models for CI
 ```
 
-The migration system handles:
-- Table creation with pk/sk
-- GSI creation/deletion
-- LSI configuration
-- TTL settings
-- Stream configuration
+## DynamoDB Local
+
+Start local development:
+
+```ts
+import { dynamoDb } from 'dynamodb-tooling'
+
+// Start
+await dynamoDb.launch({ port: 8000 })
+
+// With persistent storage
+await dynamoDb.launch({
+  port: 8000,
+  dbPath: './data/dynamodb',
+})
+
+// Stop
+dynamoDb.stop(8000)
+```
+
+Or via CLI:
+
+```bash
+dbtooling start --port 8000
+dbtooling start --db-path ./data  # Persistent
+dbtooling stop
+```
+
+## bun-query-builder Integration
+
+Use dynamodb-tooling as a DynamoDB driver for bun-query-builder:
+
+```ts
+import { createQueryBuilder } from 'bun-query-builder'
+import { DynamoDBDriver } from 'dynamodb-tooling'
+
+const driver = new DynamoDBDriver({
+  region: 'us-east-1',
+  tableName: 'MyApp',
+})
+
+const db = createQueryBuilder({
+  driver,
+  // ... other options
+})
+
+// Now use bun-query-builder with DynamoDB!
+const users = await db.selectFrom('users')
+  .where({ active: true })
+  .get()
+```
 
 ## Configuration Reference
 
@@ -419,34 +481,6 @@ interface DynamoDBConfig {
 }
 ```
 
-## DynamoDB Local
-
-Start local development:
-
-```ts
-import { dynamoDb } from 'dynamodb-tooling'
-
-// Start
-await dynamoDb.launch({ port: 8000 })
-
-// With persistent storage
-await dynamoDb.launch({
-  port: 8000,
-  dbPath: './data/dynamodb',
-})
-
-// Stop
-dynamoDb.stop(8000)
-```
-
-Or via CLI:
-
-```bash
-dbtooling start --port 8000
-dbtooling start --db-path ./data  # Persistent
-dbtooling stop
-```
-
 ## Testing
 
 ```bash
@@ -473,7 +507,7 @@ For casual chit-chat with others using this package:
 
 ## Postcardware
 
-Stacks OSS will always stay open-sourced, and we will always love to receive postcards from wherever Stacks is used!  _And we also publish them on our website. Thank you, Spatie._
+Stacks OSS will always stay open-sourced, and we will always love to receive postcards from wherever Stacks is used! _And we also publish them on our website. Thank you, Spatie._
 
 Our address: Stacks.js, 12665 Village Ln #2306, Playa Vista, CA 90094, United States 🌎
 
@@ -502,3 +536,6 @@ Made with 💙
 [npm-version-href]: https://npmjs.com/package/dynamodb-tooling
 [github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/dynamodb-tooling/ci.yml?style=flat-square&branch=main
 [github-actions-href]: https://github.com/stacksjs/dynamodb-tooling/actions?query=workflow%3Aci
+
+<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/dynamodb-tooling/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/stacksjs/dynamodb-tooling -->
