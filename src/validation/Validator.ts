@@ -183,7 +183,8 @@ export class Validator {
     let firstError: string | undefined
 
     for (const [attribute, rules] of this.rules) {
-      if (rules.length === 0) continue
+      if (rules.length === 0)
+        continue
 
       const value = data[attribute]
       const attributeErrors = this.validateValue(value, attribute, data, modelType)

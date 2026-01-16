@@ -60,11 +60,11 @@ export interface LogTransport {
   /** Transport name */
   name: string
   /** Write log entry */
-  write(entry: LogEntry): void | Promise<void>
+  write: (entry: LogEntry) => void | Promise<void>
   /** Flush pending logs */
-  flush?(): void | Promise<void>
+  flush?: () => void | Promise<void>
   /** Close transport */
-  close?(): void | Promise<void>
+  close?: () => void | Promise<void>
 }
 
 /**
@@ -225,10 +225,11 @@ export class FileTransport implements LogTransport {
   }
 
   async flush(): Promise<void> {
-    if (this.buffer.length === 0) return
+    if (this.buffer.length === 0)
+      return
 
     const lines = this.buffer.splice(0, this.buffer.length)
-    const content = lines.join('\n') + '\n'
+    const content = `${lines.join('\n')}\n`
 
     // In a real implementation, this would append to file
     // For now, we'll use Bun's file API if available

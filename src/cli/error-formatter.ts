@@ -20,7 +20,7 @@ import {
   ThrottlingError,
   TransactionCancelledError,
 } from '../types/errors'
-import { box, c, divider, icons, newline } from './ui'
+import { box, c, icons } from './ui'
 
 // ============================================================================
 // Error Context
@@ -74,10 +74,14 @@ export function formatError(error: unknown, context: ErrorContext = {}): string 
   // Context
   if (Object.keys(context).length > 0) {
     lines.push(c.dim('Context:'))
-    if (context.command) lines.push(`  ${c.dim('Command:')} ${context.command}`)
-    if (context.tableName) lines.push(`  ${c.dim('Table:')} ${context.tableName}`)
-    if (context.model) lines.push(`  ${c.dim('Model:')} ${context.model}`)
-    if (context.operation) lines.push(`  ${c.dim('Operation:')} ${context.operation}`)
+    if (context.command)
+      lines.push(`  ${c.dim('Command:')} ${context.command}`)
+    if (context.tableName)
+      lines.push(`  ${c.dim('Table:')} ${context.tableName}`)
+    if (context.model)
+      lines.push(`  ${c.dim('Model:')} ${context.model}`)
+    if (context.operation)
+      lines.push(`  ${c.dim('Operation:')} ${context.operation}`)
     if (context.keys) {
       lines.push(`  ${c.dim('Keys:')} pk=${context.keys.pk}${context.keys.sk ? `, sk=${context.keys.sk}` : ''}`)
     }

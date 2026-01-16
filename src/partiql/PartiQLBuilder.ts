@@ -465,9 +465,12 @@ export class PartiQLBuilder {
       return 'B'
     }
     if (Array.isArray(value)) {
-      if (value.length === 0) return 'L'
-      if (typeof value[0] === 'string') return 'SS'
-      if (typeof value[0] === 'number') return 'NS'
+      if (value.length === 0)
+        return 'L'
+      if (typeof value[0] === 'string')
+        return 'SS'
+      if (typeof value[0] === 'number')
+        return 'NS'
       return 'L'
     }
     if (typeof value === 'object') {
@@ -565,11 +568,11 @@ export function buildBatchStatements(
   queries: PartiQLQuery[],
   config?: BatchStatementConfig,
 ): Array<{
-  Statements: Array<{
-    Statement: string
-    Parameters?: Array<{ S?: string, N?: string, B?: string, BOOL?: boolean, NULL?: boolean, L?: unknown[], M?: Record<string, unknown>, SS?: string[], NS?: string[], BS?: string[] }>
-  }>
-}> {
+    Statements: Array<{
+      Statement: string
+      Parameters?: Array<{ S?: string, N?: string, B?: string, BOOL?: boolean, NULL?: boolean, L?: unknown[], M?: Record<string, unknown>, SS?: string[], NS?: string[], BS?: string[] }>
+    }>
+  }> {
   const maxBatchSize = config?.maxBatchSize ?? 25
   const batches: Array<{
     Statements: Array<{

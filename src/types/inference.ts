@@ -11,7 +11,7 @@ import type { Model, ModelAttribute, ModelRelationship } from '../models/types'
 /**
  * Map attribute type string to TypeScript type
  */
-export type AttributeTypeMap = {
+export interface AttributeTypeMap {
   string: string
   number: number
   boolean: boolean

@@ -224,7 +224,8 @@ export class DataImporter {
 
   private parseCSV(data: string): Record<string, unknown>[] {
     const lines = data.split('\n').filter(line => line.trim())
-    if (lines.length < 2) return []
+    if (lines.length < 2)
+      return []
 
     const headers = this.parseCSVLine(lines[0])
     const items: Record<string, unknown>[] = []
@@ -307,19 +308,26 @@ export class DataImporter {
 
     const obj = value as Record<string, unknown>
 
-    if ('S' in obj) return obj.S
-    if ('N' in obj) return Number(obj.N)
-    if ('BOOL' in obj) return obj.BOOL
-    if ('NULL' in obj) return null
+    if ('S' in obj)
+      return obj.S
+    if ('N' in obj)
+      return Number(obj.N)
+    if ('BOOL' in obj)
+      return obj.BOOL
+    if ('NULL' in obj)
+      return null
     if ('L' in obj) {
       return (obj.L as unknown[]).map(v => this.unmarshallValue(v))
     }
     if ('M' in obj) {
       return this.unmarshallItem(obj.M as Record<string, unknown>)
     }
-    if ('SS' in obj) return obj.SS
-    if ('NS' in obj) return (obj.NS as string[]).map(Number)
-    if ('BS' in obj) return obj.BS
+    if ('SS' in obj)
+      return obj.SS
+    if ('NS' in obj)
+      return (obj.NS as string[]).map(Number)
+    if ('BS' in obj)
+      return obj.BS
 
     // Not DynamoDB format, return as-is
     return value

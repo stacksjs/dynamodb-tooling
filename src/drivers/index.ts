@@ -2,32 +2,8 @@
 // Driver Plugin System Exports
 // ============================================================================
 
-// Types - Use Driver prefix to avoid conflicts with other modules
-export type {
-  AttributeValue as DriverAttributeValue,
-  BatchGetItemInput,
-  BatchGetItemOutput,
-  BatchWriteItemInput,
-  BatchWriteItemOutput,
-  ConsumedCapacity as DriverConsumedCapacity,
-  CreateTableInput as DriverCreateTableInput,
-  DeleteItemInput,
-  DriverCapabilities,
-  DriverConnectionOptions,
-  DriverFactory,
-  DriverPlugin,
-  GetItemInput,
-  PutItemInput,
-  QueryInput as DriverQueryInput,
-  QueryOutput as DriverQueryOutput,
-  ScanInput,
-  TableDescription as DriverTableDescription,
-  TransactGetItemsInput,
-  TransactGetItemsOutput,
-  TransactWriteItemsInput,
-  UpdateItemInput,
-  UpdateTableInput,
-} from './types'
+// DynamoDB Driver
+export { createDynamoDBDriver, DynamoDBDriver } from './DynamoDBDriver'
 
 // Registry
 export {
@@ -46,8 +22,32 @@ export {
   unregisterDriver,
 } from './registry'
 
-// DynamoDB Driver
-export { createDynamoDBDriver, DynamoDBDriver } from './DynamoDBDriver'
+// Types - Use Driver prefix to avoid conflicts with other modules
+export type {
+  BatchGetItemInput,
+  BatchGetItemOutput,
+  BatchWriteItemInput,
+  BatchWriteItemOutput,
+  DeleteItemInput,
+  AttributeValue as DriverAttributeValue,
+  DriverCapabilities,
+  DriverConnectionOptions,
+  ConsumedCapacity as DriverConsumedCapacity,
+  CreateTableInput as DriverCreateTableInput,
+  DriverFactory,
+  DriverPlugin,
+  QueryInput as DriverQueryInput,
+  QueryOutput as DriverQueryOutput,
+  TableDescription as DriverTableDescription,
+  GetItemInput,
+  PutItemInput,
+  ScanInput,
+  TransactGetItemsInput,
+  TransactGetItemsOutput,
+  TransactWriteItemsInput,
+  UpdateItemInput,
+  UpdateTableInput,
+} from './types'
 
 // Utilities - Use driver prefix to avoid conflicts
 export {
@@ -55,12 +55,12 @@ export {
   buildKeyConditionExpression as buildDriverKeyConditionExpression,
   buildProjectionExpression as buildDriverProjectionExpression,
   buildUpdateExpression as buildDriverUpdateExpression,
-  escapeAttributeName,
-  isReservedWord,
   marshallItem as driverMarshallItem,
   marshallValue as driverMarshallValue,
-  mergeExpressionAttributeNames,
-  mergeExpressionAttributeValues,
   unmarshallItem as driverUnmarshallItem,
   unmarshallValue as driverUnmarshallValue,
+  escapeAttributeName,
+  isReservedWord,
+  mergeExpressionAttributeNames,
+  mergeExpressionAttributeValues,
 } from './utils'

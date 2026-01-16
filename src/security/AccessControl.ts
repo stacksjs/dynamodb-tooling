@@ -160,11 +160,13 @@ export class AccessControlManager {
     const processedRoles = new Set<string>()
 
     const processRole = (roleId: string) => {
-      if (processedRoles.has(roleId)) return
+      if (processedRoles.has(roleId))
+        return
       processedRoles.add(roleId)
 
       const role = this.roles.get(roleId)
-      if (!role) return
+      if (!role)
+        return
 
       // Process inherited roles first
       if (role.inherits) {

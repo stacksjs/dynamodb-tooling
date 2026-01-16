@@ -304,7 +304,8 @@ export class TenantManager {
 
       case 'prefix': {
         const pk = item.pk as string
-        if (!pk) return false
+        if (!pk)
+          return false
         return pk.startsWith(`TENANT#${currentTenantId}#`)
       }
 

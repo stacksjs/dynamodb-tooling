@@ -1,13 +1,93 @@
+// Backup & Restore (Phase 17)
+export {
+  type BackupDetails,
+  BackupManager,
+  type BackupStatus,
+  type BackupType,
+  createBackupManager,
+  type CreateBackupOptions,
+  type ListBackupsOptions,
+  type PITRDescription,
+  type PITRStatus,
+  type RestoreOptions,
+  type ScheduledBackupConfig,
+} from './backup'
+// Caching Integration (Phase 24)
+export {
+  cached,
+  type CacheEntry,
+  CacheManager,
+  type CacheOptions,
+  type CacheStats,
+  type CacheStore,
+  createCacheManager,
+  hashQuery,
+  MemoryCacheStore,
+} from './caching'
+
 // Configuration
 export * from './config'
-// DynamoDB Local
-export * from './dynamodb'
 
 // Driver Plugin System (Phase 3-6)
 export * from './drivers'
 
+// DynamoDB Local
+export * from './dynamodb'
+
+// Event Sourcing (Phase 26)
+export {
+  AggregateRoot,
+  createEventStore,
+  type DomainEvent,
+  type EventHandler,
+  EventStore,
+  type EventStoreOptions,
+  type EventStream,
+  type Snapshot,
+} from './event-sourcing'
+
 // Factory System
 export * from './factories'
+
+// Global Tables (Phase 17)
+export {
+  type AWSRegion,
+  createGlobalTableManager,
+  type GlobalTableDescription,
+  GlobalTableManager,
+  type GlobalTableStatus,
+  type ReplicaAutoScalingSettings,
+  type ReplicaDescription,
+  type ReplicaSettings,
+  type ReplicaStatus,
+} from './global-tables'
+
+// GraphQL Integration (Phase 27)
+export {
+  createGraphQLSchemaBuilder,
+  type GraphQLFieldDef,
+  type ModelDefinition as GraphQLModelDefinition,
+  type GraphQLMutationDef,
+  type GraphQLQueryDef,
+  type GraphQLScalarType,
+  GraphQLSchemaBuilder,
+  type GraphQLTypeDef,
+  type SchemaBuilderOptions,
+} from './graphql'
+
+// Import/Export (Phase 23)
+export {
+  type BatchWriteCommand,
+  createDataExporter,
+  createDataImporter,
+  DataExporter,
+  DataImporter,
+  type ExportFormat,
+  type ExportOptions,
+  type ExportResult,
+  type ImportOptions,
+  type ImportResult,
+} from './import-export'
 
 // Migration System
 export * from './migrations'
@@ -18,14 +98,231 @@ export * from './model-parser'
 // Model System (Laravel/Stacks Style ORM)
 export * from './models'
 
+export {
+  createTenantCapacityManager,
+  type TenantCapacityConfig,
+  // Capacity management
+  TenantCapacityManager,
+  type TenantCapacityStats,
+} from './multi-tenancy/TenantCapacityManager'
+
+export {
+  type AttributeIsolationStrategy,
+  createAttributeIsolation,
+  createPrefixIsolation,
+  createTablePerTenantIsolation,
+  type IsolationStrategy,
+  type PrefixIsolationStrategy,
+  type TablePerTenantStrategy,
+  // Tenant isolation strategies
+  TenantIsolation,
+} from './multi-tenancy/TenantIsolation'
+
+// Multi-Tenancy Support (Phase 16)
+export {
+  clearTenantContext,
+  createTenantManager,
+  CrossTenantAccessError,
+  getTenantContext,
+  setTenantContext,
+  TenantContext,
+  type TenantContextData,
+  // Tenant management
+  TenantManager,
+  type TenantManagerConfig,
+  TenantNotFoundError,
+  type TenantResolver,
+  withTenant,
+} from './multi-tenancy/TenantManager'
+
+export {
+  createTenantQueryInterceptor,
+  type InterceptedQuery,
+  // Query interceptor
+  TenantQueryInterceptor,
+  type TenantQueryInterceptorOptions,
+} from './multi-tenancy/TenantQueryInterceptor'
+
+// Observability & Monitoring (Phase 18)
+export {
+  CloudWatchExporter,
+  ConsoleSpanExporter,
+  ConsoleTransport,
+  createLogger,
+  createMetricsRegistry,
+  createTracer,
+  defaultLogger,
+  defaultMetrics,
+  defaultTracer,
+  DynamoDBMetrics,
+  DynamoDBSpanAttributes,
+  FileTransport,
+  type HistogramBuckets,
+  type HistogramValue,
+  type LogEntry,
+  Logger,
+  type LoggerConfig,
+  type LogLevel,
+  type LogTransport,
+  type MetricDefinition,
+  type MetricLabels,
+  type MetricsCollector,
+  type MetricsExporter,
+  MetricsRegistry,
+  type MetricType,
+  type MetricValue,
+  OTLPSpanExporter,
+  PrometheusExporter,
+  type Span,
+  type SpanAttributes,
+  type SpanData,
+  type SpanEvent,
+  type SpanExporter,
+  type SpanKind,
+  type SpanLink,
+  type SpanStatus,
+  type SummaryValue,
+  type TraceContext,
+  Tracer,
+} from './observability'
+
+// PartiQL Query Builder (Phase 17)
+export {
+  type BatchStatementConfig,
+  type BatchStatementResult,
+  buildBatchStatements,
+  deleteFrom,
+  insertInto,
+  type OrderDirection,
+  partiql,
+  PartiQLBuilder,
+  type PartiQLParameter,
+  type PartiQLQuery,
+  type PartiQLStatementType,
+  selectFrom,
+  type SelectProjection,
+  updateTable,
+  type WhereCondition,
+} from './partiql'
+
+// Performance & Optimization (Phase 15)
+export * from './performance'
+
+// Polymorphic Relationships (Phase 25)
+export {
+  buildPolymorphicGSIKey,
+  createPolymorphicManager,
+  type Morphable,
+  morphMany,
+  morphTo,
+  parsePolymorphicGSIKey,
+  type PolymorphicConfig,
+  PolymorphicRelationshipManager,
+  type PolymorphicResult,
+  type PolymorphicTypeMap,
+} from './relationships'
+
+// Security (Phase 19)
+export {
+  type AccessCheckResult,
+  type AccessCondition,
+  type AccessContext,
+  AccessControlManager,
+  type AuditEvent,
+  type AuditEventStatus,
+  type AuditEventType,
+  AuditLogger,
+  type AuditLoggerConfig,
+  type AuditQueryOptions,
+  type AuditQueryResult,
+  type AuditStorage,
+  BuiltInRoles,
+  createAccessControlManager,
+  createAuditLogger,
+  createEncryptionManager,
+  createKeyRotationManager,
+  DynamoDBCommandAuditStorage,
+  type EncryptedAttribute,
+  type EncryptedFieldMetadata,
+  type EncryptionAlgorithm,
+  type EncryptionConfig,
+  EncryptionManager,
+  type EncryptionResult,
+  InMemoryAuditStorage,
+  type KeyDerivationFunction,
+  type KeyRotationConfig,
+  KeyRotationManager,
+  type Permission,
+  type PermissionAction,
+  type PermissionResource,
+  type Role,
+} from './security'
+
 // Seeding System
 export * from './seeders'
+
+// Serverless Integration (Phase 22)
+export {
+  type APIGatewayEvent,
+  type APIGatewayResponse,
+  APIHandler,
+  type CORSConfig,
+  createAPIHandler,
+  createStreamHandler as createLambdaStreamHandler,
+  createSQSHandler,
+  type DynamoDBStreamEvent,
+  getHeader,
+  getPathParams,
+  getQueryParams,
+  type HandlerResult,
+  type LambdaContext,
+  StreamHandler as LambdaStreamHandler,
+  parseBody,
+  type RouteDefinition,
+  type SQSEvent,
+  SQSHandler,
+} from './serverless'
 
 // Single-Table Design Utilities
 export * from './single-table'
 
+// DynamoDB Streams Processing (Phase 17)
+export {
+  type ChangeDataCapture,
+  createStreamProcessor,
+  type EntityHandler,
+  type StreamEvent,
+  type StreamEventType,
+  type StreamHandler,
+  StreamProcessor,
+  type StreamProcessorConfig,
+  type StreamProcessorStats,
+  type StreamRecord,
+} from './streams'
+
 // DynamoDB Toolbox Integration
 export * from './toolbox'
+
+// Developer Tooling (Phase 20)
+export {
+  createDataGenerator,
+  createQueryAnalyzer,
+  DataGenerator,
+  entityGenerator,
+  EntityGeneratorBuilder,
+  type FieldGenerator,
+  type GeneratorFn,
+  generators,
+  type GeneratorSchema,
+  type QueryAnalysis,
+  QueryAnalyzer,
+  type QueryCharacteristics,
+  type QueryInput,
+  type QueryIssue,
+  type QueryOperationType,
+  type QueryRecommendation,
+  type TableMetadata,
+} from './tooling'
 
 export * from './types'
 
@@ -33,10 +330,19 @@ export * from './types'
 export {
   // Branded types
   type Branded,
-  type PartitionKey,
-  type SortKey,
+  type CompositeKeyFormat,
+  compositeSk,
+  type EntityType,
+  type ExtractEntityFromPK,
+  type ExtractEntityFromSK,
+  extractEntityType,
+  extractId,
+  type ExtractIdFromKey,
+  type FullKeySet,
   type GSI1PK,
+  gsi1pk,
   type GSI1SK,
+  gsi1sk,
   type GSI2PK,
   type GSI2SK,
   type GSI3PK,
@@ -45,576 +351,270 @@ export {
   type GSI4SK,
   type GSI5PK,
   type GSI5SK,
-  type EntityType,
-  type PKFormat,
-  type SKFormat,
   type GSIKeyFormat,
-  type CompositeKeyFormat,
-  type ExtractEntityFromPK,
-  type ExtractEntityFromSK,
-  type ExtractIdFromKey,
-  type KeyPair,
-  type FullKeySet,
-  pk,
-  sk,
-  compositeSk,
-  gsi1pk,
-  gsi1sk,
-  extractEntityType,
-  extractId,
   isEntityKey,
+  isValidCompositeFormat,
   isValidPKFormat,
   isValidSKFormat,
-  isValidCompositeFormat,
   KeyBuilder,
   keyBuilder,
+  type KeyPair,
+  type PartitionKey,
+  pk,
+  type PKFormat,
+  sk,
+  type SKFormat,
+  type SortKey,
 } from './types/branded'
 
 export {
-  // Type inference
-  type AttributeTypeMap,
-  type MapAttributeType,
+  type AttributeValue,
+  type AttributeValueToJS,
+  type BatchWriteRequest,
+  type BinaryAttributeValue,
+  type BinarySetAttributeValue,
+  type BooleanAttributeValue,
+  type FilterExpression,
+  isBinarySetValue,
+  isBinaryValue,
+  isBooleanValue,
+  isListValue,
+  isMapValue,
+  isNullValue,
+  isNumberSetValue,
+  isNumberValue,
+  isStringSetValue,
+  isStringValue,
+  type JSToAttributeValue,
+  type KeyConditionExpression,
+  type ListAttributeValue,
+  type MapAttributeValue,
+  type Marshall,
+  type NullAttributeValue,
+  type NumberAttributeValue,
+  type NumberSetAttributeValue,
+  type ProjectionExpression,
+  type ReturnConsumedCapacityOption,
+  type ReturnItemCollectionMetricsOption,
+  type ReturnValue,
+  // DynamoDB types
+  type StringAttributeValue,
+  type StringSetAttributeValue,
+  type TransactGetItem,
+  type TransactWriteItem,
+  type TypedBatchGetInput,
+  type TypedBatchWriteInput,
+  type TypedDeleteItemInput,
+  type TypedDynamoDBItem,
+  type TypedPutItemInput,
+  type TypedQueryInput,
+  type TypedQueryOutput,
+  type TypedScanInput,
+  type TypedTransactGetInput,
+  type TypedTransactWriteInput,
+  type TypedUpdateItemInput,
+  type Unmarshall,
+  type UpdateExpression,
+  type UpdateExpressionAction,
+} from './types/dynamodb'
+
+export {
+  // Error types
+  type BaseDynamoDBError,
+  createDynamoDBError,
+  ConditionalCheckFailedError as DynamoDBConditionalCheckFailedError,
+  type DynamoDBError,
+  type DynamoDBErrorCode,
+  DynamoDBInternalError,
+  DynamoDBValidationError,
+  getRetryDelayMs,
+  isConditionalCheckFailedError,
+  isDynamoDBError,
+  isItemNotFoundError,
+  isProvisionedThroughputExceededError,
+  isResourceInUseError,
+  isResourceNotFoundError,
+  isRetryableError,
+  isThrottlingError,
+  isTransactionCancelledError,
+  isValidationError,
+  ItemCollectionSizeLimitExceededError,
+  ItemNotFoundError,
+  ProvisionedThroughputExceededError,
+  RequestLimitExceededError,
+  ResourceInUseError,
+  ResourceNotFoundError,
+  ServiceUnavailableError,
+  ThrottlingError,
+  type TransactionCancellationReason,
+  TransactionCancelledError,
+} from './types/errors'
+
+export {
   type AttributeNames,
   type Attributes,
-  type RequiredAttributeNames,
-  type OptionalAttributeNames,
-  type RequiredAttributes,
-  type OptionalAttributes,
+  // Type inference
+  type AttributeTypeMap,
+  type BuiltInCasts,
+  type CastResultType,
+  type CreateInput,
+  type EntityUnion,
+  type ExtractEntity,
+  type ExtractRelationships,
   type FillableAttributeNames,
   type FillableAttributes,
   type GuardedAttributeNames,
   type GuardedAttributes,
   type HiddenAttributeNames,
   type HiddenAttributes,
-  type VisibleAttributeNames,
-  type VisibleAttributes,
-  type RelationshipTypes,
-  type ExtractRelationships,
-  type RelationshipNames,
-  type CreateInput,
-  type UpdateInput,
-  type ModelInstance,
-  type SerializedModel,
   type InferModel,
   type InferModelAttributes,
-  type BuiltInCasts,
-  type CastResultType,
+  type MapAttributeType,
+  type ModelInstance,
+  type OptionalAttributeNames,
+  type OptionalAttributes,
+  type RelationshipNames,
+  type RelationshipTypes,
+  type RequiredAttributeNames,
+  type RequiredAttributes,
+  type SerializedModel,
+  type UpdateInput,
+  type VisibleAttributeNames,
+  type VisibleAttributes,
   type WithCasts,
-  type EntityUnion,
-  type ExtractEntity,
 } from './types/inference'
 
 export type {
+  DecrementableAttribute,
+  DefaultState,
+  IncrementableAttribute,
+  NumericAttribute,
+  NumericOrStringAttribute,
+  PaginatedResult,
   // Query builder types
   QueryBuilderState,
-  DefaultState,
-  TypedQueryBuilder,
-  PaginatedResult,
-  NumericAttribute,
-  StringAttribute,
-  NumericOrStringAttribute,
   SortableAttribute,
-  IncrementableAttribute,
-  DecrementableAttribute,
+  StringAttribute,
+  TypedQueryBuilder,
 } from './types/query-builder'
 
 export {
-  // DynamoDB types
-  type StringAttributeValue,
-  type NumberAttributeValue,
-  type BinaryAttributeValue,
-  type BooleanAttributeValue,
-  type NullAttributeValue,
-  type MapAttributeValue,
-  type ListAttributeValue,
-  type StringSetAttributeValue,
-  type NumberSetAttributeValue,
-  type BinarySetAttributeValue,
-  type AttributeValue,
-  type TypedDynamoDBItem,
-  type JSToAttributeValue,
-  type AttributeValueToJS,
-  type Marshall,
-  type Unmarshall,
-  type KeyConditionExpression,
-  type FilterExpression,
-  type UpdateExpressionAction,
-  type UpdateExpression,
-  type ProjectionExpression,
-  type TypedQueryInput,
-  type TypedScanInput,
-  type TypedQueryOutput,
-  type TypedPutItemInput,
-  type TypedUpdateItemInput,
-  type TypedDeleteItemInput,
-  type BatchWriteRequest,
-  type TypedBatchWriteInput,
-  type TypedBatchGetInput,
-  type TransactWriteItem,
-  type TransactGetItem,
-  type TypedTransactWriteInput,
-  type TypedTransactGetInput,
-  type ReturnValue,
-  type ReturnConsumedCapacityOption,
-  type ReturnItemCollectionMetricsOption,
-  isStringValue,
-  isNumberValue,
-  isBinaryValue,
-  isBooleanValue,
-  isNullValue,
-  isMapValue,
-  isListValue,
-  isStringSetValue,
-  isNumberSetValue,
-  isBinarySetValue,
-} from './types/dynamodb'
-
-export {
-  // Error types
-  type BaseDynamoDBError,
-  type DynamoDBErrorCode,
-  type DynamoDBError,
-  type TransactionCancellationReason,
-  ItemNotFoundError,
-  DynamoDBValidationError,
-  ConditionalCheckFailedError as DynamoDBConditionalCheckFailedError,
-  TransactionCancelledError,
-  ProvisionedThroughputExceededError,
-  ResourceNotFoundError,
-  ResourceInUseError,
-  ItemCollectionSizeLimitExceededError,
-  RequestLimitExceededError,
-  ThrottlingError,
-  DynamoDBInternalError,
-  ServiceUnavailableError,
-  isItemNotFoundError,
-  isValidationError,
-  isConditionalCheckFailedError,
-  isTransactionCancelledError,
-  isProvisionedThroughputExceededError,
-  isResourceNotFoundError,
-  isResourceInUseError,
-  isThrottlingError,
-  isDynamoDBError,
-  isRetryableError,
-  getRetryDelayMs,
-  createDynamoDBError,
-} from './types/errors'
-
-export {
-  // Validation utilities
-  type ValidateQueryHasPK,
-  type ValidateSKOperator,
-  type ValidateGSIExists,
-  type ValidateTransactionSize,
-  type ValidateBatchWriteSize,
-  type ValidateBatchGetSize,
-  type ValidateRequiredFields,
-  type ValidateNoReadonlyFields,
-  type StrictInput,
-  type ValidateRelationship,
-  type ValidateNestedRelationship,
   type Assert,
   type AssertEqual,
   type AssertNever,
-  type AssertNotNever,
-  type InsertFn,
-  type UpdateFn,
-  type ModelLike,
-  type ForModel,
-  type RequireKeys,
-  type OptionalKeys,
-  type Mutable,
-  type Immutable,
-  type DeepReadonly,
-  type KeysOfType,
-  type OmitByType,
-  type PickByType,
-  type Exhaustive,
   assertNever,
+  type AssertNotNever,
+  type DeepReadonly,
+  type Exhaustive,
+  type ForModel,
+  type Immutable,
+  type InsertFn,
+  type KeysOfType,
+  type ModelLike,
+  type Mutable,
+  type OmitByType,
+  type OptionalKeys,
+  type PickByType,
+  type RequireKeys,
+  type StrictInput,
+  type UpdateFn,
+  type ValidateBatchGetSize,
+  type ValidateBatchWriteSize,
+  type ValidateGSIExists,
+  type ValidateNestedRelationship,
+  type ValidateNoReadonlyFields,
+  // Validation utilities
+  type ValidateQueryHasPK,
+  type ValidateRelationship,
+  type ValidateRequiredFields,
+  type ValidateSKOperator,
+  type ValidateTransactionSize,
 } from './types/validation'
 
-// Performance & Optimization (Phase 15)
-export * from './performance'
-
-// Multi-Tenancy Support (Phase 16)
-export {
-  // Tenant management
-  TenantManager,
-  createTenantManager,
-  TenantContext,
-  setTenantContext,
-  getTenantContext,
-  clearTenantContext,
-  withTenant,
-  TenantNotFoundError,
-  CrossTenantAccessError,
-  type TenantContextData,
-  type TenantResolver,
-  type TenantManagerConfig,
-} from './multi-tenancy/TenantManager'
+// Utilities
+export * from './utils'
 
 export {
-  // Tenant isolation strategies
-  TenantIsolation,
-  createTablePerTenantIsolation,
-  createPrefixIsolation,
-  createAttributeIsolation,
-  type IsolationStrategy,
-  type TablePerTenantStrategy,
-  type PrefixIsolationStrategy,
-  type AttributeIsolationStrategy,
-} from './multi-tenancy/TenantIsolation'
-
-export {
-  // Query interceptor
-  TenantQueryInterceptor,
-  createTenantQueryInterceptor,
-  type InterceptedQuery,
-  type TenantQueryInterceptorOptions,
-} from './multi-tenancy/TenantQueryInterceptor'
-
-export {
-  // Capacity management
-  TenantCapacityManager,
-  createTenantCapacityManager,
-  type TenantCapacityConfig,
-  type TenantCapacityStats,
-} from './multi-tenancy/TenantCapacityManager'
-
-// Validation System (Async Rules & ts-validation Integration)
-export {
-  // Core validation
-  Validator,
-  createValidator,
-  ValidationFailedError,
-  type ValidationRule,
-  type ValidationResult,
-  type ValidationContext,
-  type ValidatorOptions,
-  type ValidationRuleDefinition,
-  type FullValidationResult,
-} from './validation/Validator'
-
-export {
+  type AsyncFullValidationResult,
+  type AsyncValidationContext,
+  type AsyncValidationRule,
+  type AsyncValidationRuleDefinition,
   // Async validation
   AsyncValidator,
-  createAsyncValidator,
-  uniqueAsync,
-  existsAsync,
-  debouncedAsync,
-  cachedAsync,
-  type AsyncValidationRule,
-  type AsyncValidationContext,
-  type AsyncValidationRuleDefinition,
   type AsyncValidatorOptions,
-  type AsyncFullValidationResult,
+  cachedAsync,
+  createAsyncValidator,
+  debouncedAsync,
+  existsAsync,
+  uniqueAsync,
 } from './validation/AsyncValidator'
 
 export {
-  // ts-validation integration
-  TsValidationRules,
+  createModelValidator,
+  ModelValidationError,
+  type ModelValidationOptions,
+  type ModelValidationResult,
+  // Model validation
+  ModelValidator,
+  validateModel,
+} from './validation/ModelValidator'
+
+export {
+  alpha,
+  alphaDash,
+  alphaNumeric,
+  array as arrayRule,
+  between,
+  boolean as booleanRule,
+  confirmed,
+  custom,
+  date as dateRule,
+  different,
+  email as emailRule,
+  endsWith,
+  integer,
+  max,
+  maxLength,
+  min,
+  minLength,
+  negative,
+  nullable,
+  number as numberRule,
+  object as objectRule,
+  oneOf,
+  pattern,
+  positive,
+  required,
+  // Built-in rules
+  rules,
+  same,
+  sometimes,
+  startsWith,
+  string as stringRule,
+  unique,
+  url as urlRule,
+  uuid as uuidRule,
+} from './validation/rules'
+
+export {
   createTsValidationRule,
   tsValidation,
   type TsValidationRuleName,
   type TsValidationRuleOptions,
+  // ts-validation integration
+  TsValidationRules,
 } from './validation/TsValidationIntegration'
 
+// Validation System (Async Rules & ts-validation Integration)
 export {
-  // Model validation
-  ModelValidator,
-  createModelValidator,
-  validateModel,
-  ModelValidationError,
-  type ModelValidationResult,
-  type ModelValidationOptions,
-} from './validation/ModelValidator'
-
-export {
-  // Built-in rules
-  rules,
-  required,
-  string as stringRule,
-  number as numberRule,
-  boolean as booleanRule,
-  email as emailRule,
-  url as urlRule,
-  uuid as uuidRule,
-  min,
-  max,
-  minLength,
-  maxLength,
-  pattern,
-  oneOf,
-  custom,
-  unique,
-  array as arrayRule,
-  object as objectRule,
-  date as dateRule,
-  integer,
-  positive,
-  negative,
-  between,
-  confirmed,
-  different,
-  same,
-  nullable,
-  sometimes,
-  alpha,
-  alphaNumeric,
-  alphaDash,
-  startsWith,
-  endsWith,
-} from './validation/rules'
-
-// DynamoDB Streams Processing (Phase 17)
-export {
-  StreamProcessor,
-  createStreamProcessor,
-  type StreamEvent,
-  type StreamRecord,
-  type StreamEventType,
-  type StreamProcessorConfig,
-  type StreamHandler,
-  type ChangeDataCapture,
-  type EntityHandler,
-  type StreamProcessorStats,
-} from './streams'
-
-// PartiQL Query Builder (Phase 17)
-export {
-  PartiQLBuilder,
-  partiql,
-  selectFrom,
-  insertInto,
-  updateTable,
-  deleteFrom,
-  buildBatchStatements,
-  type PartiQLStatementType,
-  type PartiQLParameter,
-  type PartiQLQuery,
-  type WhereCondition,
-  type SelectProjection,
-  type OrderDirection,
-  type BatchStatementConfig,
-  type BatchStatementResult,
-} from './partiql'
-
-// Backup & Restore (Phase 17)
-export {
-  BackupManager,
-  createBackupManager,
-  type BackupStatus,
-  type BackupType,
-  type PITRStatus,
-  type BackupDetails,
-  type CreateBackupOptions,
-  type ListBackupsOptions,
-  type RestoreOptions,
-  type PITRDescription,
-  type ScheduledBackupConfig,
-} from './backup'
-
-// Global Tables (Phase 17)
-export {
-  GlobalTableManager,
-  createGlobalTableManager,
-  type GlobalTableStatus,
-  type ReplicaStatus,
-  type AWSRegion,
-  type ReplicaDescription,
-  type GlobalTableDescription,
-  type ReplicaSettings,
-  type ReplicaAutoScalingSettings,
-} from './global-tables'
-
-// Observability & Monitoring (Phase 18)
-export {
-  Logger,
-  createLogger,
-  defaultLogger,
-  ConsoleTransport,
-  FileTransport,
-  type LogLevel,
-  type LogEntry,
-  type LogTransport,
-  type LoggerConfig,
-  MetricsRegistry,
-  createMetricsRegistry,
-  defaultMetrics,
-  PrometheusExporter,
-  CloudWatchExporter,
-  DynamoDBMetrics,
-  type MetricType,
-  type MetricLabels,
-  type HistogramBuckets,
-  type MetricDefinition,
-  type MetricValue,
-  type HistogramValue,
-  type SummaryValue,
-  type MetricsCollector,
-  type MetricsExporter,
-  Tracer,
-  createTracer,
-  defaultTracer,
-  ConsoleSpanExporter,
-  OTLPSpanExporter,
-  DynamoDBSpanAttributes,
-  type SpanStatus,
-  type SpanKind,
-  type SpanAttributes,
-  type SpanEvent,
-  type SpanLink,
-  type SpanData,
-  type Span,
-  type TraceContext,
-  type SpanExporter,
-} from './observability'
-
-// Security (Phase 19)
-export {
-  EncryptionManager,
-  createEncryptionManager,
-  KeyRotationManager,
-  createKeyRotationManager,
-  type EncryptionAlgorithm,
-  type KeyDerivationFunction,
-  type EncryptedFieldMetadata,
-  type EncryptionConfig,
-  type EncryptionResult,
-  type EncryptedAttribute,
-  type KeyRotationConfig,
-  AccessControlManager,
-  createAccessControlManager,
-  BuiltInRoles,
-  type PermissionAction,
-  type PermissionResource,
-  type AccessCondition,
-  type Permission,
-  type Role,
-  type AccessContext,
-  type AccessCheckResult,
-  AuditLogger,
-  createAuditLogger,
-  InMemoryAuditStorage,
-  DynamoDBCommandAuditStorage,
-  type AuditEventType,
-  type AuditEventStatus,
-  type AuditEvent,
-  type AuditStorage,
-  type AuditQueryOptions,
-  type AuditQueryResult,
-  type AuditLoggerConfig,
-} from './security'
-
-// Developer Tooling (Phase 20)
-export {
-  DataGenerator,
-  createDataGenerator,
-  EntityGeneratorBuilder,
-  entityGenerator,
-  generators,
-  type GeneratorFn,
-  type FieldGenerator,
-  type GeneratorSchema,
-  QueryAnalyzer,
-  createQueryAnalyzer,
-  type QueryOperationType,
-  type QueryAnalysis,
-  type QueryIssue,
-  type QueryRecommendation,
-  type QueryCharacteristics,
-  type QueryInput,
-  type TableMetadata,
-} from './tooling'
-
-// Serverless Integration (Phase 22)
-export {
-  APIHandler,
-  StreamHandler as LambdaStreamHandler,
-  SQSHandler,
-  createAPIHandler,
-  createStreamHandler as createLambdaStreamHandler,
-  createSQSHandler,
-  parseBody,
-  getPathParams,
-  getQueryParams,
-  getHeader,
-  type LambdaContext,
-  type APIGatewayEvent,
-  type APIGatewayResponse,
-  type DynamoDBStreamEvent,
-  type SQSEvent,
-  type HandlerResult,
-  type RouteDefinition,
-  type CORSConfig,
-} from './serverless'
-
-// Import/Export (Phase 23)
-export {
-  DataExporter,
-  createDataExporter,
-  DataImporter,
-  createDataImporter,
-  type ExportFormat,
-  type ExportOptions,
-  type ExportResult,
-  type ImportOptions,
-  type ImportResult,
-  type BatchWriteCommand,
-} from './import-export'
-
-// Caching Integration (Phase 24)
-export {
-  CacheManager,
-  createCacheManager,
-  MemoryCacheStore,
-  cached,
-  hashQuery,
-  type CacheEntry,
-  type CacheOptions,
-  type CacheStats,
-  type CacheStore,
-} from './caching'
-
-// Polymorphic Relationships (Phase 25)
-export {
-  PolymorphicRelationshipManager,
-  createPolymorphicManager,
-  morphTo,
-  morphMany,
-  buildPolymorphicGSIKey,
-  parsePolymorphicGSIKey,
-  type PolymorphicTypeMap,
-  type PolymorphicConfig,
-  type Morphable,
-  type PolymorphicResult,
-} from './relationships'
-
-// Event Sourcing (Phase 26)
-export {
-  EventStore,
-  createEventStore,
-  AggregateRoot,
-  type DomainEvent,
-  type EventStream,
-  type EventStoreOptions,
-  type Snapshot,
-  type EventHandler,
-} from './event-sourcing'
-
-// GraphQL Integration (Phase 27)
-export {
-  GraphQLSchemaBuilder,
-  createGraphQLSchemaBuilder,
-  type GraphQLScalarType,
-  type GraphQLFieldDef,
-  type GraphQLTypeDef,
-  type GraphQLQueryDef,
-  type GraphQLMutationDef,
-  type ModelDefinition as GraphQLModelDefinition,
-  type SchemaBuilderOptions,
-} from './graphql'
-
-// Utilities
-export * from './utils'
+  createValidator,
+  type FullValidationResult,
+  type ValidationContext,
+  ValidationFailedError,
+  type ValidationResult,
+  type ValidationRule,
+  type ValidationRuleDefinition,
+  // Core validation
+  Validator,
+  type ValidatorOptions,
+} from './validation/Validator'

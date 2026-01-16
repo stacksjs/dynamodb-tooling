@@ -40,12 +40,12 @@ export interface CacheStats {
  * Cache store interface
  */
 export interface CacheStore {
-  get<T>(key: string): Promise<T | undefined>
-  set<T>(key: string, value: T, options?: CacheOptions): Promise<void>
-  delete(key: string): Promise<boolean>
-  has(key: string): Promise<boolean>
-  clear(): Promise<void>
-  keys(pattern?: string): Promise<string[]>
+  get: <T>(key: string) => Promise<T | undefined>
+  set: <T>(key: string, value: T, options?: CacheOptions) => Promise<void>
+  delete: (key: string) => Promise<boolean>
+  has: (key: string) => Promise<boolean>
+  clear: () => Promise<void>
+  keys: (pattern?: string) => Promise<string[]>
 }
 
 /**
@@ -68,7 +68,8 @@ export class MemoryCacheStore implements CacheStore {
 
   async get<T>(key: string): Promise<T | undefined> {
     const entry = this.cache.get(key)
-    if (!entry) return undefined
+    if (!entry)
+      return undefined
 
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       this.cache.delete(key)
@@ -94,7 +95,8 @@ export class MemoryCacheStore implements CacheStore {
 
   async has(key: string): Promise<boolean> {
     const entry = this.cache.get(key)
-    if (!entry) return false
+    if (!entry)
+      return false
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       this.cache.delete(key)
       return false
@@ -108,7 +110,8 @@ export class MemoryCacheStore implements CacheStore {
 
   async keys(pattern?: string): Promise<string[]> {
     const allKeys = Array.from(this.cache.keys())
-    if (!pattern) return allKeys
+    if (!pattern)
+      return allKeys
 
     const regex = new RegExp(pattern.replace(/\*/g, '.*'))
     return allKeys.filter(key => regex.test(key))
@@ -246,7 +249,8 @@ export class CacheManager {
    * Evict oldest/least recently used item
    */
   private async evict(): Promise<void> {
-    if (this.accessOrder.length === 0) return
+    if (this.accessOrder.length === 0)
+      return
 
     // For FIFO, evict from front; for LRU, also from front (since accessed items move to back)
     const keyToEvict = this.accessOrder.shift()

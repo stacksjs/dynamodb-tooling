@@ -438,10 +438,14 @@ export function isRetryableError(error: unknown): boolean {
  * Get retry delay from error (if applicable)
  */
 export function getRetryDelayMs(error: unknown): number | undefined {
-  if (error instanceof ProvisionedThroughputExceededError) return error.retryAfterMs
-  if (error instanceof RequestLimitExceededError) return error.retryAfterMs
-  if (error instanceof ThrottlingError) return error.retryAfterMs
-  if (error instanceof ServiceUnavailableError) return error.retryAfterMs
+  if (error instanceof ProvisionedThroughputExceededError)
+    return error.retryAfterMs
+  if (error instanceof RequestLimitExceededError)
+    return error.retryAfterMs
+  if (error instanceof ThrottlingError)
+    return error.retryAfterMs
+  if (error instanceof ServiceUnavailableError)
+    return error.retryAfterMs
   return undefined
 }
 

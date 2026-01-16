@@ -29,6 +29,9 @@ import {
 } from '../single-table/RelationshipResolver'
 import { ModelNotFoundError } from './types'
 
+// Re-export types for test files
+export type { ModelAttribute, ModelRelationship } from './types'
+
 // ============================================================================
 // DynamoDB Model Types
 // ============================================================================
@@ -234,19 +237,19 @@ export abstract class DynamoDBModel {
   static connection?: string
 
   // ---- Instance Properties ----
-  /** @internal Used by QueryBuilder */
+  /** @internal */
   _attributes: JSObject = {}
   protected _original: JSObject = {}
-  /** @internal Used by QueryBuilder */
+  /** @internal */
   _relations: Map<string, DynamoDBModel | DynamoDBModel[] | null> = new Map()
-  /** @internal Used by QueryBuilder */
+  /** @internal */
   _exists: boolean = false
   protected _wasRecentlyCreated: boolean = false
   protected _trashed: boolean = false
 
   // ---- Static Hooks Registry ----
   private static _hooks: Map<string, Map<ModelHookType, DynamoDBModelHook[]>> = new Map()
-  /** @internal Used by QueryBuilder */
+  /** @internal */
   static _globalScopes: Map<string, Map<string, DynamoDBModelScope>> = new Map()
   private static _casts: Map<string, Map<string, string | DynamoDBCastDefinition>> = new Map()
 

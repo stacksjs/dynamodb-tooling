@@ -117,8 +117,10 @@ export const dynamoDb = {
       'run',
       '--rm',
       '-d',
-      '--name', containerName,
-      '-p', `${port}:8000`,
+      '--name',
+      containerName,
+      '-p',
+      `${port}:8000`,
     ]
 
     // Add volume mount if dbPath is specified

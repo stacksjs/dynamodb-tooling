@@ -3,10 +3,8 @@
 // ============================================================================
 
 import {
-  isRetryableError,
   getRetryDelayMs,
-  ThrottlingError,
-  ProvisionedThroughputExceededError,
+  isRetryableError,
 } from '../types/errors'
 
 /**
@@ -209,11 +207,12 @@ export class RequestCoalescer<TKey, TResult> {
     reject: (error: Error) => void,
   ): void {
     const queue = this.queue.get(batchKey)
-    if (!queue) return
+    if (!queue)
+      return
 
     // Execute immediately if max batch size reached
     if (queue.length >= this.maxBatchSize) {
-      this.executeBatch(batchKey).then(results => {
+      this.executeBatch(batchKey).then((results) => {
         // Note: This simplified version just returns the first result
         // A real implementation would track resolve/reject per key
         resolve(results.values().next().value)
@@ -225,7 +224,7 @@ export class RequestCoalescer<TKey, TResult> {
     let timeout = this.timeouts.get(batchKey)
     if (!timeout) {
       timeout = setTimeout(() => {
-        this.executeBatch(batchKey).then(results => {
+        this.executeBatch(batchKey).then((results) => {
           resolve(results.values().next().value)
         }).catch(reject)
       }, this.windowMs)
@@ -264,7 +263,8 @@ export class CapacityTracker {
     WriteCapacityUnits?: number
     CapacityUnits?: number
   }): void {
-    if (!consumedCapacity) return
+    if (!consumedCapacity)
+      return
 
     this.operationCount++
 

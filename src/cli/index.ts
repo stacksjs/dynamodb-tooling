@@ -21,53 +21,53 @@ export {
   displayError,
   displaySimpleError,
   displayWarning,
+  type ErrorContext,
   exitWithError,
   formatError,
   handleCommandError,
-  type ErrorContext,
 } from './error-formatter'
 
 // UI Utilities
 export {
-  // Colors and formatting
-  c,
-  // Icons
-  icons,
-  // Spinner
-  createSpinner,
-  type Spinner,
-  // Progress bar
-  createProgressBar,
-  type ProgressBar,
-  // Table formatting
-  formatTable,
-  type TableColumn,
-  type TableOptions,
   // Box/Panel
   box,
   type BoxOptions,
-  // Tree view
-  formatTree,
-  type TreeNode,
-  // Key-value list
-  formatKeyValue,
-  type KeyValueOptions,
+  bullet,
+  // Colors and formatting
+  c,
+  // Progress bar
+  createProgressBar,
+  // Spinner
+  createSpinner,
+  divider,
+  error,
+  formatBytes,
   // Diff formatting
   formatDiff,
-  // Message helpers
-  success,
-  error,
-  warning,
-  info,
-  bullet,
-  step,
+  formatDuration,
+  // Key-value list
+  formatKeyValue,
+  formatNumber,
+  // Table formatting
+  formatTable,
+  // Tree view
+  formatTree,
   header,
-  divider,
+  // Icons
+  icons,
+  info,
+  type KeyValueOptions,
   newline,
+  type ProgressBar,
+  type Spinner,
+  step,
   // String helpers
   stripAnsi,
+  // Message helpers
+  success,
+  type TableColumn,
+  type TableOptions,
+  type TreeNode,
   truncate,
-  formatBytes,
-  formatDuration,
-  formatNumber,
+  warning,
 } from './ui'

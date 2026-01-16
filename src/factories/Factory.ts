@@ -2,8 +2,8 @@
 // Factory System for DynamoDB Test Data Generation
 // ============================================================================
 
-import type { Config } from '../types'
 import type { SeederDatabaseClient } from '../seeders/Seeder'
+import type { Config } from '../types'
 import { getConfig } from '../config'
 
 // ============================================================================

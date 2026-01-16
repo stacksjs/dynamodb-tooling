@@ -1,17 +1,15 @@
-import { describe, expect, it, beforeEach, afterEach, mock } from 'bun:test'
+import type { ModelRegistry } from '../src/model-parser/types'
+import type { DynamoDBClient, ModelAttribute, ModelRelationship } from '../src/models/DynamoDBModel'
+import type { Config } from '../src/types'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { defaultConfig } from '../src/config'
 import {
   DynamoDBModel,
   DynamoDBQueryBuilder,
   setModelClient,
-  setOrmModelRegistry,
   setModelConfig,
-  getModelClient,
-  type DynamoDBClient,
-  type ModelAttribute,
-  type ModelRelationship,
+  setOrmModelRegistry,
 } from '../src/models/DynamoDBModel'
-import type { ModelRegistry } from '../src/model-parser/types'
-import type { Config } from '../src/types'
 
 // Create a test model
 class TestUser extends DynamoDBModel {
@@ -24,12 +22,12 @@ class TestUser extends DynamoDBModel {
 
   get attributes(): Record<string, ModelAttribute> {
     return {
-      id: { type: 'string', required: true },
-      name: { type: 'string', required: true },
-      email: { type: 'string', required: true, unique: true },
-      age: { type: 'number' },
-      status: { type: 'string', default: 'active' },
-      password: { type: 'string', hidden: true },
+      id: { name: 'id', type: 'string', required: true },
+      name: { name: 'name', type: 'string', required: true },
+      email: { name: 'email', type: 'string', required: true, unique: true },
+      age: { name: 'age', type: 'number' },
+      status: { name: 'status', type: 'string', default: 'active' },
+      password: { name: 'password', type: 'string', hidden: true },
     }
   }
 
@@ -47,10 +45,10 @@ class TestPost extends DynamoDBModel {
 
   get attributes(): Record<string, ModelAttribute> {
     return {
-      id: { type: 'string', required: true },
-      title: { type: 'string', required: true },
-      content: { type: 'string' },
-      userId: { type: 'string', required: true },
+      id: { name: 'id', type: 'string', required: true },
+      title: { name: 'title', type: 'string', required: true },
+      content: { name: 'content', type: 'string' },
+      userId: { name: 'userId', type: 'string', required: true },
     }
   }
 
@@ -58,7 +56,7 @@ class TestPost extends DynamoDBModel {
     return {
       user: {
         type: 'belongsTo',
-        model: TestUser,
+        model: 'TestUser',
         foreignKey: 'userId',
       },
     }
@@ -70,98 +68,45 @@ function createMockClient(): DynamoDBClient {
   const storage = new Map<string, unknown>()
 
   return {
-    getItem: mock(async (tableName: string, key: Record<string, unknown>) => {
-      const keyStr = JSON.stringify(key)
-      return storage.get(`${tableName}:${keyStr}`) as Record<string, unknown> | null
-    }),
-    putItem: mock(async (tableName: string, item: Record<string, unknown>) => {
-      const pk = item.pk
-      const sk = item.sk
-      const keyStr = JSON.stringify({ pk, sk })
-      storage.set(`${tableName}:${keyStr}`, item)
-    }),
-    updateItem: mock(async (tableName: string, key: Record<string, unknown>, updates: Record<string, unknown>) => {
-      const keyStr = JSON.stringify(key)
-      const existing = storage.get(`${tableName}:${keyStr}`) as Record<string, unknown> | undefined
-      if (existing) {
-        const updated = { ...existing, ...updates }
-        storage.set(`${tableName}:${keyStr}`, updated)
-        return updated
-      }
+    getItem: mock(async (_tableName: string, _key: Record<string, unknown>) => {
       return null
-    }),
-    deleteItem: mock(async (tableName: string, key: Record<string, unknown>) => {
-      const keyStr = JSON.stringify(key)
-      storage.delete(`${tableName}:${keyStr}`)
-    }),
+    }) as DynamoDBClient['getItem'],
+    putItem: mock(async (_tableName: string, _item: Record<string, unknown>) => {
+      // no-op
+    }) as DynamoDBClient['putItem'],
+    updateItem: mock(async (_tableName: string, _key: Record<string, unknown>, _updates: Record<string, unknown>) => {
+      return null
+    }) as DynamoDBClient['updateItem'],
+    deleteItem: mock(async (_tableName: string, _key: Record<string, unknown>) => {
+      // no-op
+    }) as DynamoDBClient['deleteItem'],
     query: mock(async () => ({
       items: [],
       count: 0,
-    })),
+    })) as DynamoDBClient['query'],
     scan: mock(async () => ({
       items: [],
       count: 0,
-    })),
-    batchGetItem: mock(async () => []),
-    batchWriteItem: mock(async () => {}),
-    transactWriteItems: mock(async () => {}),
+    })) as DynamoDBClient['scan'],
+    batchGetItem: mock(async () => []) as DynamoDBClient['batchGetItem'],
+    batchWriteItem: mock(async () => {}) as DynamoDBClient['batchWriteItem'],
+    transactWriteItems: mock(async () => {}) as DynamoDBClient['transactWriteItems'],
   }
 }
 
-// Mock config
+// Mock config - use defaultConfig as base
 const mockConfig: Config = {
+  ...defaultConfig,
   defaultTableName: 'main',
-  tableNamePrefix: '',
-  tableNameSuffix: '',
-  singleTableDesign: {
-    enabled: true,
-    partitionKeyName: 'pk',
-    sortKeyName: 'sk',
-    entityTypeAttribute: '_et',
-    keyDelimiter: '#',
-  },
-  capacity: {
-    billingMode: 'PAY_PER_REQUEST',
-  },
-  local: {
-    enabled: true,
-    port: 8000,
-    installPath: 'dynamodb-local',
-    sharedDb: true,
-    inMemory: true,
-    delayTransientStatuses: false,
-    optimizeDbBeforeStartup: false,
-  },
-  queryBuilder: {
-    modelsPath: './app/models',
-    timestampFormat: 'iso',
-    timestamps: {
-      createdAt: 'createdAt',
-      updatedAt: 'updatedAt',
-    },
-    softDeletes: {
-      enabled: false,
-      attribute: 'deletedAt',
-    },
-    versionAttribute: '_version',
-  },
-  retryConfig: {
-    maxRetries: 3,
-    baseDelay: 100,
-    maxDelay: 5000,
-    retryableStatusCodes: [500, 502, 503, 504],
-  },
-  environment: 'development',
-  region: 'us-east-1',
-  loggingEnabled: false,
 }
 
 // Mock registry
 function createMockRegistry(): ModelRegistry {
   return {
     models: new Map(),
-    relationships: new Map(),
-    accessPatterns: new Map(),
+    accessPatterns: [],
+    gsiAssignments: new Map(),
+    warnings: [],
   }
 }
 

@@ -124,18 +124,18 @@ export class DataExporter {
     tableName: string,
     options: ExportOptions,
   ): {
-    command: 'Scan'
-    input: {
-      TableName: string
-      ProjectionExpression?: string
-      FilterExpression?: string
-      ExpressionAttributeNames?: Record<string, string>
-      ExpressionAttributeValues?: Record<string, unknown>
-      Limit?: number
-      Segment?: number
-      TotalSegments?: number
-    }
-  } {
+      command: 'Scan'
+      input: {
+        TableName: string
+        ProjectionExpression?: string
+        FilterExpression?: string
+        ExpressionAttributeNames?: Record<string, string>
+        ExpressionAttributeValues?: Record<string, unknown>
+        Limit?: number
+        Segment?: number
+        TotalSegments?: number
+      }
+    } {
     const input: {
       TableName: string
       ProjectionExpression?: string
@@ -201,7 +201,8 @@ export class DataExporter {
   }
 
   private toCSV(items: Record<string, unknown>[]): string {
-    if (items.length === 0) return ''
+    if (items.length === 0)
+      return ''
 
     // Get all unique keys
     const keys = new Set<string>()
@@ -221,8 +222,10 @@ export class DataExporter {
     for (const item of items) {
       const row = headers.map((header) => {
         const value = item[header]
-        if (value === undefined || value === null) return ''
-        if (typeof value === 'object') return this.escapeCSV(JSON.stringify(value))
+        if (value === undefined || value === null)
+          return ''
+        if (typeof value === 'object')
+          return this.escapeCSV(JSON.stringify(value))
         return this.escapeCSV(String(value))
       })
       lines.push(row.join(','))

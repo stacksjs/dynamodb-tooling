@@ -330,7 +330,8 @@ export class GraphQLSchemaBuilder {
    * Generate custom mutations from model definition
    */
   private generateCustomMutations(model: ModelDefinition): void {
-    if (!model.mutations) return
+    if (!model.mutations)
+      return
 
     for (const [mutationName, mutationDef] of Object.entries(model.mutations)) {
       const args: Record<string, GraphQLFieldDef> = {}
@@ -686,8 +687,10 @@ export class GraphQLSchemaBuilder {
 
     for (const [fieldName, field] of Object.entries(typeDef.fields)) {
       let typeStr = field.type
-      if (field.list) typeStr = `[${typeStr}]`
-      if (field.required) typeStr = `${typeStr}!`
+      if (field.list)
+        typeStr = `[${typeStr}]`
+      if (field.required)
+        typeStr = `${typeStr}!`
 
       const desc = field.description ? ` # ${field.description}` : ''
       lines.push(`  ${fieldName}: ${typeStr}${desc}`)
@@ -701,14 +704,17 @@ export class GraphQLSchemaBuilder {
     const args = Object.entries(query.args)
       .map(([name, def]) => {
         let typeStr = def.type
-        if (def.list) typeStr = `[${typeStr}]`
-        if (def.required) typeStr = `${typeStr}!`
+        if (def.list)
+          typeStr = `[${typeStr}]`
+        if (def.required)
+          typeStr = `${typeStr}!`
         return `${name}: ${typeStr}`
       })
       .join(', ')
 
     let returnType = query.returnType
-    if (query.list) returnType = `[${returnType}]`
+    if (query.list)
+      returnType = `[${returnType}]`
 
     const desc = query.description ? `  # ${query.description}\n  ` : ''
     return `${desc}${query.name}(${args}): ${returnType}`
@@ -718,8 +724,10 @@ export class GraphQLSchemaBuilder {
     const args = Object.entries(mutation.args)
       .map(([name, def]) => {
         let typeStr = def.type
-        if (def.list) typeStr = `[${typeStr}]`
-        if (def.required) typeStr = `${typeStr}!`
+        if (def.list)
+          typeStr = `[${typeStr}]`
+        if (def.required)
+          typeStr = `${typeStr}!`
         return `${name}: ${typeStr}`
       })
       .join(', ')
@@ -873,7 +881,7 @@ export class GraphQLSchemaBuilder {
     // Check for missing referenced types
     for (const typeDef of this.types.values()) {
       for (const [fieldName, field] of Object.entries(typeDef.fields)) {
-        const fieldType = field.type.replace(/[\[\]!]/g, '')
+        const fieldType = field.type.replace(/[[\]!]/g, '')
         if (!this.isScalarType(fieldType) && !typeNames.has(fieldType)) {
           errors.push(`Type "${typeDef.name}" field "${fieldName}" references unknown type: ${fieldType}`)
         }

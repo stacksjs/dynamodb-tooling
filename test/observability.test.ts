@@ -1,15 +1,15 @@
-import { describe, expect, it, beforeEach } from 'bun:test'
+import { beforeEach, describe, expect, it } from 'bun:test'
 import {
-  Logger,
-  createLogger,
-  defaultLogger,
   ConsoleTransport,
-  MetricsRegistry,
+  createLogger,
   createMetricsRegistry,
-  defaultMetrics,
-  Tracer,
   createTracer,
+  defaultLogger,
+  defaultMetrics,
   defaultTracer,
+  Logger,
+  MetricsRegistry,
+  Tracer,
 } from '../src/observability'
 
 describe('Observability', () => {

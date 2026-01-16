@@ -3,14 +3,14 @@
 // ============================================================================
 
 export {
-  StreamProcessor,
-  createStreamProcessor,
-  type StreamEvent,
-  type StreamRecord,
-  type StreamEventType,
-  type StreamProcessorConfig,
-  type StreamHandler,
   type ChangeDataCapture,
+  createStreamProcessor,
   type EntityHandler,
+  type StreamEvent,
+  type StreamEventType,
+  type StreamHandler,
+  StreamProcessor,
+  type StreamProcessorConfig,
   type StreamProcessorStats,
+  type StreamRecord,
 } from './StreamProcessor'

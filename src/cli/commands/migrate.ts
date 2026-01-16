@@ -17,9 +17,7 @@ import {
   c,
   createSpinner,
   divider,
-  formatDiff,
   formatKeyValue,
-  formatTable,
   header,
   icons,
   info,
@@ -187,7 +185,6 @@ export function registerMigrateCommands(cli: CAC): void {
           ].join('\n'),
           { title: 'Important', titleColor: c.yellow, borderColor: c.yellow },
         ))
-
       }
       catch (error) {
         handleCommandError(error, 'migrate:rollback')

@@ -3,15 +3,15 @@
 // ============================================================================
 
 export {
+  type BackupDetails,
   BackupManager,
-  createBackupManager,
   type BackupStatus,
   type BackupType,
-  type PITRStatus,
-  type BackupDetails,
+  createBackupManager,
   type CreateBackupOptions,
   type ListBackupsOptions,
-  type RestoreOptions,
   type PITRDescription,
+  type PITRStatus,
+  type RestoreOptions,
   type ScheduledBackupConfig,
 } from './BackupManager'

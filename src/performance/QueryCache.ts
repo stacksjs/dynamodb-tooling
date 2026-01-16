@@ -184,7 +184,8 @@ export class QueryCache<T = unknown> {
    */
   has(key: string): boolean {
     const entry = this.cache.get(key)
-    if (!entry) return false
+    if (!entry)
+      return false
 
     // Check TTL
     if (Date.now() - entry.timestamp > this.ttlMs) {
@@ -206,7 +207,8 @@ export class QueryCache<T = unknown> {
    * Evict least recently used entry
    */
   private evictLRU(): void {
-    if (this.accessOrder.length === 0) return
+    if (this.accessOrder.length === 0)
+      return
 
     const lruKey = this.accessOrder[0]
     this.delete(lruKey)

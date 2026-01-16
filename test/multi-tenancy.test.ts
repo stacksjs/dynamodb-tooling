@@ -2,32 +2,25 @@
 // Multi-Tenancy Module Tests
 // ============================================================================
 
-import { describe, expect, it, beforeEach } from 'bun:test'
-import {
-  // Tenant management
-  TenantManager,
-  createTenantManager,
-  TenantContext,
-  setTenantContext,
-  getTenantContext,
-  clearTenantContext,
-  withTenant,
-  TenantNotFoundError,
-  CrossTenantAccessError,
-
-  // Tenant isolation
-  TenantIsolation,
-  createTablePerTenantIsolation,
-  createPrefixIsolation,
-  createAttributeIsolation,
+import type {
 
   // Query interceptor
   TenantQueryInterceptor,
-  createTenantQueryInterceptor,
-
-  // Capacity management
-  TenantCapacityManager,
+} from '../src/index'
+import { beforeEach, describe, expect, it } from 'bun:test'
+import {
+  clearTenantContext,
   createTenantCapacityManager,
+  createTenantManager,
+  createTenantQueryInterceptor,
+  CrossTenantAccessError,
+  getTenantContext,
+
+  setTenantContext,
+  // Tenant isolation
+  TenantIsolation,
+  TenantNotFoundError,
+  withTenant,
 } from '../src/index'
 
 describe('TenantContext', () => {

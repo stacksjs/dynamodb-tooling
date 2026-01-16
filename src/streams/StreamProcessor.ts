@@ -336,7 +336,8 @@ export class StreamProcessor {
   }
 
   private updateStats(record: StreamRecord, processingTimeMs: number): void {
-    if (!this.config.metrics) return
+    if (!this.config.metrics)
+      return
 
     this.stats.totalProcessed++
     this.stats.byEventType[record.eventType]++
@@ -460,8 +461,10 @@ export class StreamProcessor {
 
           if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
             changedAttributes.push(key)
-            if (oldVal !== undefined) oldValues[key] = oldVal
-            if (newVal !== undefined) newValues[key] = newVal
+            if (oldVal !== undefined)
+              oldValues[key] = oldVal
+            if (newVal !== undefined)
+              newValues[key] = newVal
           }
         }
 

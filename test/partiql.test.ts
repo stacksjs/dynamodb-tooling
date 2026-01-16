@@ -1,13 +1,14 @@
-import { describe, expect, it, beforeEach } from 'bun:test'
+import type { PartiQLQuery } from '../src/partiql'
+import { describe, expect, it } from 'bun:test'
 import {
-  PartiQLBuilder,
-  partiql,
-  selectFrom,
-  insertInto,
-  updateTable,
-  deleteFrom,
   buildBatchStatements,
-  type PartiQLQuery,
+  deleteFrom,
+  insertInto,
+  partiql,
+  PartiQLBuilder,
+
+  selectFrom,
+  updateTable,
 } from '../src/partiql'
 
 describe('PartiQL Query Builder', () => {
@@ -525,8 +526,7 @@ describe('PartiQL Query Builder', () => {
 
     it('should split batches by max size', () => {
       const queries: PartiQLQuery[] = Array.from({ length: 30 }, (_, i) =>
-        partiql().select('*').from('Users').whereEquals('id', String(i)).build(),
-      )
+        partiql().select('*').from('Users').whereEquals('id', String(i)).build())
 
       const batches = buildBatchStatements(queries, { maxBatchSize: 10 })
       expect(batches).toHaveLength(3)
@@ -537,8 +537,7 @@ describe('PartiQL Query Builder', () => {
 
     it('should use default max batch size of 25', () => {
       const queries: PartiQLQuery[] = Array.from({ length: 50 }, (_, i) =>
-        partiql().select('*').from('Users').whereEquals('id', String(i)).build(),
-      )
+        partiql().select('*').from('Users').whereEquals('id', String(i)).build())
 
       const batches = buildBatchStatements(queries)
       expect(batches).toHaveLength(2)

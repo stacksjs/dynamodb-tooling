@@ -102,10 +102,10 @@ export class TenantCapacityManager {
     readUnits: number,
     writeUnits: number,
   ): {
-    allowed: boolean
-    throttled: boolean
-    retryAfterMs?: number
-  } {
+      allowed: boolean
+      throttled: boolean
+      retryAfterMs?: number
+    } {
     const config = this.getTenantConfig(tenantId)
     const now = Date.now()
 
@@ -208,7 +208,8 @@ export class TenantCapacityManager {
     }
 
     stats.estimatedItems += delta
-    if (stats.estimatedItems < 0) stats.estimatedItems = 0
+    if (stats.estimatedItems < 0)
+      stats.estimatedItems = 0
     stats.lastUpdated = Date.now()
   }
 
@@ -233,7 +234,8 @@ export class TenantCapacityManager {
     }
 
     stats.estimatedStorageBytes += delta
-    if (stats.estimatedStorageBytes < 0) stats.estimatedStorageBytes = 0
+    if (stats.estimatedStorageBytes < 0)
+      stats.estimatedStorageBytes = 0
     stats.lastUpdated = Date.now()
   }
 

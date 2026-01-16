@@ -13,7 +13,7 @@ export interface LambdaContext {
   awsRequestId: string
   logGroupName: string
   logStreamName: string
-  getRemainingTimeInMillis(): number
+  getRemainingTimeInMillis: () => number
   callbackWaitsForEmptyEventLoop: boolean
 }
 
@@ -293,16 +293,19 @@ export class APIHandler {
 
   private findRoute(method: string, path: string): RouteDefinition | undefined {
     return this.routes.find((route) => {
-      if (route.method !== method) return false
+      if (route.method !== method)
+        return false
 
       // Simple path matching (supports :param style)
       const routeParts = route.path.split('/')
       const pathParts = path.split('/')
 
-      if (routeParts.length !== pathParts.length) return false
+      if (routeParts.length !== pathParts.length)
+        return false
 
       return routeParts.every((part, i) => {
-        if (part.startsWith(':')) return true
+        if (part.startsWith(':'))
+          return true
         return part === pathParts[i]
       })
     })
@@ -569,7 +572,8 @@ export function createSQSHandler(): SQSHandler {
  * Parse JSON body from API Gateway event
  */
 export function parseBody<T = unknown>(event: APIGatewayEvent): T | null {
-  if (!event.body) return null
+  if (!event.body)
+    return null
 
   try {
     const body = event.isBase64Encoded
@@ -601,7 +605,8 @@ export function getQueryParams(event: APIGatewayEvent): Record<string, string> {
  * Get header value (case-insensitive)
  */
 export function getHeader(event: APIGatewayEvent, name: string): string | undefined {
-  if (!event.headers) return undefined
+  if (!event.headers)
+    return undefined
 
   const lowerName = name.toLowerCase()
   for (const [key, value] of Object.entries(event.headers)) {

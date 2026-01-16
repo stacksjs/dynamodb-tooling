@@ -1,10 +1,10 @@
-import { describe, expect, it, beforeEach } from 'bun:test'
+import type { StreamEvent, StreamRecord } from '../src/streams'
+import { beforeEach, describe, expect, it } from 'bun:test'
 import {
-  StreamProcessor,
   createStreamProcessor,
-  type StreamEvent,
-  type StreamRecord,
-  type StreamEventType,
+
+  StreamProcessor,
+
 } from '../src/streams'
 
 describe('Streams Processing', () => {

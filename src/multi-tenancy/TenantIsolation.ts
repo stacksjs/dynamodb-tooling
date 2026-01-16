@@ -11,21 +11,21 @@ export interface IsolationStrategy {
   /** Strategy type */
   type: TenantIsolationStrategy
   /** Transform table name for tenant */
-  transformTableName(tableName: string, tenantId: string): string
+  transformTableName: (tableName: string, tenantId: string) => string
   /** Transform pk for tenant */
-  transformPk(pk: string, tenantId: string): string
+  transformPk: (pk: string, tenantId: string) => string
   /** Transform sk for tenant */
-  transformSk(sk: string, tenantId: string): string
+  transformSk: (sk: string, tenantId: string) => string
   /** Get additional attributes to add to items */
-  getAdditionalAttributes(tenantId: string): Record<string, unknown>
+  getAdditionalAttributes: (tenantId: string) => Record<string, unknown>
   /** Get filter expression for queries */
-  getFilterExpression(tenantId: string): { expression?: string, values?: Record<string, unknown> }
+  getFilterExpression: (tenantId: string) => { expression?: string, values?: Record<string, unknown> }
   /** Validate item belongs to tenant */
-  validateItem(item: Record<string, unknown>, tenantId: string): boolean
+  validateItem: (item: Record<string, unknown>, tenantId: string) => boolean
   /** Extract original pk from tenant-prefixed pk */
-  extractOriginalPk(pk: string, tenantId: string): string
+  extractOriginalPk: (pk: string, tenantId: string) => string
   /** Extract original sk from tenant-prefixed sk */
-  extractOriginalSk(sk: string, tenantId: string): string
+  extractOriginalSk: (sk: string, tenantId: string) => string
 }
 
 /**
@@ -154,7 +154,8 @@ export function createPrefixIsolation(
 
     validateItem(item: Record<string, unknown>, tenantId: string): boolean {
       const pk = item.pk as string
-      if (!pk) return false
+      if (!pk)
+        return false
       return pk.startsWith(tenantPrefix(tenantId))
     },
 

@@ -253,7 +253,7 @@ describe('APIHandler', () => {
 
     it('should use custom error handler', async () => {
       const handler = createAPIHandler({
-        errorHandler: (error) => ({
+        errorHandler: error => ({
           statusCode: 500,
           body: JSON.stringify({ error: error.message }),
         }),
@@ -476,7 +476,7 @@ describe('CORS handling', () => {
       queryStringParameters: null,
       body: null,
       headers: {
-        origin: 'http://localhost:3000',
+        'origin': 'http://localhost:3000',
         'access-control-request-method': 'GET',
       },
     }
@@ -625,7 +625,7 @@ describe('edge cases', () => {
   it('should handle concurrent requests', async () => {
     const handler = createAPIHandler()
     handler.get('/delay/:ms', async (req) => {
-      const ms = parseInt(req.pathParameters?.ms || '0')
+      const ms = Number.parseInt(req.pathParameters?.ms || '0')
       await new Promise(resolve => setTimeout(resolve, ms))
       return { statusCode: 200, body: JSON.stringify({ ms }) }
     })

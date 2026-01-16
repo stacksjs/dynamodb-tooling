@@ -2,53 +2,45 @@
 // Validation Module Tests
 // ============================================================================
 
+import type { ModelAttribute } from '../src/models/types'
 import { describe, expect, it } from 'bun:test'
 import {
-  // Core validation
-  Validator,
-  createValidator,
-  ValidationFailedError,
-
-  // Async validation
-  AsyncValidator,
-  createAsyncValidator,
-  uniqueAsync,
-  existsAsync,
-
-  // Model validation
-  ModelValidator,
-  createModelValidator,
-  validateModel,
-  ModelValidationError,
-
-  // Built-in rules
-  rules,
-  required,
-  min,
-  max,
-  minLength,
-  maxLength,
-  pattern,
-  oneOf,
-  custom,
+  alpha,
+  alphaDash,
+  alphaNumeric,
   between,
   confirmed,
-  different,
-  same,
-  alpha,
-  alphaNumeric,
-  alphaDash,
-  startsWith,
-  endsWith,
-  integer,
-  positive,
-  negative,
+  createAsyncValidator,
+  createModelValidator,
+  createTsValidationRule,
 
+  createValidator,
+  custom,
+  different,
+  endsWith,
+  existsAsync,
+  integer,
+  max,
+  maxLength,
+  min,
+  minLength,
+  ModelValidationError,
+  negative,
+  oneOf,
+  pattern,
+  positive,
+  required,
+  // Built-in rules
+  rules,
+  same,
+  startsWith,
   // ts-validation
   TsValidationRules,
-  createTsValidationRule,
+  uniqueAsync,
+
+  validateModel,
+  ValidationFailedError,
 } from '../src/index'
-import type { ModelAttribute } from '../src/models/types'
 
 describe('Validator', () => {
   describe('basic validation', () => {
@@ -281,9 +273,12 @@ describe('Validator', () => {
       const validator = createValidator()
       validator.addRule('age', custom(
         (value) => {
-          if (typeof value !== 'number') return 'Age must be a number'
-          if (value < 0) return 'Age cannot be negative'
-          if (value > 150) return 'Age seems unrealistic'
+          if (typeof value !== 'number')
+            return 'Age must be a number'
+          if (value < 0)
+            return 'Age cannot be negative'
+          if (value > 150)
+            return 'Age seems unrealistic'
           return true
         },
         'customAge',

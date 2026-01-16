@@ -532,9 +532,12 @@ export class QueryAnalyzer {
     }
 
     // Bonus for good practices
-    if (characteristics.usesProjection) score += 5
-    if (characteristics.usesPartitionKey && !characteristics.isFullScan) score += 10
-    if (characteristics.usesPagination) score += 5
+    if (characteristics.usesProjection)
+      score += 5
+    if (characteristics.usesPartitionKey && !characteristics.isFullScan)
+      score += 10
+    if (characteristics.usesPagination)
+      score += 5
 
     return Math.max(0, Math.min(100, score))
   }
@@ -639,13 +642,15 @@ export class QueryAnalyzer {
   }
 
   private usesSortKey(input: QueryInput, metadata?: TableMetadata): boolean {
-    if (!metadata?.sortKey) return false
+    if (!metadata?.sortKey)
+      return false
 
     if (input.operation === 'GetItem' && input.key) {
       return metadata.sortKey in input.key
     }
 
-    if (!input.keyConditionExpression) return false
+    if (!input.keyConditionExpression)
+      return false
 
     const attrs = this.extractAttributesFromExpression(
       input.keyConditionExpression,
@@ -671,7 +676,7 @@ export class QueryAnalyzer {
     }
 
     // Also find direct attribute names (simple cases)
-    const directPattern = /\b([a-zA-Z_][a-zA-Z0-9_]*)\s*[=<>]/g
+    const directPattern = /\b([a-z_]\w*)\s*[=<>]/gi
     while ((match = directPattern.exec(expression)) !== null) {
       if (!match[1].startsWith(':')) {
         attributes.push(match[1])

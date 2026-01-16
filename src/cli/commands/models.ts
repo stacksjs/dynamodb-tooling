@@ -4,6 +4,7 @@
 // View and explore Stacks model definitions
 
 import type { CAC } from 'cac'
+import type { TreeNode } from '../ui'
 import { getConfig } from '../../config'
 import { handleCommandError } from '../error-formatter'
 import {
@@ -18,7 +19,7 @@ import {
   info,
   newline,
   success,
-  type TreeNode,
+
   warning,
 } from '../ui'
 
@@ -114,7 +115,6 @@ export function registerModelsCommands(cli: CAC): void {
           info(`Found ${c.bold(String(models.length))} models`)
           info(`Run ${c.cyan('dbtooling models:show <name>')} for details`)
         }
-
       }
       catch (error) {
         handleCommandError(error, 'models')
@@ -152,7 +152,6 @@ export function registerModelsCommands(cli: CAC): void {
         }
 
         displayModelDetails(model)
-
       }
       catch (error) {
         handleCommandError(error, 'models:show')
@@ -196,7 +195,6 @@ export function registerModelsCommands(cli: CAC): void {
         }
 
         newline()
-
       }
       catch (error) {
         handleCommandError(error, 'models:tree')
@@ -253,7 +251,6 @@ export function registerModelsCommands(cli: CAC): void {
 
         newline()
         info(`Total: ${model.attributes.length} attributes`)
-
       }
       catch (error) {
         handleCommandError(error, 'models:attributes')
@@ -313,7 +310,6 @@ export function registerModelsCommands(cli: CAC): void {
 
         newline()
         info(`Total: ${model.relationships.length} relationships`)
-
       }
       catch (error) {
         handleCommandError(error, 'models:relationships')
@@ -352,7 +348,7 @@ export function registerModelsCommands(cli: CAC): void {
         let gsiIndex = 1
         for (const rel of model.relationships) {
           if (rel.type === 'belongsTo') {
-            gsiPatterns[`GSI${gsiIndex} (by ${rel.model})`] = `${rel.model.toUpperCase()}#<${rel.foreignKey || rel.model.toLowerCase() + 'Id'}>`
+            gsiPatterns[`GSI${gsiIndex} (by ${rel.model})`] = `${rel.model.toUpperCase()}#<${rel.foreignKey || `${rel.model.toLowerCase()}Id`}>`
             gsiIndex++
           }
         }
@@ -381,7 +377,6 @@ export function registerModelsCommands(cli: CAC): void {
         console.log(`  ${c.dim('pk:')} ${c.cyan(`"${entityType}#abc123"`)}`)
         console.log(`  ${c.dim('sk:')} ${c.cyan(`"${entityType}#abc123"`)}`)
         console.log(`  ${c.dim('_et:')} ${c.cyan(`"${entityType}"`)}`)
-
       }
       catch (error) {
         handleCommandError(error, 'models:keys')
@@ -411,7 +406,7 @@ export function registerModelsCommands(cli: CAC): void {
 
         // Parse attributes
         const attributes = options.attributes
-          ? options.attributes.split(',').map(attr => {
+          ? options.attributes.split(',').map((attr) => {
               const [attrName, type] = attr.trim().split(':')
               return { name: attrName, type: type || 'string' }
             })
@@ -419,7 +414,7 @@ export function registerModelsCommands(cli: CAC): void {
 
         // Parse relationships
         const relationships = options.relationships
-          ? options.relationships.split(',').map(rel => {
+          ? options.relationships.split(',').map((rel) => {
               const [relName, type, model] = rel.trim().split(':')
               return { name: relName, type, model }
             })
@@ -470,7 +465,6 @@ export function registerModelsCommands(cli: CAC): void {
           success(`Model created: ${filePath}`)
           info(`Run ${c.cyan('dbtooling migrate --dry-run')} to preview schema changes`)
         }
-
       }
       catch (error) {
         handleCommandError(error, 'models:generate')
@@ -590,9 +584,12 @@ function displayModelDetails(model: ParsedModel): void {
     console.log(c.subheader('Attributes'))
     for (const attr of model.attributes.slice(0, 5)) {
       const flags: string[] = []
-      if (attr.required) flags.push(c.red('required'))
-      if (attr.unique) flags.push(c.yellow('unique'))
-      if (attr.index) flags.push(c.cyan('indexed'))
+      if (attr.required)
+        flags.push(c.red('required'))
+      if (attr.unique)
+        flags.push(c.yellow('unique'))
+      if (attr.index)
+        flags.push(c.cyan('indexed'))
 
       console.log(`  ${icons.bullet} ${attr.name}: ${c.cyan(attr.type)}${flags.length > 0 ? ` [${flags.join(', ')}]` : ''}`)
     }
@@ -696,10 +693,12 @@ function generateModelCode(
 
   // Traits
   const traits: string[] = []
-  if (options.timestamps !== false) traits.push('timestamps')
-  if (options.softDeletes) traits.push('softDeletes')
+  if (options.timestamps !== false)
+    traits.push('timestamps')
+  if (options.softDeletes)
+    traits.push('softDeletes')
   if (traits.length > 0) {
-    lines.push(`  traits: ['${traits.join("', '")}'],`)
+    lines.push(`  traits: ['${traits.join('\', \'')}'],`)
   }
 
   lines.push('')

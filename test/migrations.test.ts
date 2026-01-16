@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'bun:test'
 import type { ModelRegistry } from '../src/model-parser/types'
+import { describe, expect, it } from 'bun:test'
 import { defaultConfig } from '../src/config'
 import {
   formatSchemaSummary,

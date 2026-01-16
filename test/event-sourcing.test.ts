@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'bun:test'
 import type { DomainEvent } from '../src'
+import { describe, expect, it } from 'bun:test'
 import {
   AggregateRoot,
   createEventStore,
@@ -680,13 +680,16 @@ describe('AggregateRoot', () => {
         }
 
         deposit(amount: number) {
-          if (amount <= 0) throw new Error('Amount must be positive')
+          if (amount <= 0)
+            throw new Error('Amount must be positive')
           this.raiseEvent('Deposited', { amount })
         }
 
         withdraw(amount: number) {
-          if (amount <= 0) throw new Error('Amount must be positive')
-          if (amount > this.balance) throw new Error('Insufficient funds')
+          if (amount <= 0)
+            throw new Error('Amount must be positive')
+          if (amount > this.balance)
+            throw new Error('Insufficient funds')
           this.raiseEvent('Withdrawn', { amount })
         }
       }

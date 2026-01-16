@@ -561,7 +561,7 @@ describe('DataImporter', () => {
       const items = importer.parse(data, {
         format: 'json',
         tableName: 'Test',
-        transform: (item) => ({
+        transform: item => ({
           ...item,
           name: (item.name as string).toUpperCase(),
         }),
@@ -579,7 +579,7 @@ describe('DataImporter', () => {
       const items = importer.parse(data, {
         format: 'json',
         tableName: 'Test',
-        filter: (item) => item.active === true,
+        filter: item => item.active === true,
       })
       expect(items).toHaveLength(1)
       expect(items[0].pk).toBe('USER#1')

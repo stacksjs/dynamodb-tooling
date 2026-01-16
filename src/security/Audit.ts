@@ -107,9 +107,9 @@ export interface AuditStorage {
   /** Storage name */
   name: string
   /** Store audit event */
-  store(event: AuditEvent): unknown | Promise<unknown>
+  store: (event: AuditEvent) => unknown | Promise<unknown>
   /** Query audit events */
-  query?(options: AuditQueryOptions): Promise<AuditQueryResult>
+  query?: (options: AuditQueryOptions) => Promise<AuditQueryResult>
 }
 
 /**
@@ -289,22 +289,33 @@ export class DynamoDBCommandAuditStorage implements AuditStorage {
 
   private serializeActor(actor: AuditEvent['actor']): Record<string, { S: string } | { SS: string[] }> {
     const result: Record<string, { S: string } | { SS: string[] }> = {}
-    if (actor.userId) result.userId = { S: actor.userId }
-    if (actor.tenantId) result.tenantId = { S: actor.tenantId }
-    if (actor.ipAddress) result.ipAddress = { S: actor.ipAddress }
-    if (actor.userAgent) result.userAgent = { S: actor.userAgent }
-    if (actor.sessionId) result.sessionId = { S: actor.sessionId }
-    if (actor.roles) result.roles = { SS: actor.roles }
+    if (actor.userId)
+      result.userId = { S: actor.userId }
+    if (actor.tenantId)
+      result.tenantId = { S: actor.tenantId }
+    if (actor.ipAddress)
+      result.ipAddress = { S: actor.ipAddress }
+    if (actor.userAgent)
+      result.userAgent = { S: actor.userAgent }
+    if (actor.sessionId)
+      result.sessionId = { S: actor.sessionId }
+    if (actor.roles)
+      result.roles = { SS: actor.roles }
     return result
   }
 
   private serializeTarget(target: AuditEvent['target']): Record<string, { S: string } | { N: string }> {
     const result: Record<string, { S: string } | { N: string }> = {}
-    if (target.tableName) result.tableName = { S: target.tableName }
-    if (target.entityType) result.entityType = { S: target.entityType }
-    if (target.pk) result.pk = { S: target.pk }
-    if (target.sk) result.sk = { S: target.sk }
-    if (target.itemCount !== undefined) result.itemCount = { N: String(target.itemCount) }
+    if (target.tableName)
+      result.tableName = { S: target.tableName }
+    if (target.entityType)
+      result.entityType = { S: target.entityType }
+    if (target.pk)
+      result.pk = { S: target.pk }
+    if (target.sk)
+      result.sk = { S: target.sk }
+    if (target.itemCount !== undefined)
+      result.itemCount = { N: String(target.itemCount) }
     return result
   }
 
@@ -551,7 +562,8 @@ export class AuditLogger {
   }
 
   private redactChanges(changes: AuditEvent['changes']): AuditEvent['changes'] {
-    if (!changes) return changes
+    if (!changes)
+      return changes
 
     return {
       before: changes.before ? this.redactObject(changes.before) : undefined,

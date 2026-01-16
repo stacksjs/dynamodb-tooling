@@ -3,13 +3,13 @@
 // ============================================================================
 
 export {
-  GlobalTableManager,
-  createGlobalTableManager,
-  type GlobalTableStatus,
-  type ReplicaStatus,
   type AWSRegion,
-  type ReplicaDescription,
+  createGlobalTableManager,
   type GlobalTableDescription,
-  type ReplicaSettings,
+  GlobalTableManager,
+  type GlobalTableStatus,
   type ReplicaAutoScalingSettings,
+  type ReplicaDescription,
+  type ReplicaSettings,
+  type ReplicaStatus,
 } from './GlobalTableManager'

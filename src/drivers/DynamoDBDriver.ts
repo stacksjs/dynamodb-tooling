@@ -27,7 +27,7 @@ import type {
   UpdateItemInput,
   UpdateTableInput,
 } from './types'
-import { unmarshallItem, marshallItem } from './utils'
+import { unmarshallItem } from './utils'
 
 /**
  * AWS SDK v3 style signing - simplified implementation
@@ -328,17 +328,28 @@ export class DynamoDBDriver implements DriverPlugin {
       KeyConditionExpression: input.keyConditionExpression,
     }
 
-    if (input.indexName) params.IndexName = input.indexName
-    if (input.filterExpression) params.FilterExpression = input.filterExpression
-    if (input.projectionExpression) params.ProjectionExpression = input.projectionExpression
-    if (input.expressionAttributeNames) params.ExpressionAttributeNames = input.expressionAttributeNames
-    if (input.expressionAttributeValues) params.ExpressionAttributeValues = input.expressionAttributeValues
-    if (input.limit !== undefined) params.Limit = input.limit
-    if (input.exclusiveStartKey) params.ExclusiveStartKey = input.exclusiveStartKey
-    if (input.scanIndexForward !== undefined) params.ScanIndexForward = input.scanIndexForward
-    if (input.consistentRead !== undefined) params.ConsistentRead = input.consistentRead
-    if (input.select) params.Select = input.select
-    if (input.returnConsumedCapacity) params.ReturnConsumedCapacity = input.returnConsumedCapacity
+    if (input.indexName)
+      params.IndexName = input.indexName
+    if (input.filterExpression)
+      params.FilterExpression = input.filterExpression
+    if (input.projectionExpression)
+      params.ProjectionExpression = input.projectionExpression
+    if (input.expressionAttributeNames)
+      params.ExpressionAttributeNames = input.expressionAttributeNames
+    if (input.expressionAttributeValues)
+      params.ExpressionAttributeValues = input.expressionAttributeValues
+    if (input.limit !== undefined)
+      params.Limit = input.limit
+    if (input.exclusiveStartKey)
+      params.ExclusiveStartKey = input.exclusiveStartKey
+    if (input.scanIndexForward !== undefined)
+      params.ScanIndexForward = input.scanIndexForward
+    if (input.consistentRead !== undefined)
+      params.ConsistentRead = input.consistentRead
+    if (input.select)
+      params.Select = input.select
+    if (input.returnConsumedCapacity)
+      params.ReturnConsumedCapacity = input.returnConsumedCapacity
 
     const result = await this.makeRequest<{
       Items?: Array<Record<string, AttributeValue>>
@@ -362,18 +373,30 @@ export class DynamoDBDriver implements DriverPlugin {
       TableName: input.tableName,
     }
 
-    if (input.indexName) params.IndexName = input.indexName
-    if (input.filterExpression) params.FilterExpression = input.filterExpression
-    if (input.projectionExpression) params.ProjectionExpression = input.projectionExpression
-    if (input.expressionAttributeNames) params.ExpressionAttributeNames = input.expressionAttributeNames
-    if (input.expressionAttributeValues) params.ExpressionAttributeValues = input.expressionAttributeValues
-    if (input.limit !== undefined) params.Limit = input.limit
-    if (input.exclusiveStartKey) params.ExclusiveStartKey = input.exclusiveStartKey
-    if (input.consistentRead !== undefined) params.ConsistentRead = input.consistentRead
-    if (input.select) params.Select = input.select
-    if (input.segment !== undefined) params.Segment = input.segment
-    if (input.totalSegments !== undefined) params.TotalSegments = input.totalSegments
-    if (input.returnConsumedCapacity) params.ReturnConsumedCapacity = input.returnConsumedCapacity
+    if (input.indexName)
+      params.IndexName = input.indexName
+    if (input.filterExpression)
+      params.FilterExpression = input.filterExpression
+    if (input.projectionExpression)
+      params.ProjectionExpression = input.projectionExpression
+    if (input.expressionAttributeNames)
+      params.ExpressionAttributeNames = input.expressionAttributeNames
+    if (input.expressionAttributeValues)
+      params.ExpressionAttributeValues = input.expressionAttributeValues
+    if (input.limit !== undefined)
+      params.Limit = input.limit
+    if (input.exclusiveStartKey)
+      params.ExclusiveStartKey = input.exclusiveStartKey
+    if (input.consistentRead !== undefined)
+      params.ConsistentRead = input.consistentRead
+    if (input.select)
+      params.Select = input.select
+    if (input.segment !== undefined)
+      params.Segment = input.segment
+    if (input.totalSegments !== undefined)
+      params.TotalSegments = input.totalSegments
+    if (input.returnConsumedCapacity)
+      params.ReturnConsumedCapacity = input.returnConsumedCapacity
 
     const result = await this.makeRequest<{
       Items?: Array<Record<string, AttributeValue>>
@@ -413,12 +436,14 @@ export class DynamoDBDriver implements DriverPlugin {
 
     return {
       responses,
-      unprocessedKeys: result.UnprocessedKeys ? Object.fromEntries(
-        Object.entries(result.UnprocessedKeys).map(([table, data]) => [
-          table,
-          { keys: data.Keys },
-        ]),
-      ) : undefined,
+      unprocessedKeys: result.UnprocessedKeys
+        ? Object.fromEntries(
+            Object.entries(result.UnprocessedKeys).map(([table, data]) => [
+              table,
+              { keys: data.Keys },
+            ]),
+          )
+        : undefined,
       consumedCapacity: result.ConsumedCapacity,
     }
   }
@@ -441,25 +466,29 @@ export class DynamoDBDriver implements DriverPlugin {
     })
 
     return {
-      unprocessedItems: result.UnprocessedItems ? Object.fromEntries(
-        Object.entries(result.UnprocessedItems).map(([table, items]) => [
-          table,
-          items.map(item => ({
-            putRequest: item.PutRequest ? { item: item.PutRequest.Item } : undefined,
-            deleteRequest: item.DeleteRequest ? { key: item.DeleteRequest.Key } : undefined,
-          })),
-        ]),
-      ) : undefined,
+      unprocessedItems: result.UnprocessedItems
+        ? Object.fromEntries(
+            Object.entries(result.UnprocessedItems).map(([table, items]) => [
+              table,
+              items.map(item => ({
+                putRequest: item.PutRequest ? { item: item.PutRequest.Item } : undefined,
+                deleteRequest: item.DeleteRequest ? { key: item.DeleteRequest.Key } : undefined,
+              })),
+            ]),
+          )
+        : undefined,
       consumedCapacity: result.ConsumedCapacity,
-      itemCollectionMetrics: result.ItemCollectionMetrics ? Object.fromEntries(
-        Object.entries(result.ItemCollectionMetrics).map(([table, metrics]) => [
-          table,
-          metrics.map(m => ({
-            itemCollectionKey: m.ItemCollectionKey,
-            sizeEstimateRangeGB: m.SizeEstimateRangeGB,
-          })),
-        ]),
-      ) : undefined,
+      itemCollectionMetrics: result.ItemCollectionMetrics
+        ? Object.fromEntries(
+            Object.entries(result.ItemCollectionMetrics).map(([table, metrics]) => [
+              table,
+              metrics.map(m => ({
+                itemCollectionKey: m.ItemCollectionKey,
+                sizeEstimateRangeGB: m.SizeEstimateRangeGB,
+              })),
+            ]),
+          )
+        : undefined,
     }
   }
 
@@ -568,7 +597,8 @@ export class DynamoDBDriver implements DriverPlugin {
       })),
     }
 
-    if (input.billingMode) params.BillingMode = input.billingMode
+    if (input.billingMode)
+      params.BillingMode = input.billingMode
     if (input.provisionedThroughput) {
       params.ProvisionedThroughput = {
         ReadCapacityUnits: input.provisionedThroughput.readCapacityUnits,
@@ -586,10 +616,12 @@ export class DynamoDBDriver implements DriverPlugin {
           ProjectionType: gsi.projection.projectionType,
           NonKeyAttributes: gsi.projection.nonKeyAttributes,
         },
-        ProvisionedThroughput: gsi.provisionedThroughput ? {
-          ReadCapacityUnits: gsi.provisionedThroughput.readCapacityUnits,
-          WriteCapacityUnits: gsi.provisionedThroughput.writeCapacityUnits,
-        } : undefined,
+        ProvisionedThroughput: gsi.provisionedThroughput
+          ? {
+              ReadCapacityUnits: gsi.provisionedThroughput.readCapacityUnits,
+              WriteCapacityUnits: gsi.provisionedThroughput.writeCapacityUnits,
+            }
+          : undefined,
       }))
     }
     if (input.localSecondaryIndexes) {
@@ -614,7 +646,8 @@ export class DynamoDBDriver implements DriverPlugin {
     if (input.tags) {
       params.Tags = input.tags.map(t => ({ Key: t.key, Value: t.value }))
     }
-    if (input.tableClass) params.TableClass = input.tableClass
+    if (input.tableClass)
+      params.TableClass = input.tableClass
     if (input.deletionProtectionEnabled !== undefined) {
       params.DeletionProtectionEnabled = input.deletionProtectionEnabled
     }
@@ -643,8 +676,10 @@ export class DynamoDBDriver implements DriverPlugin {
     lastEvaluatedTableName?: string
   }> {
     const params: Record<string, unknown> = {}
-    if (options?.limit) params.Limit = options.limit
-    if (options?.exclusiveStartTableName) params.ExclusiveStartTableName = options.exclusiveStartTableName
+    if (options?.limit)
+      params.Limit = options.limit
+    if (options?.exclusiveStartTableName)
+      params.ExclusiveStartTableName = options.exclusiveStartTableName
 
     const result = await this.makeRequest<{
       TableNames?: string[]
@@ -668,7 +703,8 @@ export class DynamoDBDriver implements DriverPlugin {
         AttributeType: a.attributeType,
       }))
     }
-    if (input.billingMode) params.BillingMode = input.billingMode
+    if (input.billingMode)
+      params.BillingMode = input.billingMode
     if (input.provisionedThroughput) {
       params.ProvisionedThroughput = {
         ReadCapacityUnits: input.provisionedThroughput.readCapacityUnits,
@@ -689,10 +725,12 @@ export class DynamoDBDriver implements DriverPlugin {
                 ProjectionType: update.create.projection.projectionType,
                 NonKeyAttributes: update.create.projection.nonKeyAttributes,
               },
-              ProvisionedThroughput: update.create.provisionedThroughput ? {
-                ReadCapacityUnits: update.create.provisionedThroughput.readCapacityUnits,
-                WriteCapacityUnits: update.create.provisionedThroughput.writeCapacityUnits,
-              } : undefined,
+              ProvisionedThroughput: update.create.provisionedThroughput
+                ? {
+                    ReadCapacityUnits: update.create.provisionedThroughput.readCapacityUnits,
+                    WriteCapacityUnits: update.create.provisionedThroughput.writeCapacityUnits,
+                  }
+                : undefined,
             },
           }
         }
@@ -723,7 +761,8 @@ export class DynamoDBDriver implements DriverPlugin {
         StreamViewType: input.streamSpecification.streamViewType,
       }
     }
-    if (input.tableClass) params.TableClass = input.tableClass
+    if (input.tableClass)
+      params.TableClass = input.tableClass
     if (input.deletionProtectionEnabled !== undefined) {
       params.DeletionProtectionEnabled = input.deletionProtectionEnabled
     }
@@ -867,10 +906,12 @@ export class DynamoDBDriver implements DriverPlugin {
           nonKeyAttributes: (gsi.Projection as { NonKeyAttributes?: string[] })?.NonKeyAttributes,
         },
         indexStatus: gsi.IndexStatus as 'CREATING' | 'UPDATING' | 'DELETING' | 'ACTIVE' | undefined,
-        provisionedThroughput: gsi.ProvisionedThroughput ? {
-          readCapacityUnits: (gsi.ProvisionedThroughput as { ReadCapacityUnits: number }).ReadCapacityUnits,
-          writeCapacityUnits: (gsi.ProvisionedThroughput as { WriteCapacityUnits: number }).WriteCapacityUnits,
-        } : undefined,
+        provisionedThroughput: gsi.ProvisionedThroughput
+          ? {
+              readCapacityUnits: (gsi.ProvisionedThroughput as { ReadCapacityUnits: number }).ReadCapacityUnits,
+              writeCapacityUnits: (gsi.ProvisionedThroughput as { WriteCapacityUnits: number }).WriteCapacityUnits,
+            }
+          : undefined,
       })),
       localSecondaryIndexes: (data.LocalSecondaryIndexes as Array<Record<string, unknown>>)?.map(lsi => ({
         indexName: lsi.IndexName as string,
@@ -883,25 +924,33 @@ export class DynamoDBDriver implements DriverPlugin {
           nonKeyAttributes: (lsi.Projection as { NonKeyAttributes?: string[] })?.NonKeyAttributes,
         },
       })),
-      billingModeSummary: data.BillingModeSummary ? {
-        billingMode: (data.BillingModeSummary as { BillingMode: string }).BillingMode as 'PROVISIONED' | 'PAY_PER_REQUEST',
-      } : undefined,
-      provisionedThroughput: data.ProvisionedThroughput ? {
-        readCapacityUnits: (data.ProvisionedThroughput as { ReadCapacityUnits: number }).ReadCapacityUnits,
-        writeCapacityUnits: (data.ProvisionedThroughput as { WriteCapacityUnits: number }).WriteCapacityUnits,
-      } : undefined,
+      billingModeSummary: data.BillingModeSummary
+        ? {
+            billingMode: (data.BillingModeSummary as { BillingMode: string }).BillingMode as 'PROVISIONED' | 'PAY_PER_REQUEST',
+          }
+        : undefined,
+      provisionedThroughput: data.ProvisionedThroughput
+        ? {
+            readCapacityUnits: (data.ProvisionedThroughput as { ReadCapacityUnits: number }).ReadCapacityUnits,
+            writeCapacityUnits: (data.ProvisionedThroughput as { WriteCapacityUnits: number }).WriteCapacityUnits,
+          }
+        : undefined,
       tableArn: data.TableArn as string | undefined,
       itemCount: data.ItemCount as number | undefined,
       tableSizeBytes: data.TableSizeBytes as number | undefined,
       creationDateTime: data.CreationDateTime ? new Date(data.CreationDateTime as string) : undefined,
-      streamSpecification: data.StreamSpecification ? {
-        streamEnabled: (data.StreamSpecification as { StreamEnabled: boolean }).StreamEnabled,
-        streamViewType: (data.StreamSpecification as { StreamViewType?: string }).StreamViewType as 'KEYS_ONLY' | 'NEW_IMAGE' | 'OLD_IMAGE' | 'NEW_AND_OLD_IMAGES' | undefined,
-      } : undefined,
-      ttlDescription: data.TTLDescription ? {
-        attributeName: (data.TTLDescription as { AttributeName?: string }).AttributeName,
-        status: (data.TTLDescription as { TimeToLiveStatus?: string }).TimeToLiveStatus as 'ENABLING' | 'DISABLING' | 'ENABLED' | 'DISABLED' | undefined,
-      } : undefined,
+      streamSpecification: data.StreamSpecification
+        ? {
+            streamEnabled: (data.StreamSpecification as { StreamEnabled: boolean }).StreamEnabled,
+            streamViewType: (data.StreamSpecification as { StreamViewType?: string }).StreamViewType as 'KEYS_ONLY' | 'NEW_IMAGE' | 'OLD_IMAGE' | 'NEW_AND_OLD_IMAGES' | undefined,
+          }
+        : undefined,
+      ttlDescription: data.TTLDescription
+        ? {
+            attributeName: (data.TTLDescription as { AttributeName?: string }).AttributeName,
+            status: (data.TTLDescription as { TimeToLiveStatus?: string }).TimeToLiveStatus as 'ENABLING' | 'DISABLING' | 'ENABLED' | 'DISABLED' | undefined,
+          }
+        : undefined,
     }
   }
 }

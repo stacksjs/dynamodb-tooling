@@ -495,94 +495,94 @@ export interface DriverPlugin {
   version: string
 
   /** Get driver capabilities */
-  getCapabilities(): DriverCapabilities
+  getCapabilities: () => DriverCapabilities
 
   /** Validate driver-specific configuration */
-  validateConfig(options: DriverConnectionOptions): { valid: boolean, errors: string[] }
+  validateConfig: (options: DriverConnectionOptions) => { valid: boolean, errors: string[] }
 
   /** Connect to the database */
-  connect(options: DriverConnectionOptions): Promise<void>
+  connect: (options: DriverConnectionOptions) => Promise<void>
 
   /** Disconnect from the database */
-  disconnect(): Promise<void>
+  disconnect: () => Promise<void>
 
   /** Check connection health */
-  healthCheck(): Promise<{ healthy: boolean, latencyMs: number, error?: string }>
+  healthCheck: () => Promise<{ healthy: boolean, latencyMs: number, error?: string }>
 
   /** Check if connected */
-  isConnected(): boolean
+  isConnected: () => boolean
 
   // ---- Item Operations ----
 
   /** Get a single item */
-  getItem(input: GetItemInput): Promise<DynamoDBItem | null>
+  getItem: (input: GetItemInput) => Promise<DynamoDBItem | null>
 
   /** Put a single item */
-  putItem(input: PutItemInput): Promise<{ attributes?: DynamoDBItem, consumedCapacity?: ConsumedCapacity }>
+  putItem: (input: PutItemInput) => Promise<{ attributes?: DynamoDBItem, consumedCapacity?: ConsumedCapacity }>
 
   /** Update a single item */
-  updateItem(input: UpdateItemInput): Promise<{ attributes?: DynamoDBItem, consumedCapacity?: ConsumedCapacity }>
+  updateItem: (input: UpdateItemInput) => Promise<{ attributes?: DynamoDBItem, consumedCapacity?: ConsumedCapacity }>
 
   /** Delete a single item */
-  deleteItem(input: DeleteItemInput): Promise<{ attributes?: DynamoDBItem, consumedCapacity?: ConsumedCapacity }>
+  deleteItem: (input: DeleteItemInput) => Promise<{ attributes?: DynamoDBItem, consumedCapacity?: ConsumedCapacity }>
 
   // ---- Query Operations ----
 
   /** Query items */
-  query(input: QueryInput): Promise<QueryOutput>
+  query: (input: QueryInput) => Promise<QueryOutput>
 
   /** Scan items */
-  scan(input: ScanInput): Promise<QueryOutput>
+  scan: (input: ScanInput) => Promise<QueryOutput>
 
   // ---- Batch Operations ----
 
   /** Batch get items */
-  batchGetItem(input: BatchGetItemInput): Promise<BatchGetItemOutput>
+  batchGetItem: (input: BatchGetItemInput) => Promise<BatchGetItemOutput>
 
   /** Batch write items */
-  batchWriteItem(input: BatchWriteItemInput): Promise<BatchWriteItemOutput>
+  batchWriteItem: (input: BatchWriteItemInput) => Promise<BatchWriteItemOutput>
 
   // ---- Transaction Operations ----
 
   /** Transactional write */
-  transactWriteItems(input: TransactWriteItemsInput): Promise<{ consumedCapacity?: ConsumedCapacity[] }>
+  transactWriteItems: (input: TransactWriteItemsInput) => Promise<{ consumedCapacity?: ConsumedCapacity[] }>
 
   /** Transactional get */
-  transactGetItems(input: TransactGetItemsInput): Promise<TransactGetItemsOutput>
+  transactGetItems: (input: TransactGetItemsInput) => Promise<TransactGetItemsOutput>
 
   // ---- Table Operations ----
 
   /** Create a table */
-  createTable(input: CreateTableInput): Promise<TableDescription>
+  createTable: (input: CreateTableInput) => Promise<TableDescription>
 
   /** Delete a table */
-  deleteTable(tableName: string): Promise<void>
+  deleteTable: (tableName: string) => Promise<void>
 
   /** Describe a table */
-  describeTable(tableName: string): Promise<TableDescription>
+  describeTable: (tableName: string) => Promise<TableDescription>
 
   /** List tables */
-  listTables(options?: { limit?: number, exclusiveStartTableName?: string }): Promise<{ tableNames: string[], lastEvaluatedTableName?: string }>
+  listTables: (options?: { limit?: number, exclusiveStartTableName?: string }) => Promise<{ tableNames: string[], lastEvaluatedTableName?: string }>
 
   /** Update a table */
-  updateTable(input: UpdateTableInput): Promise<TableDescription>
+  updateTable: (input: UpdateTableInput) => Promise<TableDescription>
 
   /** Wait for table to become active */
-  waitForTableActive(tableName: string, options?: { maxWaitTime?: number, checkInterval?: number }): Promise<void>
+  waitForTableActive: (tableName: string, options?: { maxWaitTime?: number, checkInterval?: number }) => Promise<void>
 
   /** Wait for table to be deleted */
-  waitForTableDeleted(tableName: string, options?: { maxWaitTime?: number, checkInterval?: number }): Promise<void>
+  waitForTableDeleted: (tableName: string, options?: { maxWaitTime?: number, checkInterval?: number }) => Promise<void>
 
   // ---- PartiQL Operations (optional) ----
 
   /** Execute a PartiQL statement */
-  executeStatement?(statement: string, parameters?: AttributeValue[]): Promise<{ items: DynamoDBItem[], nextToken?: string }>
+  executeStatement?: (statement: string, parameters?: AttributeValue[]) => Promise<{ items: DynamoDBItem[], nextToken?: string }>
 
   /** Execute multiple PartiQL statements in a batch */
-  batchExecuteStatement?(statements: Array<{ statement: string, parameters?: AttributeValue[] }>): Promise<Array<{ item?: DynamoDBItem, error?: string }>>
+  batchExecuteStatement?: (statements: Array<{ statement: string, parameters?: AttributeValue[] }>) => Promise<Array<{ item?: DynamoDBItem, error?: string }>>
 
   /** Execute PartiQL statements in a transaction */
-  executeTransaction?(statements: Array<{ statement: string, parameters?: AttributeValue[] }>): Promise<{ responses: Array<{ item?: DynamoDBItem }> }>
+  executeTransaction?: (statements: Array<{ statement: string, parameters?: AttributeValue[] }>) => Promise<{ responses: Array<{ item?: DynamoDBItem }> }>
 }
 
 /**

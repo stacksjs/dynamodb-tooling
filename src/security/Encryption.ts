@@ -2,7 +2,7 @@
 // Encryption - Client-Side Encryption for DynamoDB
 // ============================================================================
 
-import { createHash, createCipheriv, createDecipheriv, randomBytes, pbkdf2Sync } from 'node:crypto'
+import { createCipheriv, createDecipheriv, createHash, pbkdf2Sync, randomBytes } from 'node:crypto'
 
 /**
  * Encryption algorithm
@@ -229,7 +229,7 @@ export class EncryptionManager {
   }
 
   private encryptGCM(plaintext: string, key: Buffer, iv: Buffer): EncryptionResult {
-    const cipher = createCipheriv(this.config.algorithm, key.subarray(0, 32), iv) as ReturnType<typeof createCipheriv> & { getAuthTag(): Buffer }
+    const cipher = createCipheriv(this.config.algorithm, key.subarray(0, 32), iv) as ReturnType<typeof createCipheriv> & { getAuthTag: () => Buffer }
     let ciphertext = cipher.update(plaintext, 'utf8', 'base64')
     ciphertext += cipher.final('base64')
     const authTag = cipher.getAuthTag()
@@ -247,7 +247,7 @@ export class EncryptionManager {
   }
 
   private decryptGCM(ciphertext: string, key: Buffer, iv: Buffer, authTag: string): string {
-    const decipher = createDecipheriv(this.config.algorithm, key.subarray(0, 32), iv) as ReturnType<typeof createDecipheriv> & { setAuthTag(tag: Buffer): void }
+    const decipher = createDecipheriv(this.config.algorithm, key.subarray(0, 32), iv) as ReturnType<typeof createDecipheriv> & { setAuthTag: (tag: Buffer) => void }
     decipher.setAuthTag(Buffer.from(authTag, 'base64'))
     let plaintext = decipher.update(ciphertext, 'base64', 'utf8')
     plaintext += decipher.final('utf8')
@@ -279,7 +279,8 @@ export class EncryptionManager {
 
   private deriveKey(keyId: string): Buffer {
     const cached = this.keyCache.get(keyId)
-    if (cached) return cached
+    if (cached)
+      return cached
 
     const derived = pbkdf2Sync(
       this.config.masterKey,

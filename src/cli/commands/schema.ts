@@ -4,6 +4,7 @@
 // Interactive schema visualization and exploration
 
 import type { CAC } from 'cac'
+import type { TreeNode } from '../ui'
 import { getConfig } from '../../config'
 import {
   exportSchemaAsJSON,
@@ -22,7 +23,7 @@ import {
   info,
   newline,
   success,
-  type TreeNode,
+
   warning,
 } from '../ui'
 
@@ -160,7 +161,6 @@ export function registerSchemaCommands(cli: CAC): void {
         newline()
         info(`Run ${c.cyan('dbtooling schema:tree')} to see the full entity hierarchy`)
         info(`Run ${c.cyan('dbtooling models:show <model>')} to see model details`)
-
       }
       catch (error) {
         handleCommandError(error, 'schema')
@@ -237,7 +237,6 @@ export function registerSchemaCommands(cli: CAC): void {
 
         console.log(formatTree([tableNode]))
         newline()
-
       }
       catch (error) {
         handleCommandError(error, 'schema:tree')
@@ -315,7 +314,6 @@ export function registerSchemaCommands(cli: CAC): void {
             newline()
           }
         }
-
       }
       catch (error) {
         handleCommandError(error, 'schema:gsi')
@@ -351,7 +349,6 @@ export function registerSchemaCommands(cli: CAC): void {
         else {
           displayAccessPatterns(patterns, options.json)
         }
-
       }
       catch (error) {
         handleCommandError(error, 'schema:access-patterns')
@@ -430,7 +427,6 @@ export function registerSchemaCommands(cli: CAC): void {
             success('Schema validation passed with warnings.')
           }
         }
-
       }
       catch (error) {
         handleCommandError(error, 'schema:validate')

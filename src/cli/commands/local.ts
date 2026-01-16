@@ -216,7 +216,7 @@ export function registerLocalCommands(cli: CAC): void {
           if (options.follow) {
             console.log('')
             console.log('Note: --follow mode requires fs.watch which may have limitations.')
-            console.log('For real-time logs, consider: tail -f ' + logPath)
+            console.log(`For real-time logs, consider: tail -f ${logPath}`)
           }
         }
         catch {

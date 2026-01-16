@@ -12,28 +12,28 @@ import nodeProcess from 'node:process'
 const isColorSupported = nodeProcess.stdout.isTTY && !nodeProcess.env.NO_COLOR
 
 const colors = {
-  reset: isColorSupported ? '\x1b[0m' : '',
-  bold: isColorSupported ? '\x1b[1m' : '',
-  dim: isColorSupported ? '\x1b[2m' : '',
-  italic: isColorSupported ? '\x1b[3m' : '',
-  underline: isColorSupported ? '\x1b[4m' : '',
+  reset: isColorSupported ? '\x1B[0m' : '',
+  bold: isColorSupported ? '\x1B[1m' : '',
+  dim: isColorSupported ? '\x1B[2m' : '',
+  italic: isColorSupported ? '\x1B[3m' : '',
+  underline: isColorSupported ? '\x1B[4m' : '',
 
   // Foreground colors
-  black: isColorSupported ? '\x1b[30m' : '',
-  red: isColorSupported ? '\x1b[31m' : '',
-  green: isColorSupported ? '\x1b[32m' : '',
-  yellow: isColorSupported ? '\x1b[33m' : '',
-  blue: isColorSupported ? '\x1b[34m' : '',
-  magenta: isColorSupported ? '\x1b[35m' : '',
-  cyan: isColorSupported ? '\x1b[36m' : '',
-  white: isColorSupported ? '\x1b[37m' : '',
-  gray: isColorSupported ? '\x1b[90m' : '',
+  black: isColorSupported ? '\x1B[30m' : '',
+  red: isColorSupported ? '\x1B[31m' : '',
+  green: isColorSupported ? '\x1B[32m' : '',
+  yellow: isColorSupported ? '\x1B[33m' : '',
+  blue: isColorSupported ? '\x1B[34m' : '',
+  magenta: isColorSupported ? '\x1B[35m' : '',
+  cyan: isColorSupported ? '\x1B[36m' : '',
+  white: isColorSupported ? '\x1B[37m' : '',
+  gray: isColorSupported ? '\x1B[90m' : '',
 
   // Background colors
-  bgRed: isColorSupported ? '\x1b[41m' : '',
-  bgGreen: isColorSupported ? '\x1b[42m' : '',
-  bgYellow: isColorSupported ? '\x1b[43m' : '',
-  bgBlue: isColorSupported ? '\x1b[44m' : '',
+  bgRed: isColorSupported ? '\x1B[41m' : '',
+  bgGreen: isColorSupported ? '\x1B[42m' : '',
+  bgYellow: isColorSupported ? '\x1B[43m' : '',
+  bgBlue: isColorSupported ? '\x1B[44m' : '',
 }
 
 // ============================================================================
@@ -129,7 +129,7 @@ export function createSpinner(initialMessage = ''): Spinner {
 
   const clearLine = (): void => {
     if (nodeProcess.stdout.isTTY) {
-      nodeProcess.stdout.write('\r\x1b[K')
+      nodeProcess.stdout.write('\r\x1B[K')
     }
   }
 
@@ -142,7 +142,8 @@ export function createSpinner(initialMessage = ''): Spinner {
 
   return {
     start(message?: string): void {
-      if (message) currentMessage = message
+      if (message)
+        currentMessage = message
       if (!nodeProcess.stdout.isTTY) {
         console.log(currentMessage)
         return
@@ -195,7 +196,8 @@ export function createProgressBar(width = 30): ProgressBar {
   let currentMessage = ''
 
   const render = (current: number): void => {
-    if (!nodeProcess.stdout.isTTY) return
+    if (!nodeProcess.stdout.isTTY)
+      return
 
     const percent = Math.min(100, Math.floor((current / total) * 100))
     const filled = Math.floor((current / total) * width)
@@ -219,7 +221,8 @@ export function createProgressBar(width = 30): ProgressBar {
     },
 
     update(current: number, message?: string): void {
-      if (message) currentMessage = message
+      if (message)
+        currentMessage = message
       if (!nodeProcess.stdout.isTTY) {
         const percent = Math.floor((current / total) * 100)
         if (percent % 25 === 0) {
@@ -232,7 +235,7 @@ export function createProgressBar(width = 30): ProgressBar {
 
     stop(message?: string): void {
       if (nodeProcess.stdout.isTTY) {
-        nodeProcess.stdout.write('\r\x1b[K')
+        nodeProcess.stdout.write('\r\x1B[K')
       }
       if (message) {
         console.log(message)
@@ -282,7 +285,8 @@ export function formatTable(
   const pad = (s: string, width: number, align: 'left' | 'right' | 'center' = 'left'): string => {
     const strLen = stripAnsi(s).length
     const padding = width - strLen
-    if (padding <= 0) return s.slice(0, width)
+    if (padding <= 0)
+      return s.slice(0, width)
 
     switch (align) {
       case 'right':
@@ -410,10 +414,10 @@ export function box(content: string, options: BoxOptions = {}): string {
     const remaining = innerWidth - titleLen
     const left = Math.floor(remaining / 2)
     const right = remaining - left
-    result.push(borderColor('┌' + '─'.repeat(left) + titleStr + '─'.repeat(right) + '┐'))
+    result.push(borderColor(`┌${'─'.repeat(left)}${titleStr}${'─'.repeat(right)}┐`))
   }
   else {
-    result.push(borderColor('┌' + '─'.repeat(innerWidth) + '┐'))
+    result.push(borderColor(`┌${'─'.repeat(innerWidth)}┐`))
   }
 
   // Top padding
@@ -435,7 +439,7 @@ export function box(content: string, options: BoxOptions = {}): string {
   }
 
   // Bottom border
-  result.push(borderColor('└' + '─'.repeat(innerWidth) + '┘'))
+  result.push(borderColor(`└${'─'.repeat(innerWidth)}┘`))
 
   return result.join('\n')
 }
@@ -576,15 +580,16 @@ export function newline(): void {
  */
 export function stripAnsi(s: string): string {
   // eslint-disable-next-line no-control-regex
-  return s.replace(/\x1b\[[0-9;]*m/g, '')
+  return s.replace(/\x1B\[[0-9;]*m/g, '')
 }
 
 /**
  * Truncate string to max length with ellipsis
  */
 export function truncate(s: string, maxLength: number): string {
-  if (stripAnsi(s).length <= maxLength) return s
-  return s.slice(0, maxLength - 1) + '…'
+  if (stripAnsi(s).length <= maxLength)
+    return s
+  return `${s.slice(0, maxLength - 1)}…`
 }
 
 /**
@@ -604,8 +609,10 @@ export function formatBytes(bytes: number): string {
  * Format duration in milliseconds
  */
 export function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+  if (ms < 1000)
+    return `${ms}ms`
+  if (ms < 60000)
+    return `${(ms / 1000).toFixed(1)}s`
   const minutes = Math.floor(ms / 60000)
   const seconds = Math.floor((ms % 60000) / 1000)
   return `${minutes}m ${seconds}s`

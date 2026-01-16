@@ -1,5 +1,9 @@
+import type { ParsedModel } from '../src/model-parser/types'
 import { describe, expect, it } from 'bun:test'
 import { defaultConfig } from '../src/config'
+import {
+  generateAccessPatterns,
+} from '../src/single-table/AccessPatternGenerator'
 import {
   marshallObject,
   marshallValue,
@@ -9,10 +13,6 @@ import {
 import {
   generateKeyPatternsForModel,
 } from '../src/single-table/KeyPatternGenerator'
-import {
-  generateAccessPatterns,
-} from '../src/single-table/AccessPatternGenerator'
-import type { ParsedModel } from '../src/model-parser/types'
 
 // Use default config
 const testConfig = { ...defaultConfig, defaultTableName: 'TestTable' }

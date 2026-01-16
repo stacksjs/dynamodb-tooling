@@ -85,7 +85,7 @@ export function boolean(message?: string): ValidationRuleDefinition {
  * Email validation rule (basic pattern)
  */
 export function email(message?: string): ValidationRuleDefinition {
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const emailPattern = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
 
   return {
     name: 'email',
@@ -264,7 +264,7 @@ export function oneOf<T>(values: T[], message?: string): ValidationRuleDefinitio
   return {
     name: 'oneOf',
     params: { values },
-    message: message ?? 'The :attribute must be one of: ' + values.join(', '),
+    message: message ?? `The :attribute must be one of: ${values.join(', ')}`,
     rule: (value: unknown): boolean => {
       if (value === undefined || value === null) {
         return true
@@ -529,7 +529,7 @@ export function alpha(message?: string): ValidationRuleDefinition {
       if (value === undefined || value === null || value === '') {
         return true
       }
-      return typeof value === 'string' && /^[a-zA-Z]+$/.test(value)
+      return typeof value === 'string' && /^[a-z]+$/i.test(value)
     },
   }
 }
@@ -545,7 +545,7 @@ export function alphaNumeric(message?: string): ValidationRuleDefinition {
       if (value === undefined || value === null || value === '') {
         return true
       }
-      return typeof value === 'string' && /^[a-zA-Z0-9]+$/.test(value)
+      return typeof value === 'string' && /^[a-z0-9]+$/i.test(value)
     },
   }
 }
@@ -561,7 +561,7 @@ export function alphaDash(message?: string): ValidationRuleDefinition {
       if (value === undefined || value === null || value === '') {
         return true
       }
-      return typeof value === 'string' && /^[a-zA-Z0-9_-]+$/.test(value)
+      return typeof value === 'string' && /^[\w-]+$/.test(value)
     },
   }
 }
@@ -575,7 +575,7 @@ export function startsWith(prefix: string | string[], message?: string): Validat
   return {
     name: 'startsWith',
     params: { prefix: prefixes },
-    message: message ?? 'The :attribute must start with one of: ' + prefixes.join(', '),
+    message: message ?? `The :attribute must start with one of: ${prefixes.join(', ')}`,
     rule: (value: unknown): boolean => {
       if (value === undefined || value === null || value === '') {
         return true
@@ -597,7 +597,7 @@ export function endsWith(suffix: string | string[], message?: string): Validatio
   return {
     name: 'endsWith',
     params: { suffix: suffixes },
-    message: message ?? 'The :attribute must end with one of: ' + suffixes.join(', '),
+    message: message ?? `The :attribute must end with one of: ${suffixes.join(', ')}`,
     rule: (value: unknown): boolean => {
       if (value === undefined || value === null || value === '') {
         return true

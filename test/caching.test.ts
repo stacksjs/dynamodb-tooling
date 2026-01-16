@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from 'bun:test'
+import { beforeEach, describe, expect, it } from 'bun:test'
 import {
   CacheManager,
   createCacheManager,
@@ -404,8 +404,7 @@ describe('MemoryCacheStore', () => {
 
   it('should handle concurrent operations', async () => {
     const operations = Array.from({ length: 100 }, (_, i) =>
-      store.set(`key${i}`, `value${i}`),
-    )
+      store.set(`key${i}`, `value${i}`))
 
     await Promise.all(operations)
     expect(store.size).toBe(100)
@@ -598,8 +597,7 @@ describe('edge cases', () => {
         await new Promise(resolve => setTimeout(resolve, 10))
         computeCount++
         return 'value'
-      }),
-    )
+      }))
 
     const results = await Promise.all(promises)
     expect(results.every(r => r === 'value')).toBe(true)

@@ -114,23 +114,23 @@ export const DynamoDBSpanAttributes = {
  */
 export interface Span {
   /** Get span data */
-  getData(): SpanData
+  getData: () => SpanData
   /** Set attribute */
-  setAttribute(key: string, value: string | number | boolean | string[] | number[] | boolean[]): this
+  setAttribute: (key: string, value: string | number | boolean | string[] | number[] | boolean[]) => this
   /** Set multiple attributes */
-  setAttributes(attributes: SpanAttributes): this
+  setAttributes: (attributes: SpanAttributes) => this
   /** Add event */
-  addEvent(name: string, attributes?: SpanAttributes): this
+  addEvent: (name: string, attributes?: SpanAttributes) => this
   /** Add link */
-  addLink(traceId: string, spanId: string, attributes?: SpanAttributes): this
+  addLink: (traceId: string, spanId: string, attributes?: SpanAttributes) => this
   /** Set status */
-  setStatus(status: SpanStatus, message?: string): this
+  setStatus: (status: SpanStatus, message?: string) => this
   /** Record exception */
-  recordException(error: Error): this
+  recordException: (error: Error) => this
   /** End the span */
-  end(): void
+  end: () => void
   /** Check if span is recording */
-  isRecording(): boolean
+  isRecording: () => boolean
 }
 
 /**
@@ -267,9 +267,9 @@ export interface SpanExporter {
   /** Exporter name */
   name: string
   /** Export spans */
-  export(spans: SpanData[]): void | Promise<void>
+  export: (spans: SpanData[]) => void | Promise<void>
   /** Shutdown exporter */
-  shutdown?(): void | Promise<void>
+  shutdown?: () => void | Promise<void>
 }
 
 /**
@@ -387,9 +387,12 @@ export class OTLPSpanExporter implements SpanExporter {
   }
 
   private convertValue(value: string | number | boolean | string[] | number[] | boolean[]): Record<string, unknown> {
-    if (typeof value === 'string') return { stringValue: value }
-    if (typeof value === 'number') return Number.isInteger(value) ? { intValue: value } : { doubleValue: value }
-    if (typeof value === 'boolean') return { boolValue: value }
+    if (typeof value === 'string')
+      return { stringValue: value }
+    if (typeof value === 'number')
+      return Number.isInteger(value) ? { intValue: value } : { doubleValue: value }
+    if (typeof value === 'boolean')
+      return { boolValue: value }
     if (Array.isArray(value)) {
       return {
         arrayValue: {
@@ -533,7 +536,8 @@ export class Tracer {
    * Flush completed spans to exporters
    */
   async flush(): Promise<void> {
-    if (this.completedSpans.length === 0) return
+    if (this.completedSpans.length === 0)
+      return
 
     const spans = this.completedSpans.splice(0, this.completedSpans.length)
 
@@ -561,17 +565,19 @@ export class Tracer {
    * Extract trace context from headers (W3C Trace Context)
    */
   static extractContext(headers: Record<string, string | undefined>): TraceContext | null {
-    const traceparent = headers.traceparent || headers['traceparent']
-    if (!traceparent) return null
+    const traceparent = headers.traceparent || headers.traceparent
+    if (!traceparent)
+      return null
 
     const match = traceparent.match(/^00-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/)
-    if (!match) return null
+    if (!match)
+      return null
 
     return {
       traceId: match[1],
       spanId: match[2],
       traceFlags: Number.parseInt(match[3], 16),
-      traceState: headers.tracestate || headers['tracestate'],
+      traceState: headers.tracestate || headers.tracestate,
     }
   }
 
@@ -580,7 +586,7 @@ export class Tracer {
    */
   static injectContext(span: Span, headers: Record<string, string>): void {
     const data = span.getData()
-    headers['traceparent'] = `00-${data.traceId}-${data.spanId}-01`
+    headers.traceparent = `00-${data.traceId}-${data.spanId}-01`
     // Could also inject tracestate if needed
   }
 }

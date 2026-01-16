@@ -213,7 +213,8 @@ export class AsyncValidator {
     const attributeValidations: Array<Promise<{ attribute: string, errors: string[] }>> = []
 
     for (const [attribute, rules] of this.rules) {
-      if (rules.length === 0) continue
+      if (rules.length === 0)
+        continue
 
       const value = data[attribute]
       const validation = this.validateValue(value, attribute, data, modelType, signal)

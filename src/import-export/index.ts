@@ -3,17 +3,17 @@
 // ============================================================================
 
 export {
-  DataExporter,
   createDataExporter,
+  DataExporter,
   type ExportFormat,
   type ExportOptions,
   type ExportResult,
 } from './DataExporter'
 
 export {
-  DataImporter,
+  type BatchWriteCommand,
   createDataImporter,
+  DataImporter,
   type ImportOptions,
   type ImportResult,
-  type BatchWriteCommand,
 } from './DataImporter'

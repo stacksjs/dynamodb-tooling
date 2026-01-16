@@ -205,7 +205,7 @@ export interface MetricsCollector {
   /** Collector name */
   name: string
   /** Collect and return current metrics */
-  collect(): MetricValue[]
+  collect: () => MetricValue[]
 }
 
 /**
@@ -215,7 +215,7 @@ export interface MetricsExporter {
   /** Exporter name */
   name: string
   /** Export metrics */
-  export(metrics: MetricValue[]): unknown | Promise<unknown>
+  export: (metrics: MetricValue[]) => unknown | Promise<unknown>
 }
 
 /**
@@ -284,9 +284,12 @@ export class CloudWatchExporter implements MetricsExporter {
   }
 
   private inferUnit(metricName: string): string {
-    if (metricName.includes('duration') || metricName.includes('_ms')) return 'Milliseconds'
-    if (metricName.includes('bytes') || metricName.includes('size')) return 'Bytes'
-    if (metricName.includes('total') || metricName.includes('count')) return 'Count'
+    if (metricName.includes('duration') || metricName.includes('_ms'))
+      return 'Milliseconds'
+    if (metricName.includes('bytes') || metricName.includes('size'))
+      return 'Bytes'
+    if (metricName.includes('total') || metricName.includes('count'))
+      return 'Count'
     return 'None'
   }
 }
@@ -549,7 +552,8 @@ export class MetricsRegistry {
    */
   getCounter(name: string, labels: MetricLabels = {}): number {
     const counters = this.counters.get(name)
-    if (!counters) return 0
+    if (!counters)
+      return 0
     return counters.get(this.labelsToKey(labels)) || 0
   }
 
@@ -558,7 +562,8 @@ export class MetricsRegistry {
    */
   getGauge(name: string, labels: MetricLabels = {}): number | undefined {
     const gauges = this.gauges.get(name)
-    if (!gauges) return undefined
+    if (!gauges)
+      return undefined
     return gauges.get(this.labelsToKey(labels))
   }
 
@@ -572,10 +577,12 @@ export class MetricsRegistry {
     buckets: Record<number, number>
   } | undefined {
     const histograms = this.histograms.get(name)
-    if (!histograms) return undefined
+    if (!histograms)
+      return undefined
 
     const histogram = histograms.get(this.labelsToKey(labels))
-    if (!histogram) return undefined
+    if (!histogram)
+      return undefined
 
     return {
       count: histogram.count,
@@ -593,7 +600,8 @@ export class MetricsRegistry {
   }
 
   private keyToLabels(key: string): MetricLabels {
-    if (!key) return {}
+    if (!key)
+      return {}
     const labels: MetricLabels = {}
     for (const part of key.split(',')) {
       const [k, v] = part.split('=')

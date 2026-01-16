@@ -174,7 +174,7 @@ export type UpdateFn<M extends { attributes: Record<string, ModelAttribute> }> =
 /**
  * Constrain to model-like types
  */
-export type ModelLike = {
+export interface ModelLike {
   attributes: Record<string, ModelAttribute>
   relationships?: Record<string, ModelRelationship>
 }

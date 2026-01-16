@@ -32,9 +32,9 @@ export interface PolymorphicConfig {
  */
 export interface Morphable {
   /** Get the morph type */
-  getMorphType(): string
+  getMorphType: () => string
   /** Get the morph ID */
-  getMorphId(): string
+  getMorphId: () => string
 }
 
 /**
@@ -72,10 +72,12 @@ export class PolymorphicRelationshipManager {
     id: string,
   ): { type: string, id: string } | null {
     const config = this.configs.get(relationshipName)
-    if (!config) return null
+    if (!config)
+      return null
 
     const typeMapping = config.types[typeName]
-    if (!typeMapping) return null
+    if (!typeMapping)
+      return null
 
     return {
       type: typeName,
@@ -96,10 +98,12 @@ export class PolymorphicRelationshipManager {
     sk?: string
   } | null {
     const config = this.configs.get(relationshipName)
-    if (!config) return null
+    if (!config)
+      return null
 
     const typeMapping = config.types[typeName]
-    if (!typeMapping) return null
+    if (!typeMapping)
+      return null
 
     const pk = `${typeMapping.pkPrefix}${id}`
     const sk = typeMapping.skPrefix
@@ -121,12 +125,14 @@ export class PolymorphicRelationshipManager {
     item: Record<string, unknown>,
   ): { type: string, id: string } | null {
     const config = this.configs.get(relationshipName)
-    if (!config) return null
+    if (!config)
+      return null
 
     const type = item[config.typeAttribute] as string
     const id = item[config.idAttribute] as string
 
-    if (!type || !id) return null
+    if (!type || !id)
+      return null
 
     return { type, id }
   }
@@ -141,7 +147,8 @@ export class PolymorphicRelationshipManager {
     id: string,
   ): Record<string, unknown> {
     const config = this.configs.get(relationshipName)
-    if (!config) return item
+    if (!config)
+      return item
 
     return {
       ...item,
@@ -198,11 +205,11 @@ export function morphMany(config: {
   foreignIdAttribute?: string
   localType: string
 }): {
-  name: string
-  foreignTypeAttribute: string
-  foreignIdAttribute: string
-  localType: string
-} {
+    name: string
+    foreignTypeAttribute: string
+    foreignIdAttribute: string
+    localType: string
+  } {
   return {
     name: config.name,
     foreignTypeAttribute: config.foreignTypeAttribute ?? 'morphableType',
@@ -223,7 +230,8 @@ export function buildPolymorphicGSIKey(type: string, id: string): string {
  */
 export function parsePolymorphicGSIKey(key: string): { type: string, id: string } | null {
   const match = key.match(/^MORPH#([^#]+)#(.+)$/)
-  if (!match) return null
+  if (!match)
+    return null
 
   return {
     type: match[1],

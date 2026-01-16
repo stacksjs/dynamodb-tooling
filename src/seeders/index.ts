@@ -3,20 +3,20 @@
 // ============================================================================
 
 export {
+  type FactoryDefinition,
+  type FactoryInstance,
   Seeder,
   type SeederContext,
   type SeederDatabaseClient,
   type SeederMetadata,
   type SeederResult,
   type SeederRunResult,
-  type FactoryDefinition,
-  type FactoryInstance,
 } from './Seeder'
 
 export {
-  runSeeders,
   discoverSeeders,
   formatSeederResult,
-  type SeederRunnerOptions,
+  runSeeders,
   type SeederConstructor,
+  type SeederRunnerOptions,
 } from './SeederRunner'

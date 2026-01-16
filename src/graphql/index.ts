@@ -3,13 +3,13 @@
 // ============================================================================
 
 export {
-  GraphQLSchemaBuilder,
   createGraphQLSchemaBuilder,
-  type GraphQLScalarType,
   type GraphQLFieldDef,
-  type GraphQLTypeDef,
-  type GraphQLQueryDef,
   type GraphQLMutationDef,
+  type GraphQLQueryDef,
+  type GraphQLScalarType,
+  GraphQLSchemaBuilder,
+  type GraphQLTypeDef,
   type ModelDefinition,
   type SchemaBuilderOptions,
 } from './SchemaBuilder'

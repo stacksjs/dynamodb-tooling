@@ -1,9 +1,8 @@
-import { describe, expect, it, beforeEach, mock } from 'bun:test'
+import type { DriverPlugin, TransactGetItemsInput, TransactWriteItemsInput } from '../src/drivers'
+import { beforeEach, describe, expect, it } from 'bun:test'
 import {
   createDynamoDBDriver,
-  type DriverPlugin,
-  type TransactWriteItemsInput,
-  type TransactGetItemsInput,
+
 } from '../src/drivers'
 
 describe('Transaction Operations', () => {
@@ -450,10 +449,14 @@ describe('Transaction Operations', () => {
       }
 
       const operationTypes = input.transactItems.map((item) => {
-        if (item.put) return 'put'
-        if (item.update) return 'update'
-        if (item.delete) return 'delete'
-        if (item.conditionCheck) return 'conditionCheck'
+        if (item.put)
+          return 'put'
+        if (item.update)
+          return 'update'
+        if (item.delete)
+          return 'delete'
+        if (item.conditionCheck)
+          return 'conditionCheck'
         return 'unknown'
       })
 

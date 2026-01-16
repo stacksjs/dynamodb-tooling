@@ -1,17 +1,14 @@
-import { describe, expect, it, beforeEach, mock } from 'bun:test'
+import type { ModelRegistry } from '../src/model-parser/types'
+import type { BatchWriteOperation, DynamoDBClient, ModelAttribute, ModelRelationship } from '../src/models/DynamoDBModel'
+import type { Config } from '../src/types'
+import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { defaultConfig } from '../src/config'
 import {
   DynamoDBModel,
-  DynamoDBQueryBuilder,
   setModelClient,
-  setOrmModelRegistry,
   setModelConfig,
-  type DynamoDBClient,
-  type ModelAttribute,
-  type ModelRelationship,
-  type BatchWriteOperation,
+  setOrmModelRegistry,
 } from '../src/models/DynamoDBModel'
-import type { ModelRegistry } from '../src/model-parser/types'
-import type { Config } from '../src/types'
 
 // Test model
 class TestItem extends DynamoDBModel {
@@ -22,10 +19,10 @@ class TestItem extends DynamoDBModel {
 
   get attributes(): Record<string, ModelAttribute> {
     return {
-      id: { type: 'string', required: true },
-      name: { type: 'string', required: true },
-      category: { type: 'string' },
-      price: { type: 'number' },
+      id: { name: 'id', type: 'string', required: true },
+      name: { name: 'name', type: 'string', required: true },
+      category: { name: 'category', type: 'string' },
+      price: { name: 'price', type: 'number' },
     }
   }
 
@@ -34,59 +31,18 @@ class TestItem extends DynamoDBModel {
   }
 }
 
-// Mock config
+// Mock config - use defaultConfig as base
 const mockConfig: Config = {
+  ...defaultConfig,
   defaultTableName: 'main',
-  tableNamePrefix: '',
-  tableNameSuffix: '',
-  singleTableDesign: {
-    enabled: true,
-    partitionKeyName: 'pk',
-    sortKeyName: 'sk',
-    entityTypeAttribute: '_et',
-    keyDelimiter: '#',
-  },
-  capacity: {
-    billingMode: 'PAY_PER_REQUEST',
-  },
-  local: {
-    enabled: true,
-    port: 8000,
-    installPath: 'dynamodb-local',
-    sharedDb: true,
-    inMemory: true,
-    delayTransientStatuses: false,
-    optimizeDbBeforeStartup: false,
-  },
-  queryBuilder: {
-    modelsPath: './app/models',
-    timestampFormat: 'iso',
-    timestamps: {
-      createdAt: 'createdAt',
-      updatedAt: 'updatedAt',
-    },
-    softDeletes: {
-      enabled: false,
-      attribute: 'deletedAt',
-    },
-    versionAttribute: '_version',
-  },
-  retryConfig: {
-    maxRetries: 3,
-    baseDelay: 100,
-    maxDelay: 5000,
-    retryableStatusCodes: [500, 502, 503, 504],
-  },
-  environment: 'development',
-  region: 'us-east-1',
-  loggingEnabled: false,
 }
 
 function createMockRegistry(): ModelRegistry {
   return {
     models: new Map(),
-    relationships: new Map(),
-    accessPatterns: new Map(),
+    accessPatterns: [],
+    gsiAssignments: new Map(),
+    warnings: [],
   }
 }
 
@@ -133,7 +89,7 @@ describe('Batch Operations', () => {
         name: `Item ${i}`,
         category: 'test',
         price: i * 10,
-      }))
+      })) as unknown as Partial<TestItem>[]
 
       const results = await TestItem.query().insertMany(items)
 
@@ -145,7 +101,7 @@ describe('Batch Operations', () => {
       const items = Array.from({ length: 50 }, (_, i) => ({
         id: `item-${i}`,
         name: `Item ${i}`,
-      }))
+      })) as unknown as Partial<TestItem>[]
 
       await TestItem.query().insertMany(items)
 
@@ -162,7 +118,7 @@ describe('Batch Operations', () => {
       const items = [
         { id: '1', name: 'Test 1' },
         { id: '2', name: 'Test 2' },
-      ]
+      ] as unknown as Partial<TestItem>[]
 
       const results = await TestItem.query().insertMany(items)
 
@@ -243,7 +199,7 @@ describe('Batch Operations', () => {
 
           // Stop after first chunk to avoid infinite loop in test
           if (processedCount >= 5) {
-            return
+
           }
         })
 
@@ -499,7 +455,7 @@ describe('Bulk Update and Delete', () => {
     it('should update multiple items', async () => {
       const count = await TestItem.query()
         .where('pk', 'ITEM#1')
-        .update({ name: 'Updated' })
+        .update({ name: 'Updated' } as unknown as Partial<TestItem>)
 
       expect(typeof count).toBe('number')
     })

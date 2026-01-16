@@ -3,24 +3,24 @@
 // ============================================================================
 
 export {
-  DataGenerator,
   createDataGenerator,
-  EntityGeneratorBuilder,
+  DataGenerator,
   entityGenerator,
-  generators,
-  type GeneratorFn,
+  EntityGeneratorBuilder,
   type FieldGenerator,
+  type GeneratorFn,
+  generators,
   type GeneratorSchema,
 } from './DataGenerator'
 
 export {
-  QueryAnalyzer,
   createQueryAnalyzer,
-  type QueryOperationType,
   type QueryAnalysis,
-  type QueryIssue,
-  type QueryRecommendation,
+  QueryAnalyzer,
   type QueryCharacteristics,
   type QueryInput,
+  type QueryIssue,
+  type QueryOperationType,
+  type QueryRecommendation,
   type TableMetadata,
 } from './QueryAnalyzer'

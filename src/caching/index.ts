@@ -3,13 +3,13 @@
 // ============================================================================
 
 export {
-  CacheManager,
-  createCacheManager,
-  MemoryCacheStore,
   cached,
-  hashQuery,
   type CacheEntry,
+  CacheManager,
   type CacheOptions,
   type CacheStats,
   type CacheStore,
+  createCacheManager,
+  hashQuery,
+  MemoryCacheStore,
 } from './CacheManager'

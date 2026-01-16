@@ -410,8 +410,8 @@ export class TsValidationRules {
     this.loadPromise = (async (): Promise<{ [key: string]: unknown }> => {
       try {
         // Dynamic import for ts-validation
-        // eslint-disable-next-line ts/no-require-imports
-        const mod = await (Function('return import("@stacksjs/ts-validation")')() as Promise<{ default?: { [key: string]: unknown }, [key: string]: unknown }>)
+
+        const mod = await (new Function('return import("@stacksjs/ts-validation")')() as Promise<{ default?: { [key: string]: unknown }, [key: string]: unknown }>)
         this.validator = (mod.default || mod) as { [key: string]: unknown }
         return this.validator
       }

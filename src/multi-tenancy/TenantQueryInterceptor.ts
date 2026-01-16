@@ -2,9 +2,9 @@
 // Tenant Query Interceptor - Auto-inject tenant context into queries
 // ============================================================================
 
-import type { TenantIsolationStrategy } from '../types'
+import type { TenantManager } from './TenantManager'
 import { TenantIsolation } from './TenantIsolation'
-import { CrossTenantAccessError, type TenantManager } from './TenantManager'
+import { CrossTenantAccessError } from './TenantManager'
 
 /**
  * Intercepted query with tenant modifications
@@ -319,7 +319,8 @@ export class TenantQueryInterceptor {
   async processResult<T extends Record<string, unknown>>(
     item: T | null,
   ): Promise<T | null> {
-    if (!item) return null
+    if (!item)
+      return null
     const results = await this.processResults([item])
     return results[0] || null
   }

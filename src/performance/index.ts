@@ -3,18 +3,18 @@
 // ============================================================================
 
 export {
-  QueryCache,
-  createQueryCache,
   type CacheStats,
+  createQueryCache,
+  QueryCache,
 } from './QueryCache'
 
 export {
-  RetryHandler,
-  RequestDeduplicator,
-  RequestCoalescer,
   CapacityTracker,
-  createRetryHandler,
-  createRequestDeduplicator,
   createCapacityTracker,
+  createRequestDeduplicator,
+  createRetryHandler,
+  RequestCoalescer,
+  RequestDeduplicator,
   type RetryConfig,
+  RetryHandler,
 } from './RetryHandler'

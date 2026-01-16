@@ -193,16 +193,16 @@ export class EventStore {
       ascending?: boolean
     },
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeNames: Record<string, string>
-      ExpressionAttributeValues: Record<string, unknown>
-      ScanIndexForward: boolean
-      Limit?: number
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeNames: Record<string, string>
+        ExpressionAttributeValues: Record<string, unknown>
+        ScanIndexForward: boolean
+        Limit?: number
+      }
+    } {
     // Handle backward compatibility: number = fromVersion
     const opts = typeof options === 'number'
       ? { fromVersion: options }
@@ -312,16 +312,16 @@ export class EventStore {
     aggregateType: string,
     aggregateId: string,
   ): {
-    command: 'Query'
-    input: {
-      TableName: string
-      KeyConditionExpression: string
-      ExpressionAttributeNames: Record<string, string>
-      ExpressionAttributeValues: Record<string, unknown>
-      ScanIndexForward: boolean
-      Limit: number
-    }
-  } {
+      command: 'Query'
+      input: {
+        TableName: string
+        KeyConditionExpression: string
+        ExpressionAttributeNames: Record<string, string>
+        ExpressionAttributeValues: Record<string, unknown>
+        ScanIndexForward: boolean
+        Limit: number
+      }
+    } {
     return {
       command: 'Query',
       input: {
@@ -416,15 +416,15 @@ export class EventStore {
     event: Omit<DomainEvent<T>, 'eventId' | 'timestamp'>,
     expectedVersion: number,
   ): {
-    command: 'PutItem'
-    input: {
-      TableName: string
-      Item: EventItem
-      ConditionExpression: string
-      ExpressionAttributeNames: Record<string, string>
-      ExpressionAttributeValues: Record<string, unknown>
-    }
-  } {
+      command: 'PutItem'
+      input: {
+        TableName: string
+        Item: EventItem
+        ConditionExpression: string
+        ExpressionAttributeNames: Record<string, string>
+        ExpressionAttributeValues: Record<string, unknown>
+      }
+    } {
     const cmd = this.appendEvent(event)
     return {
       command: cmd.command,
@@ -450,13 +450,13 @@ export class EventStore {
     aggregateType: string,
     options?: { eventTypes?: string[], fromTimestamp?: Date },
   ): {
-    command: 'Scan'
-    input: {
-      TableName: string
-      FilterExpression: string
-      ExpressionAttributeValues: Record<string, unknown>
-    }
-  } {
+      command: 'Scan'
+      input: {
+        TableName: string
+        FilterExpression: string
+        ExpressionAttributeValues: Record<string, unknown>
+      }
+    } {
     const filterExpressions: string[] = []
     const expressionAttributeValues: Record<string, unknown> = {
       ':pkPrefix': { S: `AGG#${aggregateType}#` },

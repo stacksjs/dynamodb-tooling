@@ -3,12 +3,12 @@
 // ============================================================================
 
 export {
-  EventStore,
-  createEventStore,
   AggregateRoot,
+  createEventStore,
   type DomainEvent,
-  type EventStream,
-  type EventStoreOptions,
-  type Snapshot,
   type EventHandler,
+  EventStore,
+  type EventStoreOptions,
+  type EventStream,
+  type Snapshot,
 } from './EventStore'

@@ -230,25 +230,22 @@ export const generators = {
 
     if (options?.paragraphs) {
       return Array.from({ length: options.paragraphs }, () =>
-        generators.lorem({ sentences: generators.integer({ min: 3, max: 6 }) }),
-      ).join('\n\n')
+        generators.lorem({ sentences: generators.integer({ min: 3, max: 6 }) })).join('\n\n')
     }
 
     if (options?.sentences) {
       return Array.from({ length: options.sentences }, () => {
         const wordCount = generators.integer({ min: 5, max: 15 })
         const words = Array.from({ length: wordCount }, () =>
-          loremWords[Math.floor(Math.random() * loremWords.length)],
-        )
+          loremWords[Math.floor(Math.random() * loremWords.length)])
         words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1)
-        return words.join(' ') + '.'
+        return `${words.join(' ')}.`
       }).join(' ')
     }
 
     const wordCount = options?.words ?? 10
     return Array.from({ length: wordCount }, () =>
-      loremWords[Math.floor(Math.random() * loremWords.length)],
-    ).join(' ')
+      loremWords[Math.floor(Math.random() * loremWords.length)]).join(' ')
   },
 
   /**
@@ -324,7 +321,7 @@ export class DataGenerator {
   /**
    * Generate items in batches (for batch write)
    */
-  *generateBatches(totalCount: number, batchSize: number = 25): Generator<Record<string, unknown>[]> {
+  * generateBatches(totalCount: number, batchSize: number = 25): Generator<Record<string, unknown>[]> {
     let remaining = totalCount
     while (remaining > 0) {
       const count = Math.min(remaining, batchSize)

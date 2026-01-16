@@ -3,10 +3,12 @@
 // ============================================================================
 
 import type { ModelAttribute } from '../models/types'
-import { AsyncValidator, type AsyncValidationRuleDefinition } from './AsyncValidator'
+import type { AsyncValidationRuleDefinition } from './AsyncValidator'
+import type { ValidationRuleDefinition } from './Validator'
+import { AsyncValidator } from './AsyncValidator'
 import { rules } from './rules'
 import { TsValidationRules } from './TsValidationIntegration'
-import { type ValidationRuleDefinition, Validator } from './Validator'
+import { Validator } from './Validator'
 
 /**
  * Model validation options

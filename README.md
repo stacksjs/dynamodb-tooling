@@ -184,8 +184,8 @@ User.query().whereContains('tags', 'featured').get()
 // Ordering
 User.query().orderBy('name').get()
 User.query().orderByDesc('createdAt').get()
-User.query().latest().get()  // orderBy('createdAt', 'desc')
-User.query().oldest().get()  // orderBy('createdAt', 'asc')
+User.query().latest().get() // orderBy('createdAt', 'desc')
+User.query().oldest().get() // orderBy('createdAt', 'asc')
 
 // Limiting
 User.query().limit(10).get()
@@ -209,7 +209,7 @@ await User.query().chunk(100, async (users) => {
 // Eager loading
 User.query().with('posts').get()
 User.query().with('posts', 'profile').get()
-User.query().with('posts.comments').get()  // Nested
+User.query().with('posts.comments').get() // Nested
 
 // Relationship counts
 User.query().withCount('posts').get()
@@ -266,7 +266,7 @@ Create factories for generating test data:
 
 ```ts
 // factories/UserFactory.ts
-import { Factory, uniqueEmail, randomInt } from 'dynamodb-tooling'
+import { Factory, randomInt, uniqueEmail } from 'dynamodb-tooling'
 
 Factory.define('User', {
   entityType: 'USER',
@@ -285,7 +285,7 @@ Factory.define('User', {
 // Usage
 const users = await Factory.for('User').count(10).create()
 const admin = await Factory.for('User').state('admin').createOne()
-const fakeUsers = Factory.for('User').count(5).make()  // No persist
+const fakeUsers = Factory.for('User').count(5).make() // No persist
 ```
 
 ## Seeder System
@@ -386,11 +386,11 @@ interface DynamoDBConfig {
   // Single-Table Design
   singleTableDesign: {
     enabled: boolean
-    partitionKeyName: string  // default: 'pk'
-    sortKeyName: string       // default: 'sk'
-    keyDelimiter: string      // default: '#'
-    entityTypeAttribute: string  // default: '_type'
-    gsiCount: number          // default: 5
+    partitionKeyName: string // default: 'pk'
+    sortKeyName: string // default: 'sk'
+    keyDelimiter: string // default: '#'
+    entityTypeAttribute: string // default: '_type'
+    gsiCount: number // default: 5
   }
 
   // Query Builder

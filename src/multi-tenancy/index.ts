@@ -3,36 +3,36 @@
 // ============================================================================
 
 export {
-  TenantManager,
-  createTenantManager,
-  TenantContext,
-  setTenantContext,
-  getTenantContext,
-  clearTenantContext,
-  withTenant,
-  type TenantContextData,
-} from './TenantManager'
+  createTenantCapacityManager,
+  type TenantCapacityConfig,
+  TenantCapacityManager,
+  type TenantCapacityStats,
+} from './TenantCapacityManager'
 
 export {
-  TenantIsolation,
-  createTablePerTenantIsolation,
-  createPrefixIsolation,
-  createAttributeIsolation,
-  type IsolationStrategy,
-  type TablePerTenantStrategy,
-  type PrefixIsolationStrategy,
   type AttributeIsolationStrategy,
+  createAttributeIsolation,
+  createPrefixIsolation,
+  createTablePerTenantIsolation,
+  type IsolationStrategy,
+  type PrefixIsolationStrategy,
+  type TablePerTenantStrategy,
+  TenantIsolation,
 } from './TenantIsolation'
 
 export {
-  TenantQueryInterceptor,
-  createTenantQueryInterceptor,
-  type InterceptedQuery,
-} from './TenantQueryInterceptor'
+  clearTenantContext,
+  createTenantManager,
+  getTenantContext,
+  setTenantContext,
+  TenantContext,
+  type TenantContextData,
+  TenantManager,
+  withTenant,
+} from './TenantManager'
 
 export {
-  TenantCapacityManager,
-  createTenantCapacityManager,
-  type TenantCapacityConfig,
-  type TenantCapacityStats,
-} from './TenantCapacityManager'
+  createTenantQueryInterceptor,
+  type InterceptedQuery,
+  TenantQueryInterceptor,
+} from './TenantQueryInterceptor'
