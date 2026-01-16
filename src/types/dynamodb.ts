@@ -490,7 +490,7 @@ type ValidTransactionLength =
 /**
  * Valid batch write length (1-25)
  */
-type ValidBatchWriteLength =
+type _ValidBatchWriteLength =
   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
   | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20
   | 21 | 22 | 23 | 24 | 25
@@ -498,7 +498,7 @@ type ValidBatchWriteLength =
 /**
  * Valid batch get length (1-100)
  */
-type ValidBatchGetLength = ValidTransactionLength
+type _ValidBatchGetLength = ValidTransactionLength
 
 // ============================================================================
 // Return Value Types

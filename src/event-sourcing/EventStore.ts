@@ -253,7 +253,7 @@ export class EventStore {
    */
   parseEvents<T = unknown>(items: Record<string, unknown>[]): DomainEvent<T>[] {
     return items.map((item) => {
-      const pk = (item.pk as { S: string }).S
+      const _pk = (item.pk as { S: string }).S
       const data = (item.data as { S: string }).S
 
       return {

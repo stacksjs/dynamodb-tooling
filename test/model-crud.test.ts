@@ -65,7 +65,7 @@ class TestPost extends DynamoDBModel {
 
 // Mock DynamoDB client
 function createMockClient(): DynamoDBClient {
-  const storage = new Map<string, unknown>()
+  const _storage = new Map<string, unknown>()
 
   return {
     getItem: mock(async (_tableName: string, _key: Record<string, unknown>) => {

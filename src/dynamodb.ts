@@ -200,7 +200,6 @@ export const dynamoDb = {
     if (jarExists)
       return
 
-    // eslint-disable-next-line no-console
     console.log('Installing DynamoDB locally...')
     const downloadUrl = config.local.downloadUrl
     await new Promise((resolve, reject) => {

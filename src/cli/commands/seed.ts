@@ -57,6 +57,7 @@ export function registerSeedCommands(cli: CAC): void {
         console.log('      attributes: () => ({')
         console.log('        id: crypto.randomUUID(),')
         console.log('        name: \'Test User\',')
+        // eslint-disable-next-line no-template-curly-in-string
         console.log('        email: `user${Date.now()}@example.com`,')
         console.log('      })')
         console.log('    }).count(10).create()')

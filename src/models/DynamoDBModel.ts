@@ -642,8 +642,8 @@ export abstract class DynamoDBModel {
         const keys = this.getKeys(config)
         const tableName = this.getTableName(config)
 
-        // Build update expression
-        const updateExpression = this.buildUpdateExpression(changes, config)
+        // Build update expression (computed for future use)
+        const _updateExpression = this.buildUpdateExpression(changes, config)
         const marshalledKey = {
           [config.singleTableDesign.partitionKeyName]: marshallValue(keys.pk)!,
           [config.singleTableDesign.sortKeyName]: marshallValue(keys.sk)!,
@@ -896,9 +896,9 @@ export abstract class DynamoDBModel {
   private async loadRelationship<T extends DynamoDBModel>(
     related: DynamoDBModelConstructor<T>,
     type: 'hasOne' | 'hasMany' | 'belongsTo' | 'belongsToMany',
-    foreignKey?: string,
-    localKey?: string,
-    pivotEntity?: string,
+    _foreignKey?: string,
+    _localKey?: string,
+    _pivotEntity?: string,
   ): Promise<T | T[] | null> {
     const relationName = related.name
 
@@ -1290,7 +1290,7 @@ export abstract class DynamoDBModel {
   /**
    * Build update expression from changes
    */
-  private buildUpdateExpression(changes: JSObject, config: Config): string {
+  private buildUpdateExpression(changes: JSObject, _config: Config): string {
     const setParts: string[] = []
 
     for (const key of Object.keys(changes)) {
@@ -1530,17 +1530,17 @@ export class DynamoDBQueryBuilder<T extends DynamoDBModel> {
 
   // ---- Relationship Existence ----
 
-  has(relationship: string): this {
+  has(_relationship: string): this {
     // Add filter for relationship existence
     return this
   }
 
-  doesntHave(relationship: string): this {
+  doesntHave(_relationship: string): this {
     // Add filter for relationship non-existence
     return this
   }
 
-  whereHas(relationship: string, callback?: (query: DynamoDBQueryBuilder<DynamoDBModel>) => void): this {
+  whereHas(_relationship: string, _callback?: (query: DynamoDBQueryBuilder<DynamoDBModel>) => void): this {
     // Apply callback constraints to relationship query
     return this
   }
@@ -2055,7 +2055,7 @@ export class DynamoDBQueryBuilder<T extends DynamoDBModel> {
             values[`:v${valueIndex}b`] = marshallValue(condition.secondValue)!
             filterParts.push(`${nameKey} BETWEEN :v${valueIndex}a AND :v${valueIndex}b`)
             break
-          case 'in':
+          case 'in': {
             const inValues = condition.value as unknown[]
             const inKeys = inValues.map((v, i) => {
               const k = `:v${valueIndex}_${i}`
@@ -2064,6 +2064,7 @@ export class DynamoDBQueryBuilder<T extends DynamoDBModel> {
             })
             filterParts.push(`${nameKey} IN (${inKeys.join(', ')})`)
             break
+          }
           case '!=':
             if (condition.value === null) {
               filterParts.push(`attribute_exists(${nameKey})`)

@@ -36,8 +36,8 @@ import { unmarshallItem } from './utils'
 async function signRequest(
   request: Request,
   credentials: { accessKeyId: string, secretAccessKey: string, sessionToken?: string },
-  region: string,
-  service: string,
+  _region: string,
+  _service: string,
 ): Promise<Request> {
   // This is a placeholder - in real implementation, use AWS Signature V4
   const headers = new Headers(request.headers)

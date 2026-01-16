@@ -121,9 +121,9 @@ export type ValidateRelationship<
 export type ValidateNestedRelationship<
   Path extends string,
   Model extends { relationships?: Record<string, ModelRelationship> },
-> = Path extends `${infer First}.${infer Rest}`
+> = Path extends `${infer First}.${infer _Rest}`
   ? First extends keyof NonNullable<Model['relationships']>
-    ? true // TODO: Recursively validate Rest on related model
+    ? true // TODO: Recursively validate _Rest on related model
     : never
   : ValidateRelationship<Path, Model>
 
@@ -182,7 +182,7 @@ export interface ModelLike {
 /**
  * Constrain function to work with any model
  */
-export type ForModel<M extends ModelLike, R> = R
+export type ForModel<_M extends ModelLike, R> = R
 
 // ============================================================================
 // JSDoc Helper Types for IDE Integration

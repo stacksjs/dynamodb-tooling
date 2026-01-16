@@ -171,7 +171,7 @@ export function registerSchemaCommands(cli: CAC): void {
   cli
     .command('schema:tree', 'Display schema as a tree structure')
     .option('--depth <n>', 'Maximum depth to display', { default: 3 })
-    .action(async (options: { depth: number }) => {
+    .action(async (_options: { depth: number }) => {
       try {
         const config = await getConfig()
         const schema = await generateSchema(config)

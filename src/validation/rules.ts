@@ -511,7 +511,7 @@ export function nullable(): ValidationRuleDefinition {
 export function sometimes(): ValidationRuleDefinition {
   return {
     name: 'sometimes',
-    rule: (value: unknown): boolean => {
+    rule: (_value: unknown): boolean => {
       // Always passes - other rules should check for undefined
       return true
     },

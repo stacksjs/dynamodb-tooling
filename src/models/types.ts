@@ -428,30 +428,30 @@ export abstract class Model {
 
   static find<T extends Model>(
     this: ModelConstructor<T>,
-    pk: string | number,
-    sk?: string | number,
+    _pk: string | number,
+    _sk?: string | number,
   ): Promise<T | null> {
     throw new Error('find() must be implemented by concrete model class')
   }
 
   static findOrFail<T extends Model>(
     this: ModelConstructor<T>,
-    pk: string | number,
-    sk?: string | number,
+    _pk: string | number,
+    _sk?: string | number,
   ): Promise<T> {
     throw new Error('findOrFail() must be implemented by concrete model class')
   }
 
   static findMany<T extends Model>(
     this: ModelConstructor<T>,
-    keys: Array<{ pk: string | number, sk?: string | number }>,
+    _keys: Array<{ pk: string | number, sk?: string | number }>,
   ): Promise<T[]> {
     throw new Error('findMany() must be implemented by concrete model class')
   }
 
   static create<T extends Model>(
     this: ModelConstructor<T>,
-    attributes: JSObject,
+    _attributes: JSObject,
   ): Promise<T> {
     throw new Error('create() must be implemented by concrete model class')
   }

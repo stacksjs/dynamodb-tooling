@@ -388,7 +388,6 @@ describe('Type System', () => {
     it('should throw for unexpected values in assertNever', () => {
       // This tests the runtime behavior - type checking is done at compile time
       expect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         assertNever('unexpected' as any as never)
       }).toThrow('Unexpected value')
     })

@@ -112,7 +112,7 @@ describe('dynamodb-tooling', () => {
   })
 
   describe('DynamoDB Local (Java) - Mocked Install', () => {
-    const testPort = 8002
+    const _testPort = 8002
     const originalInstall = dynamoDb.install
 
     beforeAll(async () => {

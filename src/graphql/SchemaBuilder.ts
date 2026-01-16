@@ -439,7 +439,7 @@ export class GraphQLSchemaBuilder {
 
   private generateQueries(model: ModelDefinition): void {
     const name = model.name
-    const lowerName = name.charAt(0).toLowerCase() + name.slice(1)
+    const _lowerName = name.charAt(0).toLowerCase() + name.slice(1)
 
     // Get by ID
     this.queries.set(`get${name}`, {
@@ -916,7 +916,7 @@ export class GraphQLSchemaBuilder {
     return ['String', 'Int', 'Float', 'Boolean', 'ID', 'AWSDateTime', 'AWSJSON'].includes(type)
   }
 
-  private generateQueryRequestTemplate(query: GraphQLQueryDef): string {
+  private generateQueryRequestTemplate(_query: GraphQLQueryDef): string {
     return `{
   "version": "2018-05-29",
   "operation": "Query",
@@ -924,7 +924,7 @@ export class GraphQLSchemaBuilder {
 }`
   }
 
-  private generateMutationRequestTemplate(mutation: GraphQLMutationDef): string {
+  private generateMutationRequestTemplate(_mutation: GraphQLMutationDef): string {
     return `{
   "version": "2018-05-29",
   "operation": "PutItem",

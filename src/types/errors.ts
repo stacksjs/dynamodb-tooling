@@ -461,7 +461,7 @@ export function createDynamoDBError(
 ): DynamoDBError | Error {
   const code = awsError.code || awsError.name || ''
   const message = awsError.message || 'Unknown error'
-  const statusCode = awsError.$metadata?.httpStatusCode
+  const _statusCode = awsError.$metadata?.httpStatusCode
   const requestId = awsError.$metadata?.requestId
 
   switch (code) {

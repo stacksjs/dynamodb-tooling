@@ -345,7 +345,7 @@ export async function discoverSeeders(seedersPath: string): Promise<SeederConstr
       }
     }
   }
-  catch (err) {
+  catch {
     // Directory doesn't exist or can't be read
     console.warn(`Warning: Could not read seeders directory: ${seedersPath}`)
   }

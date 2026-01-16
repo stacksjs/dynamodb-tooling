@@ -439,7 +439,7 @@ export class TsValidationRules {
       name: ruleName,
       params: options as Record<string, unknown>,
       message: customMessage ?? defaultMessages[ruleName],
-      rule: (value: unknown, context: ValidationContext): ValidationResult => {
+      rule: (value: unknown, _context: ValidationContext): ValidationResult => {
         // Skip validation for empty values (let required rule handle it)
         if (value === undefined || value === null || value === '') {
           return { valid: true }
