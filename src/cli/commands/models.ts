@@ -127,7 +127,7 @@ export function registerModelsCommands(cli: CAC): void {
     .option('--json', 'Output as JSON')
     .action(async (name: string, options: { json?: boolean }) => {
       try {
-        const config = await getConfig()
+        const _config = await getConfig()
         const models = await loadModels()
 
         const model = models.find(m =>
@@ -164,7 +164,7 @@ export function registerModelsCommands(cli: CAC): void {
     .option('--model <name>', 'Start from a specific model')
     .action(async (options: { model?: string }) => {
       try {
-        const config = await getConfig()
+        const _config = await getConfig()
         const models = await loadModels()
 
         header(
@@ -208,7 +208,7 @@ export function registerModelsCommands(cli: CAC): void {
     .option('--json', 'Output as JSON')
     .action(async (name: string, options: { json?: boolean }) => {
       try {
-        const config = await getConfig()
+        const _config = await getConfig()
         const models = await loadModels()
 
         const model = models.find(m =>
@@ -264,7 +264,7 @@ export function registerModelsCommands(cli: CAC): void {
     .option('--json', 'Output as JSON')
     .action(async (name: string, options: { json?: boolean }) => {
       try {
-        const config = await getConfig()
+        const _config = await getConfig()
         const models = await loadModels()
 
         const model = models.find(m =>
@@ -322,7 +322,7 @@ export function registerModelsCommands(cli: CAC): void {
     .option('--json', 'Output as JSON')
     .action(async (name: string, options: { json?: boolean }) => {
       try {
-        const config = await getConfig()
+        const _config = await getConfig()
         const models = await loadModels()
 
         const model = models.find(m =>

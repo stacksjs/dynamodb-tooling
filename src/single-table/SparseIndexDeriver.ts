@@ -78,7 +78,7 @@ export function deriveSparseIndexesFromModels(
     warnings: [],
   }
 
-  const delimiter = config.singleTableDesign.keyDelimiter
+  const _delimiter = config.singleTableDesign.keyDelimiter
   let gsiIndex = startingGSIIndex
 
   for (const [, model] of registry.models) {

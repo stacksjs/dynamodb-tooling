@@ -90,7 +90,7 @@ export function toDynamoDBItem(
   config: Config,
   options: TransformOptions = {},
 ): TransformResult<DynamoDBItem> {
-  const delimiter = config.singleTableDesign.keyDelimiter
+  const _delimiter = config.singleTableDesign.keyDelimiter
   const entityType = model.entityType
 
   // Resolve key patterns
@@ -455,7 +455,7 @@ function applyCast(value: unknown, cast: string): unknown {
 export function extractKeys(
   model: ParsedModel,
   data: JSObject,
-  config: Config,
+  _config: Config,
 ): { pk: string, sk: string } {
   const keys = resolveKeyPattern(model.keyPatterns, data as Record<string, string | number>)
   return { pk: keys.pk, sk: keys.sk }

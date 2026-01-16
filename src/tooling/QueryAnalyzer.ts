@@ -299,7 +299,7 @@ export class QueryAnalyzer {
    * Explain a query in human-readable format
    */
   explain(input: QueryInput): string {
-    const metadata = input.tableName ? this.tableMetadata.get(input.tableName) : undefined
+    const _metadata = input.tableName ? this.tableMetadata.get(input.tableName) : undefined
     const lines: string[] = []
 
     lines.push(`Operation: ${input.operation}`)

@@ -285,7 +285,7 @@ describe('Pagination', () => {
     })
 
     it('should accept cursor from previous page', async () => {
-      const firstPage = await TestItem.query().cursorPaginate(undefined, 5)
+      const _firstPage = await TestItem.query().cursorPaginate(undefined, 5)
       // Simulate getting a cursor from the first page
       const mockCursor = 'eyJwayI6IklURU0jNSIsInNrIjoiSVRFTSM1In0='
 
@@ -410,22 +410,22 @@ describe('Aggregations', () => {
 })
 
 describe('Bulk Update and Delete', () => {
-  let updateCalls: number
-  let deleteCalls: number
+  let _updateCalls: number
+  let _deleteCalls: number
 
   beforeEach(() => {
-    updateCalls = 0
-    deleteCalls = 0
+    _updateCalls = 0
+    _deleteCalls = 0
 
     const mockClient: DynamoDBClient = {
       getItem: mock(async () => null),
       putItem: mock(async () => {}),
       updateItem: mock(async () => {
-        updateCalls++
+        _updateCalls++
         return {}
       }),
       deleteItem: mock(async () => {
-        deleteCalls++
+        _deleteCalls++
       }),
       query: mock(async () => {
         const items = [

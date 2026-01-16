@@ -64,7 +64,7 @@ export interface LSIDerivationResult {
  */
 export function deriveLSIsFromModels(
   registry: ModelRegistry,
-  config: Config,
+  _config: Config,
 ): LSIDerivationResult {
   const result: LSIDerivationResult = {
     lsiDefinitions: [],

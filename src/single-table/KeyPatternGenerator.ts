@@ -196,7 +196,7 @@ function assignGSIPattern(
  */
 function resolveGSIExamples(
   patterns: Partial<KeyPattern>,
-  delimiter: string,
+  _delimiter: string,
 ): Partial<ResolvedKey> {
   const result: Partial<ResolvedKey> = {}
 
@@ -308,7 +308,7 @@ export function resolveKeyPattern(
  */
 export function validateKeyPatterns(
   models: ParsedModel[],
-  config: Config,
+  _config: Config,
 ): KeyPatternValidation {
   const conflicts: string[] = []
   const warnings: string[] = []

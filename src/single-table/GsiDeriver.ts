@@ -262,7 +262,7 @@ export function deriveGSIsFromModels(
 function findConsolidatableGSI(
   pattern: GSIAccessPattern,
   gsiAccessPatterns: Map<number, GSIAccessPattern[]>,
-  config: Config,
+  _config: Config,
 ): number | null {
   // Check each existing GSI for consolidation opportunities
   for (const [gsi, patterns] of gsiAccessPatterns) {
