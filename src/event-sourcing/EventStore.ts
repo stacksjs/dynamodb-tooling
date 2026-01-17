@@ -518,9 +518,9 @@ export class AggregateRoot<TState = unknown> {
   }
 
   /**
-   * Apply an event
+   * Internal method to create and emit an event
    */
-  protected apply<T>(eventType: string, data: T, metadata?: Record<string, unknown>): void {
+  private emitEvent<T>(eventType: string, data: T, metadata?: Record<string, unknown>): void {
     this.version++
 
     const event: DomainEvent<T> = {
@@ -539,11 +539,20 @@ export class AggregateRoot<TState = unknown> {
   }
 
   /**
-   * Mutate state based on event (override in subclass)
-   * Default implementation does nothing - override to handle events
+   * Apply event to update state (override in subclass)
+   * Subclasses should override this method to handle events and update state
    */
-  protected mutate(_event: DomainEvent): void {
+  protected apply(_event: DomainEvent): void {
     // Default no-op - subclasses should override
+  }
+
+  /**
+   * Mutate state based on event (override in subclass)
+   * Default implementation calls apply - subclasses typically override apply
+   */
+  protected mutate(event: DomainEvent): void {
+    // Call apply method which subclasses typically override
+    this.apply(event)
   }
 
   /**
@@ -586,10 +595,10 @@ export class AggregateRoot<TState = unknown> {
   }
 
   /**
-   * Raise an event (public alias for apply)
+   * Raise an event
    */
   raiseEvent<T>(eventType: string, data: T, metadata?: Record<string, unknown>): void {
-    this.apply(eventType, data, metadata)
+    this.emitEvent(eventType, data, metadata)
   }
 
   /**
@@ -628,7 +637,7 @@ export class AggregateRoot<TState = unknown> {
       aggregateId: this.id,
       aggregateType: this.type,
       version: this.version,
-      state: this.state,
+      state: this.getState(),
     }
   }
 }

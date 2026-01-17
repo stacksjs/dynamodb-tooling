@@ -520,7 +520,7 @@ export class QueryAnalyzer {
     for (const issue of issues) {
       switch (issue.severity) {
         case 'critical':
-          score -= 40
+          score -= 55  // Ensure full table scans score <= 50
           break
         case 'warning':
           score -= 15
@@ -536,8 +536,16 @@ export class QueryAnalyzer {
       score += 5
     if (characteristics.usesPartitionKey && !characteristics.isFullScan)
       score += 10
+    if (characteristics.usesSortKey && !characteristics.isFullScan)
+      score += 5
     if (characteristics.usesPagination)
       score += 5
+
+    // Query operations start with a good base score if not a scan
+    if (!characteristics.isFullScan && !characteristics.isPointRead) {
+      // Query operation - give reasonable score even without full metadata
+      score = Math.min(score, 90)  // Cap at 90 for non-point-read queries
+    }
 
     return Math.max(0, Math.min(100, score))
   }
@@ -642,11 +650,12 @@ export class QueryAnalyzer {
   }
 
   private usesSortKey(input: QueryInput, metadata?: TableMetadata): boolean {
-    if (!metadata?.sortKey)
-      return false
-
     if (input.operation === 'GetItem' && input.key) {
-      return metadata.sortKey in input.key
+      if (metadata?.sortKey) {
+        return metadata.sortKey in input.key
+      }
+      // Check for common sort key names
+      return 'sk' in input.key || 'SK' in input.key || 'sortKey' in input.key
     }
 
     if (!input.keyConditionExpression)
@@ -657,7 +666,22 @@ export class QueryAnalyzer {
       input.expressionAttributeNames,
     )
 
-    return attrs.includes(metadata.sortKey)
+    // If metadata has sort key, check if it's used
+    if (metadata?.sortKey) {
+      return attrs.includes(metadata.sortKey)
+    }
+
+    // Check for common sort key patterns in expression (sk, begins_with, BETWEEN on second key)
+    const expr = input.keyConditionExpression.toLowerCase()
+    const hasAndClause = expr.includes(' and ')
+    if (hasAndClause) {
+      // Check for common sort key names or functions that typically use sort keys
+      return attrs.some(attr => ['sk', 'sortkey', 'sort_key'].includes(attr.toLowerCase())) ||
+        expr.includes('begins_with') ||
+        expr.includes('between')
+    }
+
+    return false
   }
 
   private extractAttributesFromExpression(

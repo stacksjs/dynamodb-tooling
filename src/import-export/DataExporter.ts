@@ -69,7 +69,7 @@ export class DataExporter {
    * Export items to string
    */
   export(items: Record<string, unknown>[], options: ExportOptions): ExportResult {
-    const { format, attributes, includeMetadata = true } = options
+    const { format, attributes, includeMetadata = false } = options
 
     // Filter attributes if specified
     let exportItems = items

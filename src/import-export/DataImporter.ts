@@ -80,11 +80,19 @@ export interface BatchWriteCommand {
  * Data importer for DynamoDB tables
  */
 export class DataImporter {
+  private defaultBatchSize: number
+  private validateItems: boolean
+
+  constructor(options?: ImporterOptions) {
+    this.defaultBatchSize = options?.batchSize ?? 25
+    this.validateItems = options?.validateItems ?? false
+  }
+
   /**
    * Parse import data
    */
   parse(data: string, options: ImportOptions): Record<string, unknown>[] {
-    const { format } = options
+    const { format, delimiter } = options
 
     let items: Record<string, unknown>[]
 
@@ -96,7 +104,7 @@ export class DataImporter {
         items = this.parseJSONL(data)
         break
       case 'csv':
-        items = this.parseCSV(data)
+        items = this.parseCSV(data, delimiter)
         break
       case 'dynamodb-json':
         items = this.parseDynamoDBJSON(data)
@@ -105,12 +113,29 @@ export class DataImporter {
         throw new Error(`Unsupported import format: ${format}`)
     }
 
+    // Validate required keys if validation is enabled
+    if (this.validateItems && options.primaryKey) {
+      for (const item of items) {
+        if (!(options.primaryKey in item)) {
+          throw new Error(`Missing required primary key: ${options.primaryKey}`)
+        }
+        if (options.sortKey && !(options.sortKey in item)) {
+          throw new Error(`Missing required sort key: ${options.sortKey}`)
+        }
+      }
+    }
+
     // Apply transform
     if (options.transform) {
       items = items.map(options.transform)
     }
 
-    // Apply validation
+    // Apply filter
+    if (options.filter) {
+      items = items.filter(options.filter)
+    }
+
+    // Apply validation (custom validate function)
     if (options.validate && options.skipInvalid) {
       items = items.filter(options.validate)
     }
@@ -125,7 +150,8 @@ export class DataImporter {
     items: Record<string, unknown>[],
     options: ImportOptions,
   ): BatchWriteCommand[] {
-    const { tableName, batchSize = 25 } = options
+    const { tableName } = options
+    const batchSize = options.batchSize ?? this.defaultBatchSize
     const commands: BatchWriteCommand[] = []
 
     for (let i = 0; i < items.length; i += batchSize) {
@@ -222,16 +248,16 @@ export class DataImporter {
     })
   }
 
-  private parseCSV(data: string): Record<string, unknown>[] {
+  private parseCSV(data: string, delimiter: string = ','): Record<string, unknown>[] {
     const lines = data.split('\n').filter(line => line.trim())
     if (lines.length < 2)
       return []
 
-    const headers = this.parseCSVLine(lines[0])
+    const headers = this.parseCSVLine(lines[0], delimiter)
     const items: Record<string, unknown>[] = []
 
     for (let i = 1; i < lines.length; i++) {
-      const values = this.parseCSVLine(lines[i])
+      const values = this.parseCSVLine(lines[i], delimiter)
       const item: Record<string, unknown> = {}
 
       headers.forEach((header, index) => {
@@ -254,7 +280,7 @@ export class DataImporter {
     return items
   }
 
-  private parseCSVLine(line: string): string[] {
+  private parseCSVLine(line: string, delimiter: string = ','): string[] {
     const values: string[] = []
     let current = ''
     let inQuotes = false
@@ -271,7 +297,7 @@ export class DataImporter {
           inQuotes = !inQuotes
         }
       }
-      else if (char === ',' && !inQuotes) {
+      else if (char === delimiter && !inQuotes) {
         values.push(current)
         current = ''
       }
@@ -337,6 +363,6 @@ export class DataImporter {
 /**
  * Create a data importer
  */
-export function createDataImporter(_options?: ImporterOptions): DataImporter {
-  return new DataImporter()
+export function createDataImporter(options?: ImporterOptions): DataImporter {
+  return new DataImporter(options)
 }

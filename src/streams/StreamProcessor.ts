@@ -401,7 +401,18 @@ export class StreamProcessor {
 
       const newImage = dynamodb.NewImage as Record<string, unknown> | undefined
       const oldImage = dynamodb.OldImage as Record<string, unknown> | undefined
-      const entityType = (newImage?._et || oldImage?._et) as string | undefined
+
+      // Extract entity type from _et attribute, handling DynamoDB format
+      const rawEntityType = newImage?._et || oldImage?._et
+      let entityType: string | undefined
+      if (rawEntityType) {
+        // Handle DynamoDB format { S: "value" } or plain string
+        if (typeof rawEntityType === 'object' && rawEntityType !== null && 'S' in rawEntityType) {
+          entityType = (rawEntityType as { S: string }).S
+        } else if (typeof rawEntityType === 'string') {
+          entityType = rawEntityType
+        }
+      }
 
       return {
         eventType: record.eventName as StreamEventType,

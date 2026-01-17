@@ -27,12 +27,19 @@ export interface GraphQLTypeDef {
 }
 
 /**
+ * GraphQL argument definition (with name)
+ */
+export interface GraphQLArgDef extends GraphQLFieldDef {
+  name: string
+}
+
+/**
  * GraphQL query definition
  */
 export interface GraphQLQueryDef {
   name: string
   description?: string
-  args: Record<string, GraphQLFieldDef>
+  args: GraphQLArgDef[]
   returnType: string
   list?: boolean
 }
@@ -43,7 +50,7 @@ export interface GraphQLQueryDef {
 export interface GraphQLMutationDef {
   name: string
   description?: string
-  args: Record<string, GraphQLFieldDef>
+  args: GraphQLArgDef[]
   returnType: string
 }
 
@@ -334,13 +341,14 @@ export class GraphQLSchemaBuilder {
       return
 
     for (const [mutationName, mutationDef] of Object.entries(model.mutations)) {
-      const args: Record<string, GraphQLFieldDef> = {}
+      const args: GraphQLArgDef[] = []
       if (mutationDef.args) {
         for (const [argName, argDef] of Object.entries(mutationDef.args)) {
-          args[argName] = {
+          args.push({
+            name: argName,
             type: this.mapType(argDef.type),
             required: argDef.required,
-          }
+          })
         }
       }
 
@@ -382,26 +390,48 @@ export class GraphQLSchemaBuilder {
   build(): string {
     const parts: string[] = []
 
-    // Custom scalars
-    parts.push('scalar AWSDateTime')
-    parts.push('scalar AWSJSON')
+    // Custom scalars from options
+    if (this.options.scalars && this.options.scalars.length > 0) {
+      for (const scalar of this.options.scalars) {
+        const scalarName = typeof scalar === 'string' ? scalar : scalar.name
+        parts.push(`scalar ${scalarName}`)
+      }
+    } else {
+      // Default AWS scalars
+      parts.push('scalar AWSDateTime')
+      parts.push('scalar AWSJSON')
+    }
     parts.push('')
+
+    // Custom directive definitions
+    for (const directive of this.customDirectives) {
+      const argsStr = directive.args
+        ? `(${Object.entries(directive.args).map(([name, def]) => `${name}: ${def.type}${def.required ? '!' : ''}`).join(', ')})`
+        : ''
+      parts.push(`directive @${directive.name}${argsStr} on ${directive.locations.join(' | ')}`)
+    }
+    if (this.customDirectives.length > 0) {
+      parts.push('')
+    }
 
     // Types
     for (const typeDef of this.types.values()) {
-      parts.push(this.buildType(typeDef))
+      const model = this.models.find(m => m.name === typeDef.name)
+      parts.push(this.buildType(typeDef, model?.auth))
       parts.push('')
     }
 
-    // Query type
-    if (this.queries.size > 0) {
-      parts.push('type Query {')
-      for (const query of this.queries.values()) {
-        parts.push(`  ${this.buildQuery(query)}`)
-      }
-      parts.push('}')
-      parts.push('')
+    // Query type - always include for a valid GraphQL schema
+    parts.push('type Query {')
+    for (const query of this.queries.values()) {
+      parts.push(`  ${this.buildQuery(query)}`)
     }
+    if (this.queries.size === 0) {
+      // Add a placeholder query for empty schemas
+      parts.push('  _empty: String')
+    }
+    parts.push('}')
+    parts.push('')
 
     // Mutation type
     if (this.mutations.size > 0) {
@@ -439,27 +469,35 @@ export class GraphQLSchemaBuilder {
 
   private generateQueries(model: ModelDefinition): void {
     const name = model.name
-    const _lowerName = name.charAt(0).toLowerCase() + name.slice(1)
 
-    // Get by ID
+    // Get by ID - args as array
+    const getArgs: GraphQLArgDef[] = [
+      { name: model.primaryKey, type: 'ID', required: true },
+    ]
+    if (model.sortKey) {
+      getArgs.push({ name: model.sortKey, type: 'String', required: true })
+    }
+
     this.queries.set(`get${name}`, {
       name: `get${name}`,
       description: `Get a ${name} by ID`,
-      args: {
-        [model.primaryKey]: { type: 'ID', required: true },
-        ...(model.sortKey && { [model.sortKey]: { type: 'String', required: true } }),
-      },
+      args: getArgs,
       returnType: name,
     })
 
-    // List all
+    // List all - args as array with filter
+    const listArgs: GraphQLArgDef[] = [
+      { name: 'limit', type: 'Int' },
+      { name: 'nextToken', type: 'String' },
+    ]
+    if (this.options.generateFilters) {
+      listArgs.push({ name: 'filter', type: `${name}Filter` })
+    }
+
     this.queries.set(`list${name}s`, {
       name: `list${name}s`,
       description: `List all ${name}s`,
-      args: {
-        limit: { type: 'Int' },
-        nextToken: { type: 'String' },
-      },
+      args: listArgs,
       returnType: `${name}Connection`,
       list: false,
     })
@@ -468,15 +506,19 @@ export class GraphQLSchemaBuilder {
     if (model.indexes) {
       for (const index of model.indexes) {
         const queryName = `query${name}By${this.capitalize(index.name)}`
+        const indexArgs: GraphQLArgDef[] = [
+          { name: index.partitionKey, type: 'String', required: true },
+        ]
+        if (index.sortKey) {
+          indexArgs.push({ name: index.sortKey, type: 'String' })
+        }
+        indexArgs.push({ name: 'limit', type: 'Int' })
+        indexArgs.push({ name: 'nextToken', type: 'String' })
+
         this.queries.set(queryName, {
           name: queryName,
           description: `Query ${name}s by ${index.name}`,
-          args: {
-            [index.partitionKey]: { type: 'String', required: true },
-            ...(index.sortKey && { [index.sortKey]: { type: 'String' } }),
-            limit: { type: 'Int' },
-            nextToken: { type: 'String' },
-          },
+          args: indexArgs,
           returnType: `${name}Connection`,
         })
       }
@@ -490,30 +532,40 @@ export class GraphQLSchemaBuilder {
     this.mutations.set(`create${name}`, {
       name: `create${name}`,
       description: `Create a new ${name}`,
-      args: {
-        input: { type: `Create${name}Input`, required: true },
-      },
+      args: [
+        { name: 'input', type: `Create${name}Input`, required: true },
+      ],
       returnType: name,
     })
 
-    // Update
+    // Update - includes ID separately for convenience
+    const updateArgs: GraphQLArgDef[] = [
+      { name: model.primaryKey, type: 'ID', required: true },
+    ]
+    if (model.sortKey) {
+      updateArgs.push({ name: model.sortKey, type: 'String', required: true })
+    }
+    updateArgs.push({ name: 'input', type: `Update${name}Input`, required: true })
+
     this.mutations.set(`update${name}`, {
       name: `update${name}`,
       description: `Update an existing ${name}`,
-      args: {
-        input: { type: `Update${name}Input`, required: true },
-      },
+      args: updateArgs,
       returnType: name,
     })
 
     // Delete
+    const deleteArgs: GraphQLArgDef[] = [
+      { name: model.primaryKey, type: 'ID', required: true },
+    ]
+    if (model.sortKey) {
+      deleteArgs.push({ name: model.sortKey, type: 'String', required: true })
+    }
+
     this.mutations.set(`delete${name}`, {
       name: `delete${name}`,
       description: `Delete a ${name}`,
-      args: {
-        [model.primaryKey]: { type: 'ID', required: true },
-        ...(model.sortKey && { [model.sortKey]: { type: 'String', required: true } }),
-      },
+      args: deleteArgs,
       returnType: name,
     })
   }
@@ -566,16 +618,53 @@ export class GraphQLSchemaBuilder {
   private generateConnectionTypes(model: ModelDefinition): void {
     const name = model.name
 
-    // Connection type
-    this.types.set(`${name}Connection`, {
-      name: `${name}Connection`,
-      description: `Paginated ${name} results`,
-      fields: {
-        items: { type: name, list: true, required: true },
-        nextToken: { type: 'String' },
-        totalCount: { type: 'Int' },
-      },
-    })
+    if (this.options.useConnections) {
+      // Relay-style connection with edges and pageInfo
+      this.types.set(`${name}Connection`, {
+        name: `${name}Connection`,
+        description: `Paginated ${name} results`,
+        fields: {
+          edges: { type: `${name}Edge`, list: true, required: true },
+          pageInfo: { type: 'PageInfo', required: true },
+          totalCount: { type: 'Int' },
+        },
+      })
+
+      // Edge type
+      this.types.set(`${name}Edge`, {
+        name: `${name}Edge`,
+        description: `Edge for ${name}`,
+        fields: {
+          node: { type: name, required: true },
+          cursor: { type: 'String', required: true },
+        },
+      })
+
+      // Ensure PageInfo type exists
+      if (!this.types.has('PageInfo')) {
+        this.types.set('PageInfo', {
+          name: 'PageInfo',
+          description: 'Pagination info',
+          fields: {
+            hasNextPage: { type: 'Boolean', required: true },
+            hasPreviousPage: { type: 'Boolean', required: true },
+            startCursor: { type: 'String' },
+            endCursor: { type: 'String' },
+          },
+        })
+      }
+    } else {
+      // Simple connection type
+      this.types.set(`${name}Connection`, {
+        name: `${name}Connection`,
+        description: `Paginated ${name} results`,
+        fields: {
+          items: { type: name, list: true, required: true },
+          nextToken: { type: 'String' },
+          totalCount: { type: 'Int' },
+        },
+      })
+    }
   }
 
   private generateFilterTypes(model: ModelDefinition): void {
@@ -675,7 +764,7 @@ export class GraphQLSchemaBuilder {
     }
   }
 
-  private buildType(typeDef: GraphQLTypeDef): string {
+  private buildType(typeDef: GraphQLTypeDef, auth?: AuthConfig): string {
     const lines: string[] = []
 
     if (typeDef.description) {
@@ -683,7 +772,20 @@ export class GraphQLSchemaBuilder {
     }
 
     const isInput = typeDef.name.endsWith('Input') || typeDef.name.endsWith('Filter')
-    lines.push(`${isInput ? 'input' : 'type'} ${typeDef.name} {`)
+    let typeDecl = `${isInput ? 'input' : 'type'} ${typeDef.name}`
+
+    // Add auth directive if present
+    if (auth && this.options.directives?.includes('@auth')) {
+      const rulesStr = auth.rules.map(rule => {
+        const parts = [`allow: ${rule.allow}`]
+        if (rule.groups) parts.push(`groups: [${rule.groups.map(g => `"${g}"`).join(', ')}]`)
+        if (rule.operations) parts.push(`operations: [${rule.operations.join(', ')}]`)
+        return `{ ${parts.join(', ')} }`
+      }).join(', ')
+      typeDecl += ` @auth(rules: [${rulesStr}])`
+    }
+
+    lines.push(`${typeDecl} {`)
 
     for (const [fieldName, field] of Object.entries(typeDef.fields)) {
       let typeStr = field.type
@@ -701,14 +803,14 @@ export class GraphQLSchemaBuilder {
   }
 
   private buildQuery(query: GraphQLQueryDef): string {
-    const args = Object.entries(query.args)
-      .map(([name, def]) => {
-        let typeStr = def.type
-        if (def.list)
+    const args = query.args
+      .map((arg) => {
+        let typeStr = arg.type
+        if (arg.list)
           typeStr = `[${typeStr}]`
-        if (def.required)
+        if (arg.required)
           typeStr = `${typeStr}!`
-        return `${name}: ${typeStr}`
+        return `${arg.name}: ${typeStr}`
       })
       .join(', ')
 
@@ -721,14 +823,14 @@ export class GraphQLSchemaBuilder {
   }
 
   private buildMutation(mutation: GraphQLMutationDef): string {
-    const args = Object.entries(mutation.args)
-      .map(([name, def]) => {
-        let typeStr = def.type
-        if (def.list)
+    const args = mutation.args
+      .map((arg) => {
+        let typeStr = arg.type
+        if (arg.list)
           typeStr = `[${typeStr}]`
-        if (def.required)
+        if (arg.required)
           typeStr = `${typeStr}!`
-        return `${name}: ${typeStr}`
+        return `${arg.name}: ${typeStr}`
       })
       .join(', ')
 
@@ -878,18 +980,30 @@ export class GraphQLSchemaBuilder {
       typeNames.add(typeDef.name)
     }
 
-    // Check for missing referenced types
+    // Check for missing referenced types (skip filter types as they use special scalar filters)
     for (const typeDef of this.types.values()) {
+      // Skip validation for filter types as they reference scalar filter types
+      if (typeDef.name.endsWith('Filter')) {
+        continue
+      }
+
       for (const [fieldName, field] of Object.entries(typeDef.fields)) {
         const fieldType = field.type.replace(/[[\]!]/g, '')
+        // Skip filter type references
+        if (fieldType.endsWith('Filter')) {
+          continue
+        }
         if (!this.isScalarType(fieldType) && !typeNames.has(fieldType)) {
           errors.push(`Type "${typeDef.name}" field "${fieldName}" references unknown type: ${fieldType}`)
         }
       }
     }
 
-    // Check for empty types
+    // Check for empty types (skip input/filter types as they may be empty by design)
     for (const typeDef of this.types.values()) {
+      if (typeDef.name.endsWith('Input') || typeDef.name.endsWith('Filter')) {
+        continue
+      }
       if (Object.keys(typeDef.fields).length === 0) {
         errors.push(`Type "${typeDef.name}" has no fields`)
       }

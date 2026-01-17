@@ -420,10 +420,27 @@ export function cached(options?: CacheOptions): MethodDecorator {
 }
 
 /**
+ * Deeply sort object keys for consistent stringification
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value)
+  }
+
+  if (Array.isArray(value)) {
+    return '[' + value.map(stableStringify).join(',') + ']'
+  }
+
+  const keys = Object.keys(value as Record<string, unknown>).sort()
+  const pairs = keys.map(key => `${JSON.stringify(key)}:${stableStringify((value as Record<string, unknown>)[key])}`)
+  return '{' + pairs.join(',') + '}'
+}
+
+/**
  * Hash function for query parameters
  */
 export function hashQuery(params: Record<string, unknown>): string {
-  const str = JSON.stringify(params, Object.keys(params).sort())
+  const str = stableStringify(params)
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)

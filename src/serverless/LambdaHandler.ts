@@ -253,8 +253,17 @@ export class APIHandler {
 
         // Check if result is a direct response (has statusCode) or HandlerResult
         if ('statusCode' in result) {
-          // Direct response format
-          return result as APIGatewayResponse
+          // Direct response format - add CORS headers if configured
+          const response = result as APIGatewayResponse
+          if (this.corsConfig) {
+            response.headers = response.headers || {}
+            const origins = this.corsConfig.origins
+            response.headers['Access-Control-Allow-Origin'] = origins === '*' ? '*' : origins.join(', ')
+            if (this.corsConfig.credentials) {
+              response.headers['Access-Control-Allow-Credentials'] = 'true'
+            }
+          }
+          return response
         }
         else if ('success' in result) {
           // HandlerResult format
@@ -351,7 +360,7 @@ export class APIHandler {
     }
 
     return {
-      statusCode: 204,
+      statusCode: 200,
       headers,
       body: '',
     }
@@ -551,6 +560,10 @@ export function createAPIHandler(options?: APIHandlerOptions): APIHandler {
     handler.cors(corsConfig)
   }
 
+  if (options?.errorHandler) {
+    handler.onError(options.errorHandler)
+  }
+
   return handler
 }
 
@@ -575,16 +588,12 @@ export function parseBody<T = unknown>(event: APIGatewayEvent): T | null {
   if (!event.body)
     return null
 
-  try {
-    const body = event.isBase64Encoded
-      ? Buffer.from(event.body, 'base64').toString('utf-8')
-      : event.body
+  const body = event.isBase64Encoded
+    ? Buffer.from(event.body, 'base64').toString('utf-8')
+    : event.body
 
-    return JSON.parse(body) as T
-  }
-  catch {
-    return null
-  }
+  // Let JSON.parse throw on invalid JSON
+  return JSON.parse(body) as T
 }
 
 /**

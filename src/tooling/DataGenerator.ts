@@ -401,7 +401,7 @@ export class EntityGeneratorBuilder {
    */
   date(name: string, options?: { start?: Date, end?: Date, optional?: boolean }): this {
     return this.field(name, {
-      generator: () => generators.isoDate({ start: options?.start, end: options?.end }),
+      generator: () => generators.date({ start: options?.start, end: options?.end }),
       optional: options?.optional,
     })
   }
