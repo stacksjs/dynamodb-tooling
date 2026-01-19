@@ -15,7 +15,8 @@
       "Bash(find:*)",
       "Bash(mkdir:*)",
       "Bash(bun test:*)",
-      "Bash(bun run test:*)"
+      "Bash(bun run test:*)",
+      "Bash(bun run lint:*)"
     ],
     "deny": [],
     "ask": []

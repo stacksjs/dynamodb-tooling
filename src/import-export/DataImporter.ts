@@ -81,11 +81,11 @@ export interface BatchWriteCommand {
  */
 export class DataImporter {
   private defaultBatchSize: number
-  private validateItems: boolean
+  private shouldValidate: boolean
 
   constructor(options?: ImporterOptions) {
     this.defaultBatchSize = options?.batchSize ?? 25
-    this.validateItems = options?.validateItems ?? false
+    this.shouldValidate = options?.validateItems ?? false
   }
 
   /**
@@ -114,7 +114,7 @@ export class DataImporter {
     }
 
     // Validate required keys if validation is enabled
-    if (this.validateItems && options.primaryKey) {
+    if (this.shouldValidate && options.primaryKey) {
       for (const item of items) {
         if (!(options.primaryKey in item)) {
           throw new Error(`Missing required primary key: ${options.primaryKey}`)

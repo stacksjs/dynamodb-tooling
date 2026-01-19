@@ -409,7 +409,8 @@ export class StreamProcessor {
         // Handle DynamoDB format { S: "value" } or plain string
         if (typeof rawEntityType === 'object' && rawEntityType !== null && 'S' in rawEntityType) {
           entityType = (rawEntityType as { S: string }).S
-        } else if (typeof rawEntityType === 'string') {
+        }
+        else if (typeof rawEntityType === 'string') {
           entityType = rawEntityType
         }
       }

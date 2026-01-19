@@ -520,7 +520,7 @@ export class QueryAnalyzer {
     for (const issue of issues) {
       switch (issue.severity) {
         case 'critical':
-          score -= 55  // Ensure full table scans score <= 50
+          score -= 55 // Ensure full table scans score <= 50
           break
         case 'warning':
           score -= 15
@@ -544,7 +544,7 @@ export class QueryAnalyzer {
     // Query operations start with a good base score if not a scan
     if (!characteristics.isFullScan && !characteristics.isPointRead) {
       // Query operation - give reasonable score even without full metadata
-      score = Math.min(score, 90)  // Cap at 90 for non-point-read queries
+      score = Math.min(score, 90) // Cap at 90 for non-point-read queries
     }
 
     return Math.max(0, Math.min(100, score))
@@ -676,9 +676,9 @@ export class QueryAnalyzer {
     const hasAndClause = expr.includes(' and ')
     if (hasAndClause) {
       // Check for common sort key names or functions that typically use sort keys
-      return attrs.some(attr => ['sk', 'sortkey', 'sort_key'].includes(attr.toLowerCase())) ||
-        expr.includes('begins_with') ||
-        expr.includes('between')
+      return attrs.some(attr => ['sk', 'sortkey', 'sort_key'].includes(attr.toLowerCase()))
+        || expr.includes('begins_with')
+        || expr.includes('between')
     }
 
     return false

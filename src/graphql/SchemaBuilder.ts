@@ -396,7 +396,8 @@ export class GraphQLSchemaBuilder {
         const scalarName = typeof scalar === 'string' ? scalar : scalar.name
         parts.push(`scalar ${scalarName}`)
       }
-    } else {
+    }
+    else {
       // Default AWS scalars
       parts.push('scalar AWSDateTime')
       parts.push('scalar AWSJSON')
@@ -653,7 +654,8 @@ export class GraphQLSchemaBuilder {
           },
         })
       }
-    } else {
+    }
+    else {
       // Simple connection type
       this.types.set(`${name}Connection`, {
         name: `${name}Connection`,
@@ -776,10 +778,12 @@ export class GraphQLSchemaBuilder {
 
     // Add auth directive if present
     if (auth && this.options.directives?.includes('@auth')) {
-      const rulesStr = auth.rules.map(rule => {
+      const rulesStr = auth.rules.map((rule) => {
         const parts = [`allow: ${rule.allow}`]
-        if (rule.groups) parts.push(`groups: [${rule.groups.map(g => `"${g}"`).join(', ')}]`)
-        if (rule.operations) parts.push(`operations: [${rule.operations.join(', ')}]`)
+        if (rule.groups)
+          parts.push(`groups: [${rule.groups.map(g => `"${g}"`).join(', ')}]`)
+        if (rule.operations)
+          parts.push(`operations: [${rule.operations.join(', ')}]`)
         return `{ ${parts.join(', ')} }`
       }).join(', ')
       typeDecl += ` @auth(rules: [${rulesStr}])`
