@@ -43,8 +43,10 @@
     "compile": "bun build ./bin/cli.ts --compile --minify --outfile dist/dbtooling",
     "create-offline-table": "aws dynamodb create-table --table-name=MyOfflineTable --attribute-definitions AttributeName=Artist,AttributeType=S AttributeName=SongTitle,AttributeType=S --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --endpoint-url http://localhost:8000 --region us-east-1",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "lint": "bunx --bun eslint .",
-    "lint:fix": "bunx --bun eslint . --fix",
+    "lint": "bunx --bun pickier lint . --config pickier.config.ts --max-warnings 9999",
+    "lint:fix": "bunx --bun pickier lint . --fix --config pickier.config.ts --max-warnings 9999",
+    "format": "bunx --bun pickier format . --config pickier.config.ts",
+    "format:fix": "bunx --bun pickier format . --write --config pickier.config.ts",
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
     "release": "bun --bun run changelog:generate && bunx --bun bumpx prompt --recursive",
@@ -56,14 +58,13 @@
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.4",
     "@stacksjs/cli": "^0.70.23",
-    "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "@stacksjs/gitlint": "^0.1.5",
     "@stacksjs/logging": "^0.70.23",
     "@stacksjs/logsmith": "^0.2.1",
     "@stacksjs/storage": "^0.70.23",
     "@types/bun": "^1.3.9",
     "@types/tar": "^6.1.13",
-    "buddy-bot": "^0.9.13",
+    "buddy-bot": "^0.9.14",
     "bun-git-hooks": "^0.3.1",
     "bun-plugin-dtsx": "^0.21.17",
     "bunfig": "^0.15.6",
@@ -74,7 +75,7 @@
   "git-hooks": {
     "pre-commit": {
       "staged-lint": {
-        "*.{js,ts,json,yaml,yml,md}": "bunx --bun eslint --fix"
+        "*.{js,ts,json,yaml,yml,md}": "bunx --bun pickier lint --fix"
       }
     },
     "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
