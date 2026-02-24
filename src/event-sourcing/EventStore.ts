@@ -113,7 +113,7 @@ export interface Snapshot<T = unknown> {
 /**
  * Event handler
  */
-export type EventHandler<T = unknown> = (event: DomainEvent<T>) => void | Promise<void>
+export type EventHandler<T = unknown> = (_event: DomainEvent<T>) => void | Promise<void>
 
 /**
  * Resolved event store options with defaults applied

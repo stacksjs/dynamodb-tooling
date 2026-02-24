@@ -157,13 +157,14 @@ describe('Batch Operations', () => {
   describe('Chunked Processing', () => {
     it('should process items in chunks', async () => {
       const chunkSizes: number[] = []
+      let queryCallCount = 0
       const mockClient: DynamoDBClient = {
         getItem: mock(async () => null),
         putItem: mock(async () => {}),
         updateItem: mock(async () => null),
         deleteItem: mock(async () => {}),
-        query: mock(async (tableName, params) => {
-          // Simulate returning items for chunk test
+        query: mock(async (_tableName, params) => {
+          queryCallCount++
           const mockItems = Array.from({ length: params.limit ?? 10 }, (_, i) => ({
             pk: { S: `ITEM#${i}` },
             sk: { S: `ITEM#${i}` },
@@ -174,7 +175,8 @@ describe('Batch Operations', () => {
           return {
             items: mockItems,
             count: mockItems.length,
-            lastEvaluatedKey: params.limit && mockItems.length >= params.limit
+            // Only return lastEvaluatedKey on first call to avoid infinite loop
+            lastEvaluatedKey: queryCallCount === 1
               ? { pk: { S: 'ITEM#last' }, sk: { S: 'ITEM#last' } }
               : undefined,
           }
@@ -190,17 +192,10 @@ describe('Batch Operations', () => {
 
       setModelClient(mockClient)
 
-      let processedCount = 0
       await TestItem.query()
         .where('pk', 'ITEM#1')
         .chunk(5, (items) => {
           chunkSizes.push(items.length)
-          processedCount += items.length
-
-          // Stop after first chunk to avoid infinite loop in test
-          if (processedCount >= 5) {
-
-          }
         })
 
       expect(chunkSizes.length).toBeGreaterThan(0)

@@ -242,12 +242,12 @@ export type AttributeValueToJS<V extends AttributeValue> = V extends StringAttri
 /**
  * Type-safe marshall function signature
  */
-export type Marshall<T extends Record<string, unknown>> = (obj: T) => TypedDynamoDBItem<T>
+export type Marshall<T extends Record<string, unknown>> = (_obj: T) => TypedDynamoDBItem<T>
 
 /**
  * Type-safe unmarshall function signature
  */
-export type Unmarshall<T extends Record<string, unknown>> = (item: TypedDynamoDBItem<T>) => T
+export type Unmarshall<T extends Record<string, unknown>> = (_item: TypedDynamoDBItem<T>) => T
 
 // ============================================================================
 // Expression Builder Types

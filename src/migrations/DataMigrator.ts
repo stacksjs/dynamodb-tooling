@@ -158,7 +158,7 @@ export interface DataMigrationResult {
 /**
  * Data transformation function
  */
-export type TransformFunction = (item: MigrationItem, config: Config) => MigrationItem | null
+export type TransformFunction = (_item: MigrationItem, _config: Config) => MigrationItem | null
 
 /**
  * Backfill specification for a GSI

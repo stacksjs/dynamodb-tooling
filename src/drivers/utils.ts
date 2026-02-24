@@ -144,12 +144,12 @@ export function marshallValue(value: unknown): AttributeValue | undefined {
       return { BS: arr as Array<Uint8Array | string> }
     }
     // Mixed set - convert to list
-    return { L: arr.map(v => marshallValue(v)).filter((v): v is AttributeValue => v !== undefined) }
+    return { L: arr.map(v => marshallValue(v)).filter(v => v !== undefined) as AttributeValue[] }
   }
 
   if (Array.isArray(value)) {
     return {
-      L: value.map(v => marshallValue(v)).filter((v): v is AttributeValue => v !== undefined),
+      L: value.map(v => marshallValue(v)).filter(v => v !== undefined) as AttributeValue[],
     }
   }
 

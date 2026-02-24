@@ -565,15 +565,15 @@ export interface BatchStatementResult {
  * Build batch execute statements for DynamoDB
  */
 export function buildBatchStatements(
-  queries: PartiQLQuery[],
-  config?: BatchStatementConfig,
+  _queries: PartiQLQuery[],
+  _config?: BatchStatementConfig,
 ): Array<{
     Statements: Array<{
       Statement: string
       Parameters?: Array<{ S?: string, N?: string, B?: string, BOOL?: boolean, NULL?: boolean, L?: unknown[], M?: Record<string, unknown>, SS?: string[], NS?: string[], BS?: string[] }>
     }>
   }> {
-  const maxBatchSize = config?.maxBatchSize ?? 25
+  const maxBatchSize = _config?.maxBatchSize ?? 25
   const batches: Array<{
     Statements: Array<{
       Statement: string
@@ -581,8 +581,8 @@ export function buildBatchStatements(
     }>
   }> = []
 
-  for (let i = 0; i < queries.length; i += maxBatchSize) {
-    const batch = queries.slice(i, i + maxBatchSize)
+  for (let i = 0; i < _queries.length; i += maxBatchSize) {
+    const batch = _queries.slice(i, i + maxBatchSize)
     batches.push({
       Statements: batch.map((query) => {
         const stmt: {

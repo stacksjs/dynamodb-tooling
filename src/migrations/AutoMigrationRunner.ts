@@ -590,7 +590,7 @@ export interface MigrationPreview {
  * changes, we can only re-apply a previous schema configuration
  */
 export async function rollbackMigration(
-  client: MigrationDynamoDBClient,
+  _client: MigrationDynamoDBClient,
   stateStore: MigrationStateStore,
   targetVersion: string,
   options: MigrationOptions = {},

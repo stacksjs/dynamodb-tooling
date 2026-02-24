@@ -206,7 +206,7 @@ export type ModelHookType =
 /**
  * Hook callback function type
  */
-export type HookCallback<T = unknown> = (model: T) => void | Promise<void>
+export type HookCallback<T = unknown> = (_model: T) => void | Promise<void>
 
 /**
  * Hooks configuration for model lifecycle events

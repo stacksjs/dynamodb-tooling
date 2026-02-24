@@ -7,7 +7,7 @@ import type { JSObject } from '../single-table/EntityTransformer'
 /**
  * Model constructor type
  */
-export type ModelConstructor<T extends Model = Model> = new (attributes?: JSObject) => T
+export type ModelConstructor<T extends Model = Model> = new (_attributes?: JSObject) => T
 
 /**
  * Model query result
@@ -100,12 +100,12 @@ export type ModelHookType =
 /**
  * Model hook callback
  */
-export type ModelHook<T extends Model = Model> = (model: T) => void | Promise<void> | boolean | Promise<boolean>
+export type ModelHook<T extends Model = Model> = (_model: T) => void | Promise<void> | boolean | Promise<boolean>
 
 /**
  * Model scope function
  */
-export type ModelScope<T extends Model = Model> = (query: ModelQueryBuilder<T>, ...args: unknown[]) => ModelQueryBuilder<T>
+export type ModelScope<T extends Model = Model> = (_query: ModelQueryBuilder<T>, ..._args: unknown[]) => ModelQueryBuilder<T>
 
 /**
  * Cast type definition

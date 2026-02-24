@@ -455,7 +455,7 @@ export class TsValidationRules {
             return { valid: true } // Optimistically pass, async validation will catch it
           }
 
-          const validatorFn = this.validator[fnName] as ((str: string, opts?: unknown) => boolean) | undefined
+          const validatorFn = this.validator[fnName] as ((_str: string, _opts?: unknown) => boolean) | undefined
           if (!validatorFn) {
             return {
               valid: false,

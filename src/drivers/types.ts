@@ -588,4 +588,4 @@ export interface DriverPlugin {
 /**
  * Driver factory function type
  */
-export type DriverFactory = (options?: DriverConnectionOptions) => DriverPlugin
+export type DriverFactory = (_options?: DriverConnectionOptions) => DriverPlugin

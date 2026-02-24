@@ -519,7 +519,7 @@ function diffTableSettings(
  * Compare TTL settings
  */
 function diffTTL(
-  previousState: MigrationState,
+  _previousState: MigrationState,
   currentSchema: SchemaGenerationResult,
   changes: SchemaChange[],
 ): void {

@@ -39,17 +39,17 @@ export type { ModelAttribute, ModelRelationship } from './types'
 /**
  * Model constructor type for DynamoDBModel
  */
-export type DynamoDBModelConstructor<T extends DynamoDBModel = DynamoDBModel> = new (attributes?: JSObject) => T
+export type DynamoDBModelConstructor<T extends DynamoDBModel = DynamoDBModel> = new (_attributes?: JSObject) => T
 
 /**
  * DynamoDB Model hook callback
  */
-export type DynamoDBModelHook<T extends DynamoDBModel = DynamoDBModel> = (model: T) => void | Promise<void> | boolean | Promise<boolean>
+export type DynamoDBModelHook<T extends DynamoDBModel = DynamoDBModel> = (_model: T) => void | Promise<void> | boolean | Promise<boolean>
 
 /**
  * DynamoDB Model scope function
  */
-export type DynamoDBModelScope<T extends DynamoDBModel = DynamoDBModel> = (query: DynamoDBQueryBuilder<T>, ...args: unknown[]) => DynamoDBQueryBuilder<T>
+export type DynamoDBModelScope<T extends DynamoDBModel = DynamoDBModel> = (_query: DynamoDBQueryBuilder<T>, ..._args: unknown[]) => DynamoDBQueryBuilder<T>
 
 /**
  * DynamoDB Cast definition for attribute type casting

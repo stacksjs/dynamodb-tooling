@@ -7,7 +7,7 @@ declare module 'cac' {
     parse(argv?: string[]): any
     option(name: string, description?: string, config?: any): this
   }
-  export function cac(name?: string): CAC
+  export function cac(_name?: string): CAC
   export default cac
 }
 

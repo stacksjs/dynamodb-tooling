@@ -159,13 +159,13 @@ export type AssertNotNever<T> = [T] extends [never] ? never : true
  * Create a type-safe insert function for a model
  */
 export type InsertFn<M extends { attributes: Record<string, ModelAttribute> }> =
-  (data: FillableAttributes<M>) => Promise<Attributes<M>>
+  (_data: FillableAttributes<M>) => Promise<Attributes<M>>
 
 /**
  * Create a type-safe update function for a model
  */
 export type UpdateFn<M extends { attributes: Record<string, ModelAttribute> }> =
-  (data: Partial<FillableAttributes<M>>) => Promise<Attributes<M>>
+  (_data: Partial<FillableAttributes<M>>) => Promise<Attributes<M>>
 
 // ============================================================================
 // Generic Constraints

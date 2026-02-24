@@ -206,7 +206,7 @@ export async function resolveRelationship(
       }
 
       const pk = `${relatedModel.entityType}${delimiter}${foreignKeyValue}`
-      const sk = pk // In single-table design, base entity has pk = sk
+      const sk = pk // In single-table design, the entity pk and sk are equal
 
       const item = await queryBuilder.getItem(tableName, { pk, sk })
       if (item) {
@@ -383,7 +383,7 @@ async function prefetchRelationshipData(
   instances: JSObject[],
   relationship: ParsedRelationship,
   relatedModel: ParsedModel,
-  registry: ModelRegistry,
+  _registry: ModelRegistry,
   config: Config,
   queryBuilder: RelationshipQueryBuilder,
   cache: RelationshipCache,

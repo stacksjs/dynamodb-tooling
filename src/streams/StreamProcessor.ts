@@ -55,7 +55,7 @@ export interface StreamEvent {
 /**
  * Stream handler function
  */
-export type StreamHandler = (record: StreamRecord) => void | Promise<void>
+export type StreamHandler = (_record: StreamRecord) => void | Promise<void>
 
 /**
  * Entity-specific handler configuration

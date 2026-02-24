@@ -374,7 +374,7 @@ function parseRelationships(model: StacksModel, primaryKey: string): ParsedRelat
         relatedModel: related,
         foreignKey: `${related.toLowerCase()}Id`,
         localKey: primaryKey,
-        requiresGsi: true, // Need GSI for "get all X belonging to Y"
+        requiresGsi: true, // Need GSI for 'get all X belonging to Y'
       })
     }
   }
