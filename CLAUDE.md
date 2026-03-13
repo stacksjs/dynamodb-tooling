@@ -2,7 +2,7 @@
 
 ## About
 
-A toolkit of useful DynamoDB goodies.
+A comprehensive DynamoDB toolkit for TypeScript/JavaScript that provides a Laravel-style ORM with automatic single-table design, type-safe query building, and CLI tools. It features zero-config key pattern generation, GSI derivation, relationships with eager loading, soft deletes, migrations, factories, seeders, and DynamoDB Local support. The CLI (`dbtooling`) manages tables, migrations, seeding, queries, and access pattern visualization.
 
 ## Linting
 
