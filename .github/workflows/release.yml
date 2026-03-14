@@ -19,12 +19,12 @@ jobs:
           fetch-depth: 0
 
       - name: Set Node.js
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6.3.0
         with:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Bun
-        uses: oven-sh/setup-bun@v2.1.2
+        uses: oven-sh/setup-bun@v2.2.0
 
       - name: Setup Pantry
         uses: home-lang/pantry/packages/action@main
