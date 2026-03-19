@@ -64,7 +64,7 @@
     "dynamodb-toolbox": "^2.8.0",
     "tar": "^7.5.11",
     "typescript": "^5.9.3",
-    "better-dx": "^0.3.0"
+    "better-dx": "^0.2.7"
   },
   "git-hooks": {
     "pre-commit": {
