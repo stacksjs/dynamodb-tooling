@@ -3,194 +3,23 @@ title: Local Development
 description: Set up and use DynamoDB Local for development and testing.
 ---
 
-# Local Development
-
-DynamoDB Tooling includes built-in support for DynamoDB Local, making it easy to develop and test without connecting to AWS.
-
-## Installation
-
-### Using CLI
-
-```bash
-# Install DynamoDB Local
-dbtooling install
-
-# This downloads and sets up DynamoDB Local in your project
-```
-
-### Manual Installation
-
-Using Docker (recommended):
-
-```bash
-docker pull amazon/dynamodb-local
-```
-
-Or download directly from AWS:
-
-```bash
-# Download
-curl -O https://s3.us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.tar.gz
-
-# Extract
-tar -xzf dynamodb_local_latest.tar.gz
-```
-
-## Starting the Server
-
-### CLI Commands
-
-```bash
-# Start with defaults (port 8000)
-dbtooling start
-
-# Start on custom port
-dbtooling start --port 8001
-
-# Start with persistent storage
-dbtooling start --db-path ./data/dynamodb
-
-# Start in shared database mode (one database for all clients)
-dbtooling start --shared-db
-
-# Start with CORS enabled
-dbtooling start --cors "*"
-
-# Check status
-dbtooling status
-
-# Stop the server
-dbtooling stop
-
-# Stop all instances
-dbtooling stop --all
-```
-
-### Programmatic Control
-
-```ts
-import { dynamoDb } from 'dynamodb-tooling'
-
-// Start server
-await dynamoDb.launch({
-  port: 8000,
-  inMemory: true,
-})
-
-// Start with persistent storage
-await dynamoDb.launch({
-  port: 8000,
-  dbPath: './data/dynamodb',
-})
-
-// Check if running
-const isRunning = await dynamoDb.isRunning(8000)
-
-// Stop server
-await dynamoDb.stop(8000)
-
-// Stop all instances
-await dynamoDb.stopAll()
-```
-
-## Configuration
-
-Configure local development in `dynamodb.config.ts`:
-
-```ts
-import type { DynamoDBConfig } from 'dynamodb-tooling'
-
-export default {
-  region: 'us-east-1',
-  defaultTableName: 'MyApp',
-
-  // DynamoDB Local settings
-  local: {
-    enabled: process.env.NODE_ENV !== 'production',
-    port: 8000,
-    endpoint: 'http://localhost:8000',
-    installPath: './.dynamodb-local',
-    inMemory: true, // Data stored in memory only
-  },
-
-  // Development credentials (any values work for local)
-  credentials: {
-    accessKeyId: 'local',
-    secretAccessKey: 'local',
-  },
-} satisfies DynamoDBConfig
-```
-
-### Environment-Based Configuration
-
-```ts
-const isLocal = process.env.NODE_ENV !== 'production'
-
-export default {
-  region: process.env.AWS_REGION || 'us-east-1',
-
-  ...(isLocal && {
-    endpoint: 'http://localhost:8000',
-    credentials: {
-      accessKeyId: 'local',
-      secretAccessKey: 'local',
-    },
-  }),
-
-  local: {
-    enabled: isLocal,
-    port: 8000,
-  },
-} satisfies DynamoDBConfig
-```
-
-## Docker Setup
-
-### docker-compose.yml
-
-```yaml
-version: '3.8'
-
-services:
-  dynamodb-local:
-    image: amazon/dynamodb-local:latest
-    container_name: dynamodb-local
-    ports:
-      - "8000:8000"
-    volumes:
-      - dynamodb-data:/home/dynamodblocal/data
-    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/home/dynamodblocal/data"]
-
-volumes:
-  dynamodb-data:
-```
-
-Start with:
-
-```bash
-docker-compose up -d dynamodb-local
-```
-
-### Admin UI (Optional)
-
-Add DynamoDB Admin for a web interface:
-
-```yaml
-services:
-  dynamodb-local:
-    # ... as above
+# ... as above
 
   dynamodb-admin:
     image: aaronshaf/dynamodb-admin
     ports:
+
       - "8001:8001"
+
     environment:
-      DYNAMO_ENDPOINT: http://dynamodb-local:8000
+      DYNAMO_ENDPOINT: <http://dynamodb-local:8000>
     depends_on:
+
       - dynamodb-local
+
 ```
 
-Access the UI at `http://localhost:8001`.
+Access the UI at `<http://localhost:8001>`.
 
 ## Testing
 
@@ -320,13 +149,17 @@ export class UserSeeder extends Seeder {
 Run seeders:
 
 ```bash
+
 # Seed the database
+
 dbtooling seed
 
 # Run specific seeder
+
 dbtooling seed --class UserSeeder
 
 # Fresh start (drop, migrate, seed)
+
 dbtooling db:fresh
 ```
 
@@ -335,13 +168,17 @@ dbtooling db:fresh
 ### Port Already in Use
 
 ```bash
+
 # Find process using port 8000
+
 lsof -i :8000
 
 # Kill the process
+
 kill -9 <PID>
 
 # Or use the CLI
+
 dbtooling stop --port 8000
 ```
 
@@ -350,10 +187,13 @@ dbtooling stop --port 8000
 Ensure DynamoDB Local is running:
 
 ```bash
+
 # Check status
+
 dbtooling status
 
 # Start if not running
+
 dbtooling start
 ```
 
@@ -362,10 +202,13 @@ dbtooling start
 Ensure tables are created:
 
 ```bash
+
 # List tables
+
 dbtooling table:list
 
 # Create tables from models
+
 dbtooling migrate
 ```
 
@@ -374,7 +217,9 @@ dbtooling migrate
 By default, DynamoDB Local runs in-memory. For persistence:
 
 ```bash
+
 # Start with persistent storage
+
 dbtooling start --db-path ./data/dynamodb
 ```
 

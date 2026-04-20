@@ -40,10 +40,12 @@
 ## DynamoDB ORM Driver
 
 ### Stacks Models to Single Table Design
+
 **Status:** Complete
 **Description:** Special DynamoDB "ORM driver"/tool where Stacks models are transformed to single table designs.
 
 **Tasks:**
+
 - [x] Finish DynamoDB ORM driver (`src/models/DynamoDBModel.ts`)
 - [x] Transform Stacks models to single table design (`src/model-parser/StacksModelParser.ts`, `src/single-table/EntityTransformer.ts`)
 - [x] Define access patterns for common queries (`src/single-table/AccessPatternGenerator.ts`)
@@ -56,6 +58,7 @@
 ## Relationship with bun-query-builder
 
 ### How bun-query-builder Extends dynamodb-tooling
+
 **Status:** Complete
 
 **Architecture Decision:** SQL and DynamoDB are fundamentally different paradigms:
@@ -101,6 +104,7 @@ import {
 ```
 
 **bun-query-builder/dynamodb provides:**
+
 - Fluent query builder API (`dynamo.entity().pk().sk().get()`)
 - Connection management
 - Higher-level abstractions for common patterns
@@ -110,6 +114,7 @@ import {
 ## Exports for bun-query-builder Integration
 
 ### Core Exports
+
 ```typescript
 // dynamodb-tooling/index.ts exports for bun-query-builder:
 
@@ -150,6 +155,7 @@ export { RelationshipResolver } from './single-table/RelationshipResolver'
 ## Implemented Features Summary
 
 ### Core Features
+
 - **DynamoDB Model ORM** - Laravel-style query builder with `where()`, `with()`, `orderBy()`
 - **Single-Table Design** - Automatic pk/sk pattern generation from model definitions
 - **Model Parser** - Parses Stacks model files and extracts metadata
@@ -161,6 +167,7 @@ export { RelationshipResolver } from './single-table/RelationshipResolver'
 - **Relationship Resolver** - Handles hasOne, hasMany, belongsTo, belongsToMany
 
 ### Infrastructure
+
 - **Migrations** - Schema generation, diffing, and migrations
 - **Factories** - Generate fake data for testing
 - **Seeders** - Populate database with test data
@@ -168,6 +175,7 @@ export { RelationshipResolver } from './single-table/RelationshipResolver'
 - **DynamoDB Local** - Built-in support with Docker option
 
 ### Advanced Features
+
 - **Multi-Tenancy** - Tenant isolation strategies (table, prefix, attribute)
 - **Validation** - Sync and async validation with ts-validation integration
 - **Streams** - DynamoDB Streams processing

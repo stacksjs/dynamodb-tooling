@@ -1,7 +1,8 @@
 # Change Log
+
 [Compare changes](https://github.com/stacksjs/dynamodb-tooling/compare/v0.3.2...HEAD)
 
-### 🧹 Chores
+## 🧹 Chores
 
 - wip ([731729e](https://github.com/stacksjs/dynamodb-tooling/commit/731729e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
 - wip ([e0255c5](https://github.com/stacksjs/dynamodb-tooling/commit/e0255c5)) _(by glennmichael123 <gtorregosa@gmail.com>)_
@@ -127,11 +128,11 @@
 
 - Chris <chrisbreuer93@gmail.com>
 
-
 # Change Log
+
 [Compare changes](https://github.com/stacksjs/dynamodb-tooling/compare/v0.3.2...v0.3.3)
 
-### 🧹 Chores
+## 🧹 Chores
 
 - release v0.3.3 ([2a64dc4](https://github.com/stacksjs/dynamodb-tooling/commit/2a64dc4)) _(by glennmichael123 <gtorregosa@gmail.com>)_
 - wip ([731729e](https://github.com/stacksjs/dynamodb-tooling/commit/731729e)) _(by glennmichael123 <gtorregosa@gmail.com>)_

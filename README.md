@@ -298,6 +298,7 @@ dbtooling migrate:rollback
 ```
 
 The migration system handles:
+
 - Table creation with pk/sk
 - GSI creation/deletion
 - LSI configuration
