@@ -23,9 +23,6 @@ jobs:
         with:
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2.1.2
-
       - name: Setup Pantry
         uses: home-lang/pantry/packages/action@main
 
