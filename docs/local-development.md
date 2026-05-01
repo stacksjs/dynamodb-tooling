@@ -49,7 +49,7 @@ beforeEach(async () => {
 })
 ```
 
-### Using Factories
+## Using Factories
 
 ```ts
 import { Factory } from 'dynamodb-tooling'
