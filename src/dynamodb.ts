@@ -146,12 +146,22 @@ export const dynamoDb = {
         },
       })
 
-      // Wait a moment for container to start
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // `docker run -d` exits once the container is created — but that may
+      // include an image pull on a fresh CI runner, which can take many
+      // seconds. Wait for the spawn to finish before polling so we don't
+      // race the pull.
+      await child.exited
 
-      // Verify container is running
-      const verifyResult = Bun.spawnSync(['docker', 'ps', '-q', '-f', `name=${containerName}`])
-      const runningContainer = verifyResult.stdout.toString().trim()
+      // Poll for the container to appear, since `docker ps` may briefly lag
+      // the run command's exit on slower runners.
+      let runningContainer = ''
+      for (let i = 0; i < 30; i++) {
+        const verifyResult = Bun.spawnSync(['docker', 'ps', '-q', '-f', `name=${containerName}`])
+        runningContainer = verifyResult.stdout.toString().trim()
+        if (runningContainer)
+          break
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
       if (!runningContainer) {
         throw new Error('Failed to start DynamoDB Local Docker container')
       }
