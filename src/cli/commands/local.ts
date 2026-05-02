@@ -2,7 +2,7 @@
 // Local DynamoDB Development Commands
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { getConfig } from '../../config'
 import { dynamoDb, runningProcesses } from '../../dynamodb'
 import { handleError } from '../utils'
@@ -10,7 +10,7 @@ import { handleError } from '../utils'
 /**
  * Register local development commands
  */
-export function registerLocalCommands(cli: CAC): void {
+export function registerLocalCommands(cli: CLI): void {
   // start - Start local DynamoDB
   cli
     .command('start', 'Start DynamoDB Local')

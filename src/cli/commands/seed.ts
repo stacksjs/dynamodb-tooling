@@ -2,14 +2,14 @@
 // Seeder CLI Commands
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { getConfig } from '../../config'
 import { handleError } from '../utils'
 
 /**
  * Register seeder commands
  */
-export function registerSeedCommands(cli: CAC): void {
+export function registerSeedCommands(cli: CLI): void {
   // seed - Run seeders
   cli
     .command('seed', 'Run database seeders')

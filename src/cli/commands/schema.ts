@@ -3,7 +3,7 @@
 // ============================================================================
 // Interactive schema visualization and exploration
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import type { TreeNode } from '../ui'
 import { getConfig } from '../../config'
 import {
@@ -30,7 +30,7 @@ import {
 /**
  * Register schema viewer commands
  */
-export function registerSchemaCommands(cli: CAC): void {
+export function registerSchemaCommands(cli: CLI): void {
   // schema - Show schema overview
   cli
     .command('schema', 'Display table schema overview')

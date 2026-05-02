@@ -4,7 +4,7 @@
 // ============================================================================
 
 import nodeProcess from 'node:process'
-import { CAC } from 'cac'
+import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
 import {
   registerLocalCommands,
@@ -16,7 +16,7 @@ import {
   registerUtilityCommands,
 } from '../src/cli/commands'
 
-const cli = new CAC('dbtooling')
+const cli = new CLI('dbtooling')
 
 // Register all command modules
 registerTableCommands(cli)

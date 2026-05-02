@@ -2,7 +2,7 @@
 // Migration CLI Commands
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { getConfig } from '../../config'
 import {
   formatSchemaSummary,
@@ -30,7 +30,7 @@ import {
 /**
  * Register migration commands
  */
-export function registerMigrateCommands(cli: CAC): void {
+export function registerMigrateCommands(cli: CLI): void {
   // migrate - Run migrations
   cli
     .command('migrate', 'Run database migrations based on your Stacks models')

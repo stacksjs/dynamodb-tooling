@@ -2,7 +2,7 @@
 // Table Management CLI Commands
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { getConfig } from '../../config'
 import {
   exportSchemaAsJSON,
@@ -14,7 +14,7 @@ import { handleError } from '../utils'
 /**
  * Register table management commands
  */
-export function registerTableCommands(cli: CAC): void {
+export function registerTableCommands(cli: CLI): void {
   // table:create - Create a new DynamoDB table from models
   cli
     .command('table:create', 'Create a DynamoDB table from your Stacks models')

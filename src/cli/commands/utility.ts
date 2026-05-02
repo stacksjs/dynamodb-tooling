@@ -2,7 +2,7 @@
 // Utility CLI Commands
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { getConfig } from '../../config'
 import {
   formatAsJSON,
@@ -15,7 +15,7 @@ import { handleError } from '../utils'
 /**
  * Register utility commands
  */
-export function registerUtilityCommands(cli: CAC): void {
+export function registerUtilityCommands(cli: CLI): void {
   // access-patterns - Show access patterns from models
   cli
     .command('access-patterns', 'Show access patterns derived from your Stacks models')

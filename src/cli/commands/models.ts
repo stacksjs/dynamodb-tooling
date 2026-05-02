@@ -3,7 +3,7 @@
 // ============================================================================
 // View and explore Stacks model definitions
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import type { TreeNode } from '../ui'
 import { getConfig } from '../../config'
 import { handleCommandError } from '../error-formatter'
@@ -55,7 +55,7 @@ interface ParsedModel {
 /**
  * Register models viewer commands
  */
-export function registerModelsCommands(cli: CAC): void {
+export function registerModelsCommands(cli: CLI): void {
   // models - List all models
   cli
     .command('models', 'List all Stacks models')

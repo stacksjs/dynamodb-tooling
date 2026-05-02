@@ -2,14 +2,14 @@
 // Query CLI Commands
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { getConfig } from '../../config'
 import { handleError } from '../utils'
 
 /**
  * Register query commands
  */
-export function registerQueryCommands(cli: CAC): void {
+export function registerQueryCommands(cli: CLI): void {
   // query - Interactive query
   cli
     .command('query [table]', 'Query a DynamoDB table')

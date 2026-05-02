@@ -2,7 +2,7 @@
 // CLI Commands Index
 // ============================================================================
 
-import type { CAC } from 'cac'
+import type { CLI } from '@stacksjs/clapp'
 import { registerLocalCommands } from './local'
 import { registerMigrateCommands } from './migrate'
 import { registerModelsCommands } from './models'
@@ -24,7 +24,7 @@ export { registerUtilityCommands } from './utility'
 /**
  * Register all CLI commands
  */
-export function registerAllCommands(cli: CAC): void {
+export function registerAllCommands(cli: CLI): void {
   registerTableCommands(cli)
   registerMigrateCommands(cli)
   registerQueryCommands(cli)

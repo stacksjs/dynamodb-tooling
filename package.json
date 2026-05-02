@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@stacksjs/cli": "^0.70.23",
+    "@stacksjs/clapp": "0.2.0",
     "@stacksjs/logging": "^0.70.23",
     "@stacksjs/storage": "^0.70.23",
     "@types/tar": "^7.0.87",
@@ -73,6 +74,6 @@
       },
       "autoRestage": true
     },
-    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
+    "commit-msg": "bunx --bun @stacksjs/gitlint --edit .git/COMMIT_EDITMSG"
   }
 }

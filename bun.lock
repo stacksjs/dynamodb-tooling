@@ -5,6 +5,7 @@
     "": {
       "name": "dynamodb-tooling",
       "devDependencies": {
+        "@stacksjs/clapp": "0.2.0",
         "@stacksjs/cli": "^0.70.23",
         "@stacksjs/logging": "^0.70.23",
         "@stacksjs/storage": "^0.70.23",
