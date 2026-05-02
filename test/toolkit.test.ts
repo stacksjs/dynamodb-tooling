@@ -66,6 +66,12 @@ describe('dynamodb-tooling', () => {
       }
     })
 
+    // Docker tests get a generous timeout: GitHub-hosted runners need to
+    // pull `amazon/dynamodb-local` on first use (often 30-60s) and then
+    // start the container before the test body even reaches its assertions.
+    // Bun's default 5s timeout is nowhere near enough.
+    const DOCKER_TIMEOUT_MS = 60_000
+
     it('should launch DynamoDB Local via Docker', async () => {
       if (!dockerAvailable) {
         console.log('Skipping Docker test - Docker not available')
@@ -83,7 +89,7 @@ describe('dynamodb-tooling', () => {
       const checkResult = Bun.spawnSync(['docker', 'ps', '-q', '-f', `name=dynamodb-local-${testPort}`])
       const containerId = checkResult.stdout.toString().trim()
       expect(containerId.length).toBeGreaterThan(0)
-    })
+    }, DOCKER_TIMEOUT_MS)
 
     it('should not launch a second instance on the same port', async () => {
       if (!dockerAvailable) {
@@ -93,7 +99,7 @@ describe('dynamodb-tooling', () => {
 
       const secondProcess = await dynamoDb.launch({ port: testPort, useDocker: true })
       expect(String(secondProcess?.pid)).toBe(String(process?.pid))
-    })
+    }, DOCKER_TIMEOUT_MS)
 
     it('should stop DynamoDB Local', () => {
       if (!dockerAvailable) {
@@ -108,7 +114,7 @@ describe('dynamodb-tooling', () => {
       const checkResult = Bun.spawnSync(['docker', 'ps', '-q', '-f', `name=dynamodb-local-${testPort}`])
       const containerId = checkResult.stdout.toString().trim()
       expect(containerId.length).toBe(0)
-    })
+    }, DOCKER_TIMEOUT_MS)
   })
 
   describe('DynamoDB Local (Java) - Mocked Install', () => {
