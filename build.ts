@@ -8,7 +8,10 @@ const result = await Bun.build({
   entrypoints: ['src/index.ts', 'bin/cli.ts'],
   target: 'bun',
   outdir: './dist',
-  sourcemap: 'inline',
+  // `inline` sourcemaps embed the entire source as base64 in the bundle,
+  // roughly doubling the shipped size for zero consumer benefit. Drop them and
+  // minify — the old 12 MB index.js was unminified bundle + inline map.
+  minify: true,
   external: ['confbox'],
   plugins: [dts()],
 })

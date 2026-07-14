@@ -39,8 +39,8 @@
     "src"
   ],
   "scripts": {
-    "build": "bun --bun build.ts && bun --bun run compile",
-    "compile": "bun build ./bin/cli.ts --compile --minify --outfile dist/dbtooling",
+    "build": "bun --bun build.ts",
+    "compile": "bun build ./bin/cli.ts --compile --minify --outfile dbtooling",
     "create-offline-table": "aws dynamodb create-table --table-name=MyOfflineTable --attribute-definitions AttributeName=Artist,AttributeType=S AttributeName=SongTitle,AttributeType=S --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE --provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 --endpoint-url http://localhost:8000 --region us-east-1",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "lint": "bunx --bun pickier .",
