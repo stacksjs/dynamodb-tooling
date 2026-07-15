@@ -35,8 +35,7 @@
     "dbtooling": "./dist/cli.js"
   },
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "build": "bun --bun build.ts",
@@ -50,6 +49,7 @@
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
     "release": "bunx --bun bumpx prompt --recursive",
+    "release:patch": "bunx --bun bumpx patch --recursive --commit --tag --push --yes",
     "postinstall": "bunx git-hooks",
     "prepublishOnly": "bun --bun run build",
     "test": "bun test",
