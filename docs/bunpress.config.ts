@@ -1,7 +1,7 @@
-import type { BunPressConfig } from 'bunpress'
+import type { BunPressConfig } from '@stacksjs/bunpress'
 
 export default {
-  name: 'dynamodb-tooling',
+  title: 'dynamodb-tooling',
   description: 'A comprehensive DynamoDB toolkit for TypeScript with single-table design and Laravel-style ORM',
   themeConfig: {
     nav: [
