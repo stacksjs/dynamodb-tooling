@@ -14,12 +14,12 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.1.0
         with:
           fetch-depth: 0
 
       - name: Set Node.js
-        uses: actions/setup-node@v6.2.0
+        uses: actions/setup-node@v6.5.0
         with:
           registry-url: 'https://registry.npmjs.org'
 
@@ -35,6 +35,6 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
-        uses: stacksjs/action-releaser@v1.2.9
+        uses: stacksjs/action-releaser@v1.2.11
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
