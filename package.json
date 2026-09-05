@@ -56,16 +56,16 @@
     "typecheck": "bun --bun tsc --noEmit"
   },
   "devDependencies": {
-    "@stacksjs/bunpress": "^0.2.11",
-    "@stacksjs/clapp": "0.2.0",
-    "@stacksjs/cli": "^0.70.23",
-    "@stacksjs/logging": "^0.70.23",
-    "@stacksjs/storage": "^0.70.23",
+    "@stacksjs/bunpress": "^0.2.14",
+    "@stacksjs/clapp": "0.2.15",
+    "@stacksjs/cli": "^0.74.24",
+    "@stacksjs/logging": "^0.74.24",
+    "@stacksjs/storage": "^0.74.24",
     "@types/tar": "^7.0.87",
-    "better-dx": "^0.2.15",
+    "better-dx": "^0.2.25",
     "debug": "^4.4.3",
-    "dynamodb-toolbox": "^2.8.0",
-    "tar": "^7.5.11",
+    "dynamodb-toolbox": "^2.10.6",
+    "tar": "^7.5.22",
     "typescript": "^7.0.2"
   },
   "git-hooks": {
